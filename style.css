@@ -1,0 +1,11 @@
+/* TODO: wildcard rule? */
+
+body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+canvas{
+    background-color: black;
+}
