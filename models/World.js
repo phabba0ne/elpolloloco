@@ -3,7 +3,10 @@ class World {
   enemies = [new Chicken(), new Chicken(), new Chicken()];
   clouds = [new Cloud()];
   backgrounds = [
+    new Background("../assets/img/background/layers/air.png", 0),
     new Background("../assets/img/background/layers/thirdLayer/one.png", 0),
+    new Background("../assets/img/background/layers/secondLayer/one.png", 0),
+    new Background("../assets/img/background/layers/firstLayer/one.png", 0),
   ];
 
   canvas;
