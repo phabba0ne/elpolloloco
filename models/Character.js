@@ -4,7 +4,7 @@ class Character extends MovableObject{
     y=230;
 
     constructor(){
-        super().loadImage("assets/img/characterPepe/walk/wTwentyOne.png");
+        super().loadImage("../assets/img/characterPepe/walk/wTwentyOne.png");
     }
 
     jump(){
