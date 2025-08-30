@@ -10,6 +10,9 @@ class Cloud extends MovableObject {
     this.width = 500;
     this.animate();
   }
+
+  // TODO: check
+  //--force push
   animate() {
     setInterval(() => {
       this.x -= 0.15;
