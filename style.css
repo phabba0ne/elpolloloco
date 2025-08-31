@@ -1,11 +1,30 @@
-/* TODO: wildcard rule? */
-
-body{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* Register the global Boogaloo font */
+@font-face {
+  font-family: 'Boogaloo';
+  src: url('assets/fonts/boogalooRegular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
-canvas{
-    background-color: black;
+/* Apply globally */
+body {
+  font-family: 'Boogaloo', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  background: #111; /* optional: gives contrast */
+  color: #fff;      /* ensures text is readable */
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin: 1rem 0;
+}
+
+canvas {
+  background-color: black;
+  border: 2px solid #444;
+  border-radius: 8px;
 }
