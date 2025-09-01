@@ -2,7 +2,10 @@ class Character extends MovableObject {
   height = 200;
   y = 230;
 
-  SPRITES = {
+  constructor() {
+    super();
+
+    const SPRITES = {
     walk: [
       "assets/img/characterPepe/walk/wTwentyOne.png",
       "assets/img/characterPepe/walk/wTwentyTwo.png",
@@ -54,35 +57,18 @@ class Character extends MovableObject {
       "assets/img/characterPepe/dead/dFiftyThree.png",
     ],
   };
+   this.stateMachine = new StateMachine(SPRITES, "walk", 6);
+    this.stateMachine.setState("walk");
 
-  constructor() {
-    super();
-    this.loadImage("assets/img/characterPepe/walk/wTwentyOne.png");
-    this.loadImages(this.SPRITES.walk);
-
-    this.loadImage("assets/img/characterPepe/jump/jThirtyOne.png");
-    this.loadImages(this.SPRITES.jump);
-
-    this.loadImage("assets/img/characterPepe/idle/idle/iOne.png");
-    this.loadImages(this.SPRITES.idle);
-
-    this.loadImage("assets/img/characterPepe/idle/longIdle/iEleven.png");
-    this.loadImages(this.SPRITES.longIdle);
-
-    this.loadImage("assets/img/characterPepe/hurt/hFortyOne.png");
-    this.loadImages(this.SPRITES.hurt);
-
-    this.loadImage("assets/img/characterPepe/walk/wTwentyOne.png");
-    this.loadImages(this.SPRITES.dead);
+    AssetManager.loadAll(Object.values(SPRITES).flat()).then(() => {
+      this.img = this.stateMachine.getFrame();
+    });
 
     this.animate();
   }
 
   animate() {
-    setInterval(() => {
-      // this.playAnimation(this.SPRITES.longIdle);
-      this.playAnimation(this.SPRITES.walk);
-    }, 1000 / 10); // 10 FPS für Animation (nicht 60, sonst zu schnell!)
+    this.moveRight();
   }
 
   jump() {

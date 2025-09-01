@@ -17,10 +17,9 @@ class Chicken extends MovableObject {
 
     this.stateMachine = new StateMachine(SPRITES, "walk", 6);
     // this.stateMachine.setState("dead");
-
-    // preload aller frames
+    
     AssetManager.loadAll(Object.values(SPRITES).flat()).then(() => {
-      this.img = this.stateMachine.getFrame(); // erstes Frame
+      this.img = this.stateMachine.getFrame();
     });
 
     this.x = 200 + Math.random() * 500;
@@ -29,19 +28,5 @@ class Chicken extends MovableObject {
 
   animate() {
     this.moveLeft();
-  }
-
-  moveLeft() {
-    setInterval(() => {
-      const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame; // immer ein HTMLImage
-    }, 1000 / this.stateMachine.frameRate);
-    setInterval(() => {
-      if (this.stateMachine.currentState === "walk") this.x -= 0.5;
-    }, 1000 / 60);
-  }
-
-  die() {
-    this.stateMachine.setState("dead");
   }
 }
