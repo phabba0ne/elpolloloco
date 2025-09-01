@@ -2,25 +2,76 @@ class Character extends MovableObject {
   height = 200;
   y = 230;
 
-  IMAGES_WALKING = [
-    "assets/img/characterPepe/walk/wTwentyOne.png",
-    "assets/img/characterPepe/walk/wTwentyTwo.png",
-    "assets/img/characterPepe/walk/wTwentyThree.png",
-    "assets/img/characterPepe/walk/wTwentyFour.png",
-    "assets/img/characterPepe/walk/wTwentyFive.png",
-    "assets/img/characterPepe/walk/wTwentySix.png",
-  ];
+  SPRITES = {
+    walk: [
+      "assets/img/characterPepe/walk/wTwentyOne.png",
+      "assets/img/characterPepe/walk/wTwentyTwo.png",
+      "assets/img/characterPepe/walk/wTwentyThree.png",
+      "assets/img/characterPepe/walk/wTwentyFour.png",
+      "assets/img/characterPepe/walk/wTwentyFive.png",
+      "assets/img/characterPepe/walk/wTwentySix.png",
+    ],
+     jump: [
+      "assets/img/characterPepe/jump/jThirtyOne.png",
+      "assets/img/characterPepe/jump/jThirtyTwo.png",
+      "assets/img/characterPepe/jump/jThirtyThree.png",
+      "assets/img/characterPepe/jump/jThirtyFour.png",
+      "assets/img/characterPepe/jump/jThirtyFive.png",
+      "assets/img/characterPepe/jump/jThirtySix.png",
+      "assets/img/characterPepe/jump/jThirtySeven.png",
+      "assets/img/characterPepe/jump/jThirtyEight.png",
+      "assets/img/characterPepe/jump/jThirtyNine.png",
+
+      
+
+     ],
+     idle:[
+      "assets/img/characterPepe/idle/idle/iOne.png",
+      "assets/img/characterPepe/idle/idle/iTwo.png",
+      "assets/img/characterPepe/idle/idle/iThree.png",
+      "assets/img/characterPepe/idle/idle/iFour.png",
+      "assets/img/characterPepe/idle/idle/iFive.png",
+      "assets/img/characterPepe/idle/idle/iSix.png",
+      "assets/img/characterPepe/idle/idle/iSeven.png",
+
+     ],
+     longIdle:[
+      "assets/img/characterPepe/idle/longIdle/iEleven.png",
+      "assets/img/characterPepe/idle/longIdle/iTwelve.png",
+      "assets/img/characterPepe/idle/longIdle/iThirteen.png",
+      "assets/img/characterPepe/idle/longIdle/iFourteen.png",
+      "assets/img/characterPepe/idle/longIdle/iFifteen.png",
+      "assets/img/characterPepe/idle/longIdle/iSixteen.png",
+      "assets/img/characterPepe/idle/longIdle/iSeventeen.png",
+      "assets/img/characterPepe/idle/longIdle/iEighteen.png",
+      "assets/img/characterPepe/idle/longIdle/iNineteen.png",
+      "assets/img/characterPepe/idle/longIdle/iTwenty.png",
+
+     ],
+     hurt:[
+      "assets/img/characterPepe/hurt/hFortyOne.png",
+      "assets/img/characterPepe/hurt/hFortyTwo.png",
+      "assets/img/characterPepe/hurt/hFortyThree.png",
+
+     ],
+     dead:[
+      "assets/img/characterPepe/dead/dFiftyOne.png",
+      "assets/img/characterPepe/dead/dFiftyTwo.png",
+      "assets/img/characterPepe/dead/dFiftyThree.png",
+
+     ]
+  };
 
   constructor() {
     super();
     this.loadImage("assets/img/characterPepe/walk/wTwentyOne.png");
-    this.loadImages(this.IMAGES_WALKING);
+    this.loadImages(this.SPRITES.walk);
     this.animate();
   }
 
   animate() {
     setInterval(() => {
-      this.playAnimation(this.IMAGES_WALKING);
+      this.playAnimation(this.SPRITES.walk);
     }, 1000 / 10); // 10 FPS für Animation (nicht 60, sonst zu schnell!)
   }
 

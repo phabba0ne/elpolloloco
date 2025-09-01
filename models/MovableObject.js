@@ -1,7 +1,6 @@
 class MovableObject {
   x = 120;
   y = 280;
-  img;
   height = 150;
   width = 100;
   imageCache = {};
@@ -25,13 +24,5 @@ class MovableObject {
     let path = images[i];
     this.img = this.imageCache[path];
     this.currentImage++;
-  }
-
-  moveRight() {
-    console.log("Moving right");
-  }
-
-  moveLeft() {
-    console.log("Moving left");
   }
 }

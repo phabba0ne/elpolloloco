@@ -23,5 +23,3 @@ class StateMachine {
     return img || null; // liefert direkt HTMLImage oder null
   }
 }
-
-window.StateMachine = StateMachine;

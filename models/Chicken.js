@@ -18,7 +18,8 @@ class Chicken extends MovableObject {
     };
 
     this.stateMachine = new StateMachine(SPRITES, "walk", 6);
-
+    // this.stateMachine.setState("dead");
+    
     // preload aller frames
     AssetManager.loadAll(Object.values(SPRITES).flat()).then(() => {
       this.img = this.stateMachine.getFrame(); // erstes Frame
