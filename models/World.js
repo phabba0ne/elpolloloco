@@ -24,8 +24,6 @@ class World {
     this.start();
   }
 
-
-
   setWorld() {
     this.character.world = this.world;
   }
@@ -40,24 +38,26 @@ class World {
   }
 
   loop() {
-    if (keyboard.left) {
-      console.log("LEFT");
-      
+    if (!this.running) return; // stoppt Loop sofort
+    if (this.keyboard.left) {
+      this.character.stateMachine.setState("walk");
+      this.character.moveLeft();
     }
-    if (keyboard.right) {
-       console.log("RIGHT");
-    }
-
-    if (keyboard.jump) {
-       console.log("JUMP");
+    if (this.keyboard.right) {
+      this.character.stateMachine.setState("walk");
+      this.character.moveRight();
     }
 
-    if (keyboard.attack) {
-       console.log("BANG");
+    if (this.keyboard.jump) {
+      console.log("JUMP");
+    }
+
+    if (this.keyboard.attack) {
+      console.log("BANG");
     }
 
     // Frame beenden → Status merken
-    keyboard.update();
+    this.keyboard.update();
 
     this.draw();
     requestAnimationFrame(() => this.loop());

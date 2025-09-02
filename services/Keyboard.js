@@ -1,7 +1,7 @@
 class Keyboard {
   constructor() {
-    this.keys = {};
-    this.prevKeys = {};
+    this.keys = {};      // aktueller Status
+    this.prevKeys = {};  // Status im letzten Frame
 
     window.addEventListener("keydown", (e) => {
       this.keys[e.code] = true;
@@ -12,22 +12,30 @@ class Keyboard {
     });
   }
 
-  // Muss am Anfang jedes Frames aufgerufen werden!
+  /**
+   * Muss am Anfang jedes Frames aufgerufen werden!
+   */
   update() {
     this.prevKeys = { ...this.keys };
   }
 
-  // Wird die Taste aktuell gehalten?
+  /**
+   * Wird die Taste aktuell gehalten?
+   */
   isPressed(code) {
     return !!this.keys[code];
   }
 
-  // Wurde die Taste gerade in diesem Frame gedrückt?
+  /**
+   * Wurde die Taste gerade in diesem Frame gedrückt?
+   */
   justPressed(code) {
     return this.isPressed(code) && !this.prevKeys[code];
   }
 
-  // Aliase für Bewegungen (halten erlaubt)
+  /**
+   * Bewegungen: halten erlaubt
+   */
   get left() {
     return this.justPressed("ArrowLeft");
   }
@@ -37,14 +45,16 @@ class Keyboard {
   }
 
   get up() {
-    return this.justPressed("ArrowUp");
+    return this.isPressed("ArrowUp");
   }
 
   get down() {
-    return this.justPressed("ArrowDown");
+    return this.isPressed("ArrowDown");
   }
 
-  // Aliase für Aktionen (nur einmal beim Drücken)
+  /**
+   * Aktionen: nur einmal pro Drücken
+   */
   get jump() {
     return this.justPressed("Space");
   }

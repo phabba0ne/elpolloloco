@@ -8,14 +8,11 @@ class Character extends MovableObject {
 
     
    this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10);
-    this.stateMachine.setState("walk");
-    // this.stateMachine.setState("longIdle");
 
 
     AssetManager.loadAll(Object.values(AssetManager.PEPE_SPRITES).flat()).then(() => {
       this.img = this.stateMachine.getFrame();
     });
-    this.moveRight();
   }
 
   jump() {
