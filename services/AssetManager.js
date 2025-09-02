@@ -5,9 +5,11 @@
  * Ensures assets are available before the game world initializes.
  */
 class AssetManager {
+  // ---------- Caches ----------
   static imageCache = new Map();
   static audioCache = new Map();
 
+  // ---------- Sprite definitions ----------
   static PEPE_SPRITES = {
     walk: [
       "assets/img/characterPepe/walk/wTwentyOne.png",
@@ -72,9 +74,7 @@ class AssetManager {
 
   // ---------- Images ----------
   static loadImage(path) {
-    if (this.imageCache.has(path)) {
-      return Promise.resolve(this.imageCache.get(path));
-    }
+    if (this.imageCache.has(path)) return Promise.resolve(this.imageCache.get(path));
 
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -97,9 +97,7 @@ class AssetManager {
 
   // ---------- Audio ----------
   static loadAudio(path) {
-    if (this.audioCache.has(path)) {
-      return Promise.resolve(this.audioCache.get(path));
-    }
+    if (this.audioCache.has(path)) return Promise.resolve(this.audioCache.get(path));
 
     return new Promise((resolve, reject) => {
       const audio = new Audio();
@@ -125,10 +123,7 @@ class AssetManager {
     const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
     const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
 
-    await Promise.all([
-      this.loadImages(imagePaths),
-      this.loadAudios(audioPaths),
-    ]);
+    await Promise.all([this.loadImages(imagePaths), this.loadAudios(audioPaths)]);
   }
 }
 
