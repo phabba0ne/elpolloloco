@@ -35,26 +35,19 @@ class World {
     this.running = false;
   }
 
-  loop(now) {
+  loop() {
     if (!this.running) return;
-    const dt = Math.min(0.05, (now - this.lastTime) / 1000); // dt in Sekunden, clamped
-    this.lastTime = now;
-
     this.draw();
-
-    requestAnimationFrame(()=>this.loop());
+    requestAnimationFrame(() => this.loop());
   }
 
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Draw backgrounds (zuerst)
     this.addObjectsToMap(this.backgrounds);
-    // Clouds sollten hinter dem Character, aber vor Hintergründen? Du hattest clouds zuletzt; passe an
     this.addObjectsToMap(this.clouds);
-    // Character & enemies & so weiter
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
+
   }
 
   addObjectsToMap(objects) {
