@@ -40,24 +40,9 @@ class World {
     const dt = Math.min(0.05, (now - this.lastTime) / 1000); // dt in Sekunden, clamped
     this.lastTime = now;
 
-    this.update(dt);
     this.draw();
 
-    requestAnimationFrame(this._loop);
-  }
-
-  update(dt) {
-    const W = this.canvas.width;
-    // update clouds centrally (kein setInterval pro cloud)
-    this.clouds.forEach((c) => {
-      if (typeof c.update === "function") c.update(dt, W);
-    });
-
-    // update enemies / player etc. falls du update-Funktionen hast
-    this.enemies.forEach((e) => {
-      if (typeof e.update === "function") e.update(dt);
-    });
-    if (typeof this.character.update === "function") this.character.update(dt);
+    requestAnimationFrame(()=>this.loop());
   }
 
   draw() {

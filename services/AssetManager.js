@@ -8,6 +8,68 @@ class AssetManager {
   static imageCache = new Map();
   static audioCache = new Map();
 
+  static PEPE_SPRITES = {
+    walk: [
+      "assets/img/characterPepe/walk/wTwentyOne.png",
+      "assets/img/characterPepe/walk/wTwentyTwo.png",
+      "assets/img/characterPepe/walk/wTwentyThree.png",
+      "assets/img/characterPepe/walk/wTwentyFour.png",
+      "assets/img/characterPepe/walk/wTwentyFive.png",
+      "assets/img/characterPepe/walk/wTwentySix.png",
+    ],
+    jump: [
+      "assets/img/characterPepe/jump/jThirtyOne.png",
+      "assets/img/characterPepe/jump/jThirtyTwo.png",
+      "assets/img/characterPepe/jump/jThirtyThree.png",
+      "assets/img/characterPepe/jump/jThirtyFour.png",
+      "assets/img/characterPepe/jump/jThirtyFive.png",
+      "assets/img/characterPepe/jump/jThirtySix.png",
+      "assets/img/characterPepe/jump/jThirtySeven.png",
+      "assets/img/characterPepe/jump/jThirtyEight.png",
+      "assets/img/characterPepe/jump/jThirtyNine.png",
+    ],
+    idle: [
+      "assets/img/characterPepe/idle/idle/iOne.png",
+      "assets/img/characterPepe/idle/idle/iTwo.png",
+      "assets/img/characterPepe/idle/idle/iThree.png",
+      "assets/img/characterPepe/idle/idle/iFour.png",
+      "assets/img/characterPepe/idle/idle/iFive.png",
+      "assets/img/characterPepe/idle/idle/iSix.png",
+      "assets/img/characterPepe/idle/idle/iSeven.png",
+    ],
+    longIdle: [
+      "assets/img/characterPepe/idle/longIdle/iEleven.png",
+      "assets/img/characterPepe/idle/longIdle/iTwelve.png",
+      "assets/img/characterPepe/idle/longIdle/iThirteen.png",
+      "assets/img/characterPepe/idle/longIdle/iFourteen.png",
+      "assets/img/characterPepe/idle/longIdle/iFifteen.png",
+      "assets/img/characterPepe/idle/longIdle/iSixteen.png",
+      "assets/img/characterPepe/idle/longIdle/iSeventeen.png",
+      "assets/img/characterPepe/idle/longIdle/iEighteen.png",
+      "assets/img/characterPepe/idle/longIdle/iNineteen.png",
+      "assets/img/characterPepe/idle/longIdle/iTwenty.png",
+    ],
+    hurt: [
+      "assets/img/characterPepe/hurt/hFortyOne.png",
+      "assets/img/characterPepe/hurt/hFortyTwo.png",
+      "assets/img/characterPepe/hurt/hFortyThree.png",
+    ],
+    dead: [
+      "assets/img/characterPepe/dead/dFiftyOne.png",
+      "assets/img/characterPepe/dead/dFiftyTwo.png",
+      "assets/img/characterPepe/dead/dFiftyThree.png",
+    ],
+  };
+
+  static CHICKEN_SPRITES = {
+    walk: [
+      "assets/img/enemiesChicken/chickenNormal/walk/oneW.png",
+      "assets/img/enemiesChicken/chickenNormal/walk/twoW.png",
+      "assets/img/enemiesChicken/chickenNormal/walk/threeW.png",
+    ],
+    dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
+  };
+
   // ---------- Images ----------
   static loadImage(path) {
     if (this.imageCache.has(path)) {
@@ -21,13 +83,12 @@ class AssetManager {
         this.imageCache.set(path, img);
         resolve(img);
       };
-      img.onerror = () =>
-        reject(new Error(`Failed to load image: ${path}`));
+      img.onerror = () => reject(new Error(`Failed to load image: ${path}`));
     });
   }
 
   static async loadImages(paths) {
-    return Promise.all(paths.map(p => this.loadImage(p)));
+    return Promise.all(paths.map((p) => this.loadImage(p)));
   }
 
   static getImage(path) {
@@ -47,13 +108,12 @@ class AssetManager {
         this.audioCache.set(path, audio);
         resolve(audio);
       };
-      audio.onerror = () =>
-        reject(new Error(`Failed to load audio: ${path}`));
+      audio.onerror = () => reject(new Error(`Failed to load audio: ${path}`));
     });
   }
 
   static async loadAudios(paths) {
-    return Promise.all(paths.map(p => this.loadAudio(p)));
+    return Promise.all(paths.map((p) => this.loadAudio(p)));
   }
 
   static getAudio(path) {
@@ -62,8 +122,8 @@ class AssetManager {
 
   // ---------- Generic ----------
   static async loadAll(assets) {
-    const imagePaths = assets.filter(a => a.match(/\.(png|jpg|jpeg|gif)$/));
-    const audioPaths = assets.filter(a => a.match(/\.(mp3|ogg|wav)$/));
+    const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
+    const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
 
     await Promise.all([
       this.loadImages(imagePaths),
