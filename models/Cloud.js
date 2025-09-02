@@ -22,5 +22,11 @@ class Cloud extends MovableObject {
       this.SPRITES[Math.floor(Math.random() * this.SPRITES.length)];
     this.loadImage(randomSprite);
   }
+  //IntervalHub
+  moveLeft() {
+    this.x -= 2; // verschiebe Wolke nach links
+    if (this.x + this.width < 0) {
+      this.x = 800; // reset am rechten Rand
+    }
+  }
 }
- 

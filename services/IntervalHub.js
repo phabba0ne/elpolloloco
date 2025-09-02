@@ -1,13 +1,23 @@
-// TODO: IntervalHub
+/**
+ * IntervalHub
+ * ------------
+ * Central manager for all setIntervals.
+ * Allows starting intervals and stopping them all at once.
+ */
+class IntervalHub {
+    static allIntervals = [];
 
-class IntervalHub{
-    static allIntervals=[];
-
-    static startInterval(func, timer){
+    static startInterval(func, timer) {
         const newInterval = setInterval(func, timer);
-        IntervalHub.allIntervals.push(newInterval);
+        this.allIntervals.push(newInterval);
+        return newInterval; // optional, falls du einzelne stoppen willst
     }
-    static stopAllIntervals(){
-        IntervalHub.allIntervals.forEach(clearInterval);
+
+    static stopAllIntervals() {
+        this.allIntervals.forEach(clearInterval);
+        this.allIntervals = [];
     }
 }
+
+// Global verfügbar machen
+window.IntervalHub = IntervalHub;

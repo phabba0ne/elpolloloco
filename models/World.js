@@ -5,6 +5,7 @@ class World {
   character = new Character();
   enemies = [new Chicken(), new Chicken(), new Chicken(), new Chicken()];
   clouds = [new Cloud()];
+
   backgrounds = [
     new Background("assets/img/background/layers/air.png", 0),
     new Background("assets/img/background/layers/thirdLayer/one.png", 0),
@@ -16,11 +17,16 @@ class World {
     this.ctx = canvas.getContext("2d");
     this.canvas = canvas;
     this.keyboard = keyboard;
-    // loop-Timing
     this.lastTime = performance.now();
     this.running = true;
     this.setWorld();
-    // Optional: Warte, bis mindestens ein wichtiges Asset geladen ist, oder starte sofort
+
+    // Character schaut zu Beginn nach rechts
+    this.character.otherDirection = true;
+
+    // Alle Chickens laufen von rechts nach links
+    this.enemies.forEach((chicken) => (chicken.otherDirection = false));
+
     this.start();
   }
 
@@ -29,21 +35,32 @@ class World {
   }
 
   start() {
+    // Hauptloop per requestAnimationFrame
     this._loop = this.loop.bind(this);
     requestAnimationFrame(this._loop);
+
+    // Clouds bewegen sich alle 50ms
+    IntervalHub.startInterval(() => this.updateClouds(), 50);
+
+    // Optional: Gegner-Spawn alle 3 Sekunden
+    IntervalHub.startInterval(() => this.spawnEnemy(), 3000);
   }
 
   stop() {
     this.running = false;
+    IntervalHub.stopAllIntervals(); // ALLE Intervalle aufräumen
   }
 
   loop() {
-    if (!this.running) return; // stoppt Loop sofort
+    if (!this.running) return;
+
     if (this.keyboard.left) {
+      this.character.otherDirection = false; // nach links → spiegeln
       this.character.stateMachine.setState("walk");
       this.character.moveLeft();
     }
     if (this.keyboard.right) {
+      this.character.otherDirection = true; // nach rechts → normal
       this.character.stateMachine.setState("walk");
       this.character.moveRight();
     }
@@ -56,11 +73,18 @@ class World {
       console.log("BANG");
     }
 
-    // Frame beenden → Status merken
     this.keyboard.update();
-
     this.draw();
-    requestAnimationFrame(() => this.loop());
+
+    requestAnimationFrame(this._loop);
+  }
+
+  updateClouds() {
+    this.clouds.forEach((c) => c.moveLeft());
+  }
+
+  spawnEnemy() {
+    this.enemies.push(new Chicken());
   }
 
   draw() {
@@ -72,20 +96,37 @@ class World {
   }
 
   addObjectsToMap(objects) {
-    objects.forEach((o) => this.addToMap(o));
+    objects.forEach((o) => {
+      this.addToMap(o);
+    });
   }
 
   addToMap(mo) {
     if (!mo) return;
-    // Sicherstellen, dass das Image geladen ist
+
     if (
       mo.img instanceof Image &&
       mo.img.complete &&
       mo.img.naturalWidth !== 0
     ) {
-      this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
+      this.ctx.save();
+
+      // Wenn es ein Character ist → Richtungsflag beachten
+      if (mo instanceof Character) {
+        if (!mo.otherDirection) {
+          this.ctx.translate(mo.x + mo.width, mo.y);
+          this.ctx.scale(-1, 1);
+          this.ctx.drawImage(mo.img, 0, 0, mo.width, mo.height);
+        } else {
+          this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
+        }
+      }
+      else {
+        this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
+      }
+
+      this.ctx.restore();
     } else {
-      // Platzhalter-Rechteck, falls Bild noch nicht da ist (vermeidet Exceptions)
       this.ctx.fillStyle = "magenta";
       this.ctx.fillRect(mo.x, mo.y, mo.width, mo.height);
     }
