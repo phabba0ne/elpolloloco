@@ -34,6 +34,7 @@ class World {
     this.character.world = this.world;
   }
 
+  //IntervalHub
   start() {
     // Hauptloop per requestAnimationFrame
     this._loop = this.loop.bind(this);
