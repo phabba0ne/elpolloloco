@@ -8,7 +8,7 @@ class Chicken extends MovableObject {
   constructor() {
     super();
 
-    this.stateMachine = new StateMachine(AssetManager.CHICKEN_SPRITES, "walk", 6);
+    this.stateMachine = new StateMachine(AssetManager.CHICKEN_SPRITES, "walk");
     // this.stateMachine.setState("dead");
     
     AssetManager.loadAll(Object.values(AssetManager.CHICKEN_SPRITES).flat()).then(() => {
@@ -18,14 +18,4 @@ class Chicken extends MovableObject {
     this.x = 200 + Math.random() * 500;
     this.moveLeft();
   }
-  update() {
-  // 1. Animation aktualisieren
-  const frame = this.stateMachine.getFrame();
-  if (frame) this.img = frame;
-
-  // 2. Bewegung anwenden
-  if (this.stateMachine.currentState === "walk") {
-    this.x -= 0.5;
-  }
-}
 }

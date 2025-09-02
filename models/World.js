@@ -1,8 +1,7 @@
 class World {
   canvas;
   ctx;
-
-  //spawn character
+  keyboard = new Keyboard();
   character = new Character();
   enemies = [new Chicken(), new Chicken(), new Chicken(), new Chicken()];
   clouds = [new Cloud()];
@@ -13,20 +12,25 @@ class World {
     new Background("assets/img/background/layers/firstLayer/one.png", 0),
   ];
 
-  constructor(canvas) {
+  constructor(canvas, keyboard) {
     this.ctx = canvas.getContext("2d");
     this.canvas = canvas;
-
+    this.keyboard = keyboard;
     // loop-Timing
     this.lastTime = performance.now();
     this.running = true;
-
+    this.setWorld();
     // Optional: Warte, bis mindestens ein wichtiges Asset geladen ist, oder starte sofort
     this.start();
   }
 
+
+
+  setWorld() {
+    this.character.world = this.world;
+  }
+
   start() {
-    // bind the loop so 'this' stimmt im rAF callback
     this._loop = this.loop.bind(this);
     requestAnimationFrame(this._loop);
   }
@@ -36,7 +40,25 @@ class World {
   }
 
   loop() {
-    if (!this.running) return;
+    if (keyboard.left) {
+      console.log("LEFT");
+      
+    }
+    if (keyboard.right) {
+       console.log("RIGHT");
+    }
+
+    if (keyboard.jump) {
+       console.log("JUMP");
+    }
+
+    if (keyboard.attack) {
+       console.log("BANG");
+    }
+
+    // Frame beenden → Status merken
+    keyboard.update();
+
     this.draw();
     requestAnimationFrame(() => this.loop());
   }
@@ -47,7 +69,6 @@ class World {
     this.addObjectsToMap(this.clouds);
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
-
   }
 
   addObjectsToMap(objects) {

@@ -6,7 +6,6 @@ class MovableObject {
   imageCache = {};
   currentImage = 0;
   otherDirection = false;
-  
 
   // TODO: startInterval_EPL
 
@@ -23,25 +22,50 @@ class MovableObject {
     });
   }
 
-    moveLeft() {
-    setInterval(() => {
-      const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame; // immer ein HTMLImage
-    }, 1000 / this.stateMachine.frameRate);
-    setInterval(() => {
-      if (this.stateMachine.currentState === "walk") this.x -= 0.5;
-    }, 1000 / 60);
-  }
+move(direction) {
+  if (this._moveFrame) cancelAnimationFrame(this._moveFrame);
 
-    moveRight() { 
-    setInterval(() => {
+  let lastTime = performance.now();
+  const speed = 30; // Pixel pro Sekunde (langsamer machen = kleinerer Wert)
+  const frameDuration = 1000 / this.stateMachine.frameRate; // Animationsgeschwindigkeit
+  let frameTimer = 0;
+
+  const loop = (time) => {
+    const delta = time - lastTime;
+    lastTime = time;
+
+    // ---- Animation ----
+    frameTimer += delta;
+    if (frameTimer >= frameDuration) {
+      frameTimer = 0;
       const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame; // immer ein HTMLImage
-    }, 1000 / this.stateMachine.frameRate);
-    setInterval(() => {
-      if (this.stateMachine.currentState === "walk") this.x += 0.5;
-    }, 1000 / 60);
-  }
+      if (frame) this.img = frame;
+    }
+
+    // ---- Bewegung ----
+    if (this.stateMachine.currentState === "walk") {
+      this.x += direction * (speed * (delta / 1000));
+      // delta/1000 = Sekunden seit letztem Frame → framerate-unabhängig
+    }
+
+    this._moveFrame = requestAnimationFrame(loop);
+  };
+
+  this._moveFrame = requestAnimationFrame(loop);
+}
+
+moveLeft() {
+  this.move(-1);
+}
+
+moveRight() {
+  this.move(1);
+}
+
+stop() {
+  if (this._moveFrame) cancelAnimationFrame(this._moveFrame);
+  this._moveFrame = null;
+}
 
     die() {
     this.stateMachine.setState("dead");
