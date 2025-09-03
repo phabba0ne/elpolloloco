@@ -3,10 +3,10 @@ class Chicken extends MovableObject {
   y = 370;
   width = 60;
   height = 60;
-  speed=0.5;
+  speedX;
   constructor() {
     super();
-
+    this.speedX=this.speedX;
     this.stateMachine = new StateMachine(AssetManager.CHICKEN_SPRITES, "walk", 6);
     // this.stateMachine.setState("dead");
     

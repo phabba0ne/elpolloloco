@@ -15,14 +15,6 @@ class MovableObject {
     this.img.src = path;
   }
 
-  loadImages(paths) {
-    paths.forEach((path) => {
-      const img = new Image();
-      img.src = path;
-      this.imageCache[path] = img;
-    });
-  }
-
   /**
    * Startet die Bewegung + Animation in eine Richtung
    * @param {number} direction -1 = links, +1 = rechts
@@ -31,7 +23,7 @@ class MovableObject {
     this.stop(); // immer erst altes loop beenden
 
     let lastTime = performance.now();
-    const speed = 100; // px/s
+    const speed = 60; // px/s
     const frameDuration = 1000 / this.stateMachine.frameRate;
     let frameTimer = 0;
 
@@ -42,7 +34,7 @@ class MovableObject {
       // ---- Animation ----
       frameTimer += delta;
       if (frameTimer >= frameDuration) {
-        frameTimer = 0;
+        frameTimer = 6;
         const frame = this.stateMachine.getFrame();
         if (frame) this.img = frame;
       }

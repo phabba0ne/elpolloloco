@@ -10,7 +10,6 @@ class IntervalHub {
     static startInterval(func, timer) {
         const newInterval = setInterval(func, timer);
         this.allIntervals.push(newInterval);
-        return newInterval; // optional, falls du einzelne stoppen willst
     }
 
     static stopAllIntervals() {
@@ -21,3 +20,6 @@ class IntervalHub {
 
 // Global verfügbar machen
 window.IntervalHub = IntervalHub;
+
+// test
+// console.log(IntervalHub.allIntervals)

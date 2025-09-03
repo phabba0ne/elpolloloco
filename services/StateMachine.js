@@ -1,5 +1,5 @@
 class StateMachine {
-  constructor(states, initialState = "idle", frameRate = 6) {
+  constructor(states, initialState = "idle", frameRate = 60) {
     this.states = states;            // { walk: [path1, path2], dead: [...] }
     this.currentState = initialState;
     this.currentFrame = 0;

@@ -1,11 +1,13 @@
-🐔# 🐔 El Pollo Loco
+# 🐔 El Pollo Loco
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![JS](https://img.shields.io/badge/JavaScript-ES6+-brightgreen)
 ![HTML5](https://img.shields.io/badge/HTML5-Canvas-orange)
 ![Status](https://img.shields.io/badge/status-in%20development-blue)
 
-A small **HTML5/Canvas-based platformer game** built with **Vanilla JavaScript (ES6+)**, using a clean modular architecture with services for **state management, asset handling, and a central game loop**.
+## Project Overview
+
+**El Pollo Loco** is an HTML5/Canvas-based side-scroller game that utilizes modern web technologies such as ES6+, the Canvas API, CSS3 animations, and HTML5 audio. The project is built with a modular structure, allowing easy extensions with new characters, enemies, assets, or gameplay mechanics.
 
 ---
 
@@ -26,111 +28,125 @@ cd el-pollo-loco
 
 # Start a local web server (example with serve)
 npx serve .
+```
 
+---
 
+# El Pollo Loco – Developer Guide
 
-<!-- ------------ DEV DOKU ------------ -->
+## AssetManager Developer Documentation
 
-BENEFITS / BEST PRACTICE IntervalHub :
-	•	All animation intervals are centrally tracked.
-	•	You can stop all or selective intervals when changing levels or pausing the game.
-	•	Keeps your main World.loop() clean and free from scattered setInterval calls.
+**Purpose:**  
+The `AssetManager` is a central hub for loading, caching, and accessing all images and audio used in the game. It ensures that all assets are available before gameplay starts, preventing rendering or sound errors.
 
+### API
 
-  PROBLEMATIC:
+#### `AssetManager.loadImage(path)`
 
-  setInterval(() => {
-  const path = this.stateMachine.getNextFrame();
-  if (path && this.imageCache[path]) {
-    this.img = this.imageCache[path];
-  }
-}, 1000 / this.stateMachine.frameRate);
+Loads a single image and stores it in the cache.
 
-Problem: each character/enemy that uses setInterval creates a separate, unmanaged interval.
-This can lead to too many intervals, memory leaks, or difficulty stopping animations when the game stops.
+- **Parameters:** `path` – String path to the image.
+- **Returns:** Promise resolving to the loaded `Image` object.
 
-REFAC LIKE THIS:
+#### `AssetManager.loadImages(paths)`
 
-1.	Replace all setInterval calls with IntervalHub.startInterval()
+Loads multiple images at once.
 
-IntervalHub.startInterval(() => {
-  const path = this.stateMachine.getNextFrame();
-  if (path && this.imageCache[path]) {
-    this.img = this.imageCache[path];
-  }
-}, 1000 / this.stateMachine.frameRate);
+- **Parameters:** `paths` – Array of image paths.
+- **Returns:** Promise resolving when all images are loaded.
 
+#### `AssetManager.getImage(path)`
 
-// e.g., on game over or when the character is removed
-IntervalHub.stopAllIntervals();
+Retrieve a loaded image from the cache.
 
+- **Parameters:** `path` – String path to the image.
+- **Returns:** `HTMLImageElement` or `undefined`.
 
+#### `AssetManager.loadAudio(path)`
 
-<!-- ---------- IntervalHub ---------- -->
+Loads a single audio file and stores it in the cache.
 
-IntervalHub Developer Documentation
+- **Parameters:** `path` – String path to the audio file.
+- **Returns:** Promise resolving to the loaded `Audio` object.
 
-Purpose
+#### `AssetManager.loadAudios(paths)`
 
-The IntervalHub is a central helper class to manage all setInterval calls. This prevents intervals from running uncontrollably (avoiding memory leaks and performance issues) and provides a unified mechanism to start and stop intervals.
+Loads multiple audio files at once.
 
-API
+- **Parameters:** `paths` – Array of audio paths.
+- **Returns:** Promise resolving when all audio files are loaded.
 
-IntervalHub.startInterval(func, timer)
+#### `AssetManager.getAudio(path)`
 
-Starts a new interval.
+Retrieve a loaded audio from the cache.
 
-Parameters:
+- **Parameters:** `path` – String path to the audio file.
+- **Returns:** `HTMLAudioElement` or `undefined`.
 
-func – Callback function to execute at each tick
+#### `AssetManager.loadAll(assets)`
 
-timer – Time interval in milliseconds
+Loads all images and audio from an array of asset paths.
 
-Returns: nothing (the interval is stored internally)
+- **Parameters:** `assets` – Array of paths (images and audio mixed).
+- **Returns:** Promise resolving when all assets are loaded.
 
-Example:
+### Best Practices
 
+- Always preload assets before starting the game loop.
+- Organize sprites by character/enemy in dedicated arrays (`PEPE_SPRITES`, `CHICKEN_SPRITES`) for clarity.
+- Access assets via `getImage` or `getAudio` only after they are fully loaded.
+- Avoid loading the same asset multiple times; `AssetManager` automatically caches loaded assets.
+
+---
+
+## IntervalHub Developer Documentation
+
+**Purpose:**  
+`IntervalHub` manages all `setInterval` calls centrally to prevent memory leaks and uncontrolled intervals. This ensures clean game lifecycle management.
+
+### API
+
+#### `IntervalHub.startInterval(func, timer)`
+
+Starts a new interval and stores it internally.
+
+- **Parameters:**
+  - `func` – Callback function to execute at each tick.
+  - `timer` – Interval duration in milliseconds.
+- **Returns:** Nothing.
+
+**Example:**
+
+```javascript
 IntervalHub.startInterval(() => {
   console.log("Tick every 1000ms");
 }, 1000);
+```
 
-IntervalHub.stopAllIntervals()
+#### `IntervalHub.stopAllIntervals()`
 
-Stops all intervals that were started.
+Stops all currently active intervals.
 
-Useful for Game Over, level change, or when a reset is needed.
+- **Use case:** Game Over, level reset, or pausing the game.
 
-Example:
+**Example:**
 
-// e.g., in World.stop()
-IntervalHub.stopAllIntervals();
+```javascript
+IntervalHub.stopAllIntervals(); // Stop all intervals at Game Over
+```
 
-Best Practices
+### Best Practices
 
-Do not use direct setInterval calls in game code.
+- Never use direct `setInterval` calls in game logic. Always use `IntervalHub`.
+- Start intervals in `World.start()` or event-driven methods like "Level Begin".
+- Stop intervals in `World.stop()` or on "Game Over".
+- Use intervals only for side tasks (cloud movement, particle effects, enemy spawning). Physics and rendering should run in the main game loop (`requestAnimationFrame`).
+- Debug tip: `console.log(IntervalHub.allIntervals)` to check active intervals.
 
-Always use IntervalHub.
+### Example Integration in World:
 
-Lifecycle management:
-
-Start intervals in World.start() or on events like "Level Begin".
-
-Stop intervals in World.stop() or on "Game Over".
-
-Use intervals for side tasks only:
-
-Repeating tasks like cloud movement, enemy spawning, particle effects.
-
-Physics or rendering should stay in the main loop (requestAnimationFrame).
-
-Debugging tip:
-
-Use console.log(IntervalHub.allIntervals) to check active intervals if debugging performance issues.
-
-Example Integration in World
-
+```javascript
 start() {
-  // Main loop
   this._loop = this.loop.bind(this);
   requestAnimationFrame(this._loop);
 
@@ -145,68 +161,67 @@ stop() {
   this.running = false;
   IntervalHub.stopAllIntervals(); // Important!
 }
+```
 
-Note:
-This approach ensures that no intervals continue running uncontrollably when the game is paused or stopped.
+---
 
+## StateMachine Developer Documentation
 
-<!-- ---------- StateMachine ---------- -->
+**Purpose:**  
+`StateMachine` handles animation states for characters and enemies, providing automatic frame iteration and easy state switching.
 
-How to Use the StateMachine
+### How to Use
 
-1. Create a new character
+#### 1. Define Sprites
 
-Create a new class in models/
+Create a `SPRITES` object with all animation states for your character:
 
-Define a SPRITES object with all states
-
+```javascript
 const SPRITES = {
   idle: ["assets/img/boss/idle/idle1.png", "assets/img/boss/idle/idle2.png"],
   attack: ["assets/img/boss/attack/attack1.png", "assets/img/boss/attack/attack2.png"],
   dead: ["assets/img/boss/dead/dead1.png"],
 };
-
-2. Instantiate the StateMachine
-
-this.stateMachine = new StateMachine(SPRITES, "idle", 8);
-this.loadImage(SPRITES.idle[0]);
-this.stateMachine.preload((path) => this.loadImage(path));
-
-SPRITES defines all animation frames per state.
-
-"idle" is the initial state.
-
-8 is the frame rate for this animation.
-
-3. Activate the animation
-
-setInterval(() => {
-  const path = this.stateMachine.getNextFrame();
-  if (path && this.imageCache[path]) {
-    this.img = this.imageCache[path];
-  }
-}, 1000 / this.stateMachine.frameRate);
-
-The interval cycles through the frames of the current state.
-
-getNextFrame() returns the next image path in the current animation sequence.
-
-Make sure the image is already loaded in this.imageCache.
-
-4. Change the state
-
-this.stateMachine.setState("attack");
-
-Call setState() with the name of the new state to switch animations.
-
-The next call to getNextFrame() will return frames from the new state.
-
-Notes
-
-Ensure all images are preloaded to avoid missing frames.
-
-The StateMachine class can be reused for any character or enemy in your game.
-
-Check Character and Enemy classes to integrate the stateMachine correctly and update this.img every frame.
-
 ```
+
+#### 2. Instantiate StateMachine
+
+```javascript
+this.stateMachine = new StateMachine(SPRITES, "idle", 8); // Initial state "idle", frame rate 8
+```
+
+#### 3. Preload Frames (optional but recommended)
+
+```javascript
+SPRITES.idle.forEach(path => AssetManager.loadImage(path));
+```
+
+#### 4. Activate Animation in Game Loop
+
+```javascript
+setInterval(() => {
+  const img = this.stateMachine.getFrame();
+  if (img) this.img = img;
+}, 1000 / this.stateMachine.frameRate);
+```
+
+#### 5. Change State
+
+```javascript
+this.stateMachine.setState("attack");
+```
+
+### Notes
+
+- Make sure all images are preloaded before animation to avoid missing frames.
+- `StateMachine` is reusable for any character or enemy.
+- Update the entity's `img` property each frame using `getFrame()`.
+- Frame iteration is automatic; `getFrame()` returns the next frame in the current state.
+
+### Best Practices for Extending the Game
+
+- Always preload new sprite sets in `AssetManager`.
+- Use descriptive state names (e.g., `walkFast`, `jumpAttack`) for clarity.
+- Keep frame rates consistent per character to avoid animation glitches.
+- Integrate `StateMachine` updates within the main loop or controlled intervals.
+- Avoid long-running intervals for animation; prefer `requestAnimationFrame` for smooth updates if performance is critical.
