@@ -10,6 +10,13 @@ class MovableObject {
     this.stateMachine = stateMachine;
   }
 
+  // ✅ NEU: Sprite Loading Helper
+  loadSprites(sprites) {
+    return AssetManager.loadAll(Object.values(sprites).flat()).then(() => {
+      this.img = this.stateMachine.getFrame();
+    });
+  }
+
   loadImage(path) {
     this.img = new Image();
     this.img.src = path;
@@ -67,8 +74,8 @@ class MovableObject {
     this.stop();
     this.stateMachine.setState("dead");
   }
-  
 }
+
 function isColliding(a, b) {
   return (
     a.x < b.x + b.w &&

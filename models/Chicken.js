@@ -5,12 +5,10 @@ class Chicken extends MovableObject {
 
   constructor() {
     super();
-    this.stateMachine = new StateMachine(AssetManager.CHICKEN_SPRITES, "walk", 6);
-    // this.stateMachine.setState("dead");
     
-    AssetManager.loadAll(Object.values(AssetManager.CHICKEN_SPRITES).flat()).then(() => {
-      this.img = this.stateMachine.getFrame();
-    });
+    this.frameInterval = 1000 / 6; // ✅ 6 FPS
+    this.stateMachine = new StateMachine(AssetManager.CHICKEN_SPRITES, "walk", 6);
+    this.loadSprites(AssetManager.CHICKEN_SPRITES); // ✅ Nutzt Superklasse
 
     this.x = 200 + Math.random() * 500;
     this.moveLeft();

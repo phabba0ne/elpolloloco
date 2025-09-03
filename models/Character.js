@@ -1,22 +1,18 @@
 class Character extends MovableObject {
   width = 100;
   height = 200;
-
   y = 250;
 
   constructor() {
     super();
 
     this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10);
+    this.loadSprites(AssetManager.PEPE_SPRITES);
 
-    AssetManager.loadAll(Object.values(AssetManager.PEPE_SPRITES).flat()).then(() => {
-      this.img = this.stateMachine.getFrame();
-    });
-
-    this.frameTimer = 0;           // timer for animation frames
-    this.frameInterval = 120
-    this.idleTimer = 0;            // timer for standing still
-    this.longIdleThreshold = 6000; // ms → 6 seconds
+    this.frameTimer = 0;           // ✅ Animation timer
+    this.frameInterval = 120;      // ✅ Animation interval
+    this.idleTimer = 0;
+    this.longIdleThreshold = 6000;
   }
 
   update(deltaTime, moving = false) {
@@ -24,13 +20,11 @@ class Character extends MovableObject {
 
     // --- Handle movement / idle states ---
     if (moving) {
-      // Reset idle timer when moving
       this.idleTimer = 0;
       if (this.stateMachine.currentState !== "walk") {
         this.stateMachine.setState("walk");
       }
     } else {
-      // Standing still → idle
       this.idleTimer += deltaTime;
       if (this.idleTimer >= this.longIdleThreshold) {
         this.stateMachine.setState("longIdle");
@@ -39,15 +33,12 @@ class Character extends MovableObject {
       }
     }
 
-    // --- Update animation frames ---
+    // ✅ Animation direkt hier (statt updateAnimation())
     this.frameTimer += deltaTime;
     if (this.frameTimer >= this.frameInterval) {
       this.frameTimer = 0;
-      this.img = this.stateMachine.getFrame();
+      const frame = this.stateMachine.getFrame();
+      if (frame) this.img = frame;
     }
-  }
-
-  jump() {
-    // TODO: later with physics
   }
 }

@@ -9,22 +9,24 @@ class World {
   clouds = level1.clouds;
   backgrounds = level1.backgrounds;
 
-  constructor(canvas, keyboard) {
-    this.ctx = canvas.getContext("2d");
-    this.canvas = canvas;
-    this.keyboard = keyboard;
-    this.lastTime = performance.now();
-    this.running = true;
-    this.setWorld();
+constructor(canvas, keyboard) {
+  this.ctx = canvas.getContext("2d");
+  this.canvas = canvas;
+  this.keyboard = keyboard;
+  this.lastTime = performance.now();
+  this.running = true;
+  this.setWorld();
 
-    // Character schaut zu Beginn nach rechts
-    this.character.otherDirection = true;
+  // Character schaut zu Beginn nach rechts
+  this.character.otherDirection = true;
 
-    // Alle Chickens laufen von rechts nach links
-    this.enemies.forEach((chicken) => (chicken.otherDirection = false));
+  // ✅ GELÖSCHT: enemy.update() calls
 
-    this.start();
-  }
+  // Alle Chickens laufen von rechts nach links
+  this.enemies.forEach((chicken) => (chicken.otherDirection = false)); // ✅ Das ist OK
+
+  this.start();
+}
 
   //koppelt world an character
   setWorld() {
@@ -44,41 +46,50 @@ class World {
     // setTimeout(() => IntervalHub.stopAllIntervals(), 3000);
   }
 
-  loop() {
-    if (!this.running) return;
+ loop() {
+  if (!this.running) return;
 
-    let moving = false;
+  // ✅ Aktuelle Zeit holen
+  const currentTime = performance.now();
+  
+  // ✅ deltaTime SOFORT berechnen (bevor lastTime überschrieben wird)
+  const deltaTime = currentTime - this.lastTime;
+  
+  // ✅ JETZT erst lastTime für nächsten Frame aktualisieren
+  this.lastTime = currentTime;
 
-    // Nach links: unsichtbare Wand am Levelanfang
-    if (this.keyboard.left && this.character.x > this.level.startX) {
-      this.character.otherDirection = false;
-      this.character.moveLeft();
-      moving = true;
-    }
+  let moving = false;
 
-    // Nach rechts: nur bis Levelende
-    if (this.keyboard.right && this.character.x < this.level.endX) {
-      this.character.otherDirection = true;
-      this.character.moveRight();
-      moving = true;
-    }
-
-    // Character update mit moving Parameter - ER macht setState!
-    const deltaTime = performance.now() - this.lastTime;
-    this.character.update(deltaTime, moving);
-    this.lastTime = performance.now();
-
-    
-
-    // verschiebt die Welt so, dass der Charakter der Bezugspunkt ist (10: offset -> Charakter wie weit weg vom linken Rand weg?)
-    this.camera_x = -this.character.x + this.canvas.width / 6;
-    // this.camera_x = -this.character.x + this.canvas.width / 3;
-
-    this.keyboard.update();
-    this.draw();
-
-    requestAnimationFrame(this._loop);
+  // Nach links: unsichtbare Wand am Levelanfang
+  if (this.keyboard.left && this.character.x > this.level.startX) {
+    this.character.otherDirection = false;
+    this.character.moveLeft();
+    moving = true;
   }
+
+  // Nach rechts: nur bis Levelende
+  if (this.keyboard.right && this.character.x < this.level.endX) {
+    this.character.otherDirection = true;
+    this.character.moveRight();
+    moving = true;
+  }
+
+  // ✅ Character update mit korrektem deltaTime
+  this.character.update(deltaTime, moving);
+
+  // ✅ Enemy updates hinzufügen
+  this.enemies.forEach(enemy => {
+    if (enemy.update) enemy.update(deltaTime);
+  });
+
+  // verschiebt die Welt so, dass der Charakter der Bezugspunkt ist
+  this.camera_x = -this.character.x + this.canvas.width / 6;
+
+  this.keyboard.update();
+  this.draw();
+
+  requestAnimationFrame(this._loop);
+}
 
   updateClouds() {
     this.clouds.forEach((c) => c.moveLeft());
