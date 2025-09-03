@@ -4,19 +4,9 @@ class World {
   camera_x = 0;
   keyboard = new Keyboard();
   character = new Character();
-  enemies = [new Chicken(), new Chicken(), new Chicken(), new Chicken()];
-  clouds = [new Cloud()];
-
-backgrounds = [
-  new Background("assets/img/background/layers/air.png", 0, 0.3),
-  new Background("assets/img/background/layers/air.png", 1440, 0.3),
-  new Background("assets/img/background/layers/thirdLayer/full.png", 0, 0.5),
-  new Background("assets/img/background/layers/thirdLayer/full.png", 1440, 0.5),
-  new Background("assets/img/background/layers/secondLayer/full.png", 0, 0.7),
-  new Background("assets/img/background/layers/secondLayer/full.png", 1440, 0.7),
-  new Background("assets/img/background/layers/firstLayer/full.png", 0, 1.0),
-  new Background("assets/img/background/layers/firstLayer/full.png", 1440, 1.0),
-];
+  enemies = level1.enemies;
+  clouds=level1.clouds;
+  backgrounds=level1.backgrounds;
 
   constructor(canvas, keyboard) {
     this.ctx = canvas.getContext("2d");
