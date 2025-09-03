@@ -12,8 +12,7 @@ class Character extends MovableObject {
     });
 
     this.frameTimer = 0;           // timer for animation frames
-    this.frameInterval = 600;      // ms per frame
-
+    this.frameInterval = 120
     this.idleTimer = 0;            // timer for standing still
     this.longIdleThreshold = 6000; // ms → 6 seconds
   }

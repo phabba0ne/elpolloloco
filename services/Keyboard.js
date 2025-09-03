@@ -37,11 +37,11 @@ class Keyboard {
    * Bewegungen: halten erlaubt
    */
   get left() {
-    return this.justPressed("ArrowLeft");
+    return this.isPressed("ArrowLeft");
   }
 
   get right() {
-    return this.justPressed("ArrowRight");
+    return this.isPressed("ArrowRight");
   }
 
   get up() {

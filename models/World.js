@@ -47,19 +47,28 @@ class World {
   loop() {
     if (!this.running) return;
 
+    let moving = false;
+
     // Nach links: unsichtbare Wand am Levelanfang
     if (this.keyboard.left && this.character.x > this.level.startX) {
       this.character.otherDirection = false;
-      this.character.stateMachine.setState("walk");
       this.character.moveLeft();
+      moving = true;
     }
 
     // Nach rechts: nur bis Levelende
     if (this.keyboard.right && this.character.x < this.level.endX) {
       this.character.otherDirection = true;
-      this.character.stateMachine.setState("walk");
       this.character.moveRight();
+      moving = true;
     }
+
+    // Character update mit moving Parameter - ER macht setState!
+    const deltaTime = performance.now() - this.lastTime;
+    this.character.update(deltaTime, moving);
+    this.lastTime = performance.now();
+
+    
 
     // verschiebt die Welt so, dass der Charakter der Bezugspunkt ist (10: offset -> Charakter wie weit weg vom linken Rand weg?)
     this.camera_x = -this.character.x + this.canvas.width / 6;
@@ -81,7 +90,7 @@ class World {
     this.backgrounds.forEach((bg) => {
       if (bg.img && bg.img.complete) {
         // Modulo sorgt dafür, dass der Layer endlos wiederholt wird
-        const bgWidth=1440;
+        const bgWidth = 1440;
         const offset = (this.camera_x * bg.speedFactor) % bgWidth;
 
         // Bild zeichnen
@@ -89,11 +98,23 @@ class World {
 
         // zweite Kopie rechts zeichnen, falls nötig
         if (offset > 0) {
-          this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+          this.ctx.drawImage(
+            bg.img,
+            offset - bgWidth,
+            bg.y,
+            bgWidth,
+            bg.height
+          );
         }
         // zweite Kopie links zeichnen, falls nötig
         if (offset < 0) {
-          this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
+          this.ctx.drawImage(
+            bg.img,
+            offset + bgWidth,
+            bg.y,
+            bgWidth,
+            bg.height
+          );
         }
       }
     });

@@ -72,20 +72,20 @@ class AssetManager {
     dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
   };
 
-static preloadLevelAssets(level) {
-  const allAssets = [
-    ...level.backgrounds.map(bg => bg.imagePath),
-    ...level.clouds.map(cloud => cloud.imagePath),
-    ...level.enemies.map(enemy => enemy.getSpritePaths()).flat(),
-    // Character sprites separat laden
-  ];
-  return this.loadImages(allAssets);
-}
+// static preloadLevelAssets(level) {
+//   const allAssets = [
+//     ...level.backgrounds.map(bg => bg.imagePath),
+//     ...level.clouds.map(cloud => cloud.imagePath),
+//     ...level.enemies.map(enemy => enemy.getSpritePaths()).flat(),
+//     // Character sprites separat laden
+//   ];
+//   return this.loadImages(allAssets);
+// }
 
-static getImageSafely(path) {
-  const img = this.getImage(path);
-  return img && img.complete && img.naturalWidth > 0 ? img : null;
-}
+// static getImageSafely(path) {
+//   const img = this.getImage(path);
+//   return img && img.complete && img.naturalWidth > 0 ? img : null;
+// }
 
   // ---------- Images ----------
   static loadImage(path) {
