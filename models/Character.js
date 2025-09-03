@@ -9,8 +9,8 @@ class Character extends MovableObject {
     this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10);
     this.loadSprites(AssetManager.PEPE_SPRITES);
 
-    this.frameTimer = 0;           // ✅ Animation timer
-    this.frameInterval = 120;      // ✅ Animation interval
+    this.frameTimer = 0;
+    this.frameInterval = 60;
     this.idleTimer = 0;
     this.longIdleThreshold = 6000;
   }
@@ -33,7 +33,6 @@ class Character extends MovableObject {
       }
     }
 
-    // ✅ Animation direkt hier (statt updateAnimation())
     this.frameTimer += deltaTime;
     if (this.frameTimer >= this.frameInterval) {
       this.frameTimer = 0;

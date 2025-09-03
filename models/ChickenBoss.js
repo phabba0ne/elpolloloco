@@ -5,8 +5,6 @@ class ChickenBoss extends MovableObject {
 
   constructor() {
     super();
-    
-    this.frameInterval = 1000 / 6; // ✅ 6 FPS
     this.stateMachine = new StateMachine(AssetManager.CHICKENBOSS_SPRITES, "alert", 6);
     this.loadSprites(AssetManager.CHICKENBOSS_SPRITES); // ✅ Nutzt Superklasse
 
