@@ -1,32 +1,33 @@
 class World {
-  level = level1;
   canvas;
   ctx;
   camera_x = 0;
-  keyboard = new Keyboard();
+  keyboard;
   character = new Character();
-  enemies = level1.enemies;
-  clouds = level1.clouds;
-  backgrounds = level1.backgrounds;
 
-constructor(canvas, keyboard) {
-  this.ctx = canvas.getContext("2d");
-  this.canvas = canvas;
-  this.keyboard = keyboard;
-  this.lastTime = performance.now();
-  this.running = true;
-  this.setWorld();
+  constructor(canvas, keyboard) {
+    this.level = level1;
+    this.enemies = level1.enemies;
+    this.clouds = level1.clouds;
+    this.backgrounds = level1.backgrounds;
 
-  // Character schaut zu Beginn nach rechts
-  this.character.otherDirection = true;
+    this.ctx = canvas.getContext("2d");
+    this.canvas = canvas;
+    this.keyboard = keyboard;
+    this.lastTime = performance.now();
+    this.running = true;
+    this.setWorld();
 
-  // ✅ GELÖSCHT: enemy.update() calls
+    // Character schaut zu Beginn nach rechts
+    this.character.otherDirection = true;
 
-  // Alle Chickens laufen von rechts nach links
-  this.enemies.forEach((chicken) => (chicken.otherDirection = false)); // ✅ Das ist OK
+    // ✅ GELÖSCHT: enemy.update() calls
 
-  this.start();
-}
+    // Alle Chickens laufen von rechts nach links
+    this.enemies.forEach((chicken) => (chicken.otherDirection = false)); // ✅ Das ist OK
+
+    this.start();
+  }
 
   //koppelt world an character
   setWorld() {
@@ -46,50 +47,50 @@ constructor(canvas, keyboard) {
     // setTimeout(() => IntervalHub.stopAllIntervals(), 3000);
   }
 
- loop() {
-  if (!this.running) return;
+  loop() {
+    if (!this.running) return;
 
-  // ✅ Aktuelle Zeit holen
-  const currentTime = performance.now();
-  
-  // ✅ deltaTime SOFORT berechnen (bevor lastTime überschrieben wird)
-  const deltaTime = currentTime - this.lastTime;
-  
-  // ✅ JETZT erst lastTime für nächsten Frame aktualisieren
-  this.lastTime = currentTime;
+    // ✅ Aktuelle Zeit holen
+    const currentTime = performance.now();
 
-  let moving = false;
+    // ✅ deltaTime SOFORT berechnen (bevor lastTime überschrieben wird)
+    const deltaTime = currentTime - this.lastTime;
 
-  // Nach links: unsichtbare Wand am Levelanfang
-  if (this.keyboard.left && this.character.x > this.level.startX) {
-    this.character.otherDirection = false;
-    this.character.moveLeft();
-    moving = true;
+    // ✅ JETZT erst lastTime für nächsten Frame aktualisieren
+    this.lastTime = currentTime;
+
+    let moving = false;
+
+    // Nach links: unsichtbare Wand am Levelanfang
+    if (this.keyboard.left && this.character.x > this.level.startX) {
+      this.character.otherDirection = false;
+      this.character.moveLeft();
+      moving = true;
+    }
+
+    // Nach rechts: nur bis Levelende
+    if (this.keyboard.right && this.character.x < this.level.endX) {
+      this.character.otherDirection = true;
+      this.character.moveRight();
+      moving = true;
+    }
+
+    // ✅ Character update mit korrektem deltaTime
+    this.character.update(deltaTime, moving);
+
+    // ✅ Enemy updates hinzufügen
+    this.enemies.forEach((enemy) => {
+      if (enemy.update) enemy.update(deltaTime);
+    });
+
+    // verschiebt die Welt so, dass der Charakter der Bezugspunkt ist
+    this.camera_x = -this.character.x + this.canvas.width / 6;
+
+    this.keyboard.update();
+    this.draw();
+
+    requestAnimationFrame(this._loop);
   }
-
-  // Nach rechts: nur bis Levelende
-  if (this.keyboard.right && this.character.x < this.level.endX) {
-    this.character.otherDirection = true;
-    this.character.moveRight();
-    moving = true;
-  }
-
-  // ✅ Character update mit korrektem deltaTime
-  this.character.update(deltaTime, moving);
-
-  // ✅ Enemy updates hinzufügen
-  this.enemies.forEach(enemy => {
-    if (enemy.update) enemy.update(deltaTime);
-  });
-
-  // verschiebt die Welt so, dass der Charakter der Bezugspunkt ist
-  this.camera_x = -this.character.x + this.canvas.width / 6;
-
-  this.keyboard.update();
-  this.draw();
-
-  requestAnimationFrame(this._loop);
-}
 
   updateClouds() {
     this.clouds.forEach((c) => c.moveLeft());
