@@ -1,7 +1,7 @@
 class Background extends MovableObject {
-  width = 1440;
   height = 480;
-  speedFactor = 1;
+  // bestimmt, wie stark jeder Hintergrund mitscrollt
+  speedFactor=1;
 
   constructor(imgPath, x, speedFactor = 1) {
     super();

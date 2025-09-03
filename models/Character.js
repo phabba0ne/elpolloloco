@@ -1,7 +1,7 @@
 class Character extends MovableObject {
   height = 200;
   y = 230;
-  sprites=[];
+
 
   constructor() {
     super();
