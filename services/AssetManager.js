@@ -10,6 +10,46 @@ class AssetManager {
   static audioCache = new Map();
 
   // ---------- Sprite definitions ----------
+
+  static CHICKENBOSS_SPRITES = {
+    alert: [
+      "assets/img/enemyBossChicken/alert/gFive.png",
+      "assets/img/enemyBossChicken/alert/gSix.png",
+      "assets/img/enemyBossChicken/alert/gSeven.png",
+      "assets/img/enemyBossChicken/alert/gEight.png",
+      "assets/img/enemyBossChicken/alert/gNine.png",
+      "assets/img/enemyBossChicken/alert/gTen.png",
+      "assets/img/enemyBossChicken/alert/gEleven.png",
+      "assets/img/enemyBossChicken/alert/gTwelve.png",
+    ],
+    attack:[
+      "assets/img/enemyBossChicken/attack/gThirteen.png",
+      "assets/img/enemyBossChicken/attack/gFourteen.png",
+      "assets/img/enemyBossChicken/attack/gFifteen.png",
+      "assets/img/enemyBossChicken/attack/gSixteen.png",
+      "assets/img/enemyBossChicken/attack/gSeventeen.png",
+      "assets/img/enemyBossChicken/attack/gEighteen.png",
+      "assets/img/enemyBossChicken/attack/gNineteen.png",
+      "assets/img/enemyBossChicken/attack/gTwenty.png",
+    ],
+    dead:[
+      "assets/img/enemyBossChicken/dead/gTwentyFour.png",
+      "assets/img/enemyBossChicken/dead/gTwentyFive.png",
+      "assets/img/enemyBossChicken/dead/gTwentySix.png",
+    ],
+    hurt:[
+      "assets/img/enemyBossChicken/hurt/gTwentyOne.png",
+      "assets/img/enemyBossChicken/hurt/gTwentyTwo.png",
+      "assets/img/enemyBossChicken/hurt/gTwentyThree.png",
+    ],
+    walk:[
+      "assets/img/enemyBossChicken/walk/gOne.png",
+      "assets/img/enemyBossChicken/walk/gTwo.png",
+      "assets/img/enemyBossChicken/walk/gThree.png",
+      "assets/img/enemyBossChicken/walk/gFour.png",
+    ]
+  };
+
   static PEPE_SPRITES = {
     walk: [
       "assets/img/characterPepe/walk/wTwentyOne.png",
@@ -72,24 +112,25 @@ class AssetManager {
     dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
   };
 
-// static preloadLevelAssets(level) {
-//   const allAssets = [
-//     ...level.backgrounds.map(bg => bg.imagePath),
-//     ...level.clouds.map(cloud => cloud.imagePath),
-//     ...level.enemies.map(enemy => enemy.getSpritePaths()).flat(),
-//     // Character sprites separat laden
-//   ];
-//   return this.loadImages(allAssets);
-// }
+  // static preloadLevelAssets(level) {
+  //   const allAssets = [
+  //     ...level.backgrounds.map(bg => bg.imagePath),
+  //     ...level.clouds.map(cloud => cloud.imagePath),
+  //     ...level.enemies.map(enemy => enemy.getSpritePaths()).flat(),
+  //     // Character sprites separat laden
+  //   ];
+  //   return this.loadImages(allAssets);
+  // }
 
-// static getImageSafely(path) {
-//   const img = this.getImage(path);
-//   return img && img.complete && img.naturalWidth > 0 ? img : null;
-// }
+  // static getImageSafely(path) {
+  //   const img = this.getImage(path);
+  //   return img && img.complete && img.naturalWidth > 0 ? img : null;
+  // }
 
   // ---------- Images ----------
   static loadImage(path) {
-    if (this.imageCache.has(path)) return Promise.resolve(this.imageCache.get(path));
+    if (this.imageCache.has(path))
+      return Promise.resolve(this.imageCache.get(path));
 
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -112,7 +153,8 @@ class AssetManager {
 
   // ---------- Audio ----------
   static loadAudio(path) {
-    if (this.audioCache.has(path)) return Promise.resolve(this.audioCache.get(path));
+    if (this.audioCache.has(path))
+      return Promise.resolve(this.audioCache.get(path));
 
     return new Promise((resolve, reject) => {
       const audio = new Audio();
@@ -138,7 +180,10 @@ class AssetManager {
     const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
     const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
 
-    await Promise.all([this.loadImages(imagePaths), this.loadAudios(audioPaths)]);
+    await Promise.all([
+      this.loadImages(imagePaths),
+      this.loadAudios(audioPaths),
+    ]);
   }
 }
 

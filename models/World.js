@@ -28,7 +28,7 @@ class World {
 
   //koppelt world an character
   setWorld() {
-    this.character.world = this.world;
+    this.character.world = this;
   }
 
   //IntervalHub
