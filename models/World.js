@@ -1,4 +1,5 @@
 class World {
+  debug = true; // global debug flag
   canvas;
   ctx;
   camera_x = 0;
@@ -75,6 +76,13 @@ class World {
       moving = true;
       moveDir = 1;
       this.character.otherDirection = true;
+    }
+    if (this.keyboard.debug) {
+      this.debug = !this.debug;
+      // Toggle debug für alle relevanten Objekte
+      this.character.toggleDebug(this.debug);
+      this.enemies.forEach((e) => e.toggleDebug(this.debug));
+      this.clouds.forEach((c) => c.toggleDebug(this.debug)); // optional
     }
 
     // Single update call handles movement + jump + gravity
@@ -173,7 +181,7 @@ class World {
       } else {
         this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
       }
-      if (mo.debug) {
+      if (mo.debug || this.debug) {
         this.ctx.save();
         this.ctx.strokeStyle = "red";
         this.ctx.lineWidth = 2;

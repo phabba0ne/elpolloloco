@@ -5,7 +5,6 @@ class MovableObject {
   height = 150;
   imageCache = {};
   otherDirection = false;
-  debug = true; // toggle debug mode
 
   constructor(stateMachine) {
     this.stateMachine = stateMachine;

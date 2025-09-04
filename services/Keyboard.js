@@ -62,4 +62,8 @@ class Keyboard {
   get attack() {
     return this.justPressed("KeyF");
   }
+
+    get debug() {
+    return this.justPressed("KeyD");
+  }
 }
