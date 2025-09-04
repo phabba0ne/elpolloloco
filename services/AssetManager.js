@@ -11,14 +11,26 @@ class AssetManager {
 
   // (DOC: New Character STEP 1 - Define Sprites)
 
-  static SALSABOTTLE
+  static SALSABOTTLE = {
+    spin: [
+      "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationThree.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationFour.png",
+    ],
+    hit: [
+      "assets/img/salsaBottle/bottleRotation/bottleSplashOne.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashTwo.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashThree.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashFour.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashFive.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashSix.png",
+    ],
+  };
 
   static COIN_SPRITES = {
-    idle: [
-      "assets/img/coin/coinOne.png",
-      "assets/img/coin/coinTwo.png",
-    ]
-  }
+    idle: ["assets/img/coin/coinOne.png", "assets/img/coin/coinTwo.png"],
+  };
 
   static CHICKENSMALL_SPRITES = {
     walk: [
