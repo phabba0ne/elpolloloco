@@ -49,7 +49,7 @@ class World {
     if (!this.running) return;
 
     const currentTime = performance.now();
-  let deltaTime = (currentTime - this.lastTime) / 1000;
+    let deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
     // FPS messen
@@ -173,7 +173,13 @@ class World {
       } else {
         this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
       }
-
+      if (mo.debug) {
+        this.ctx.save();
+        this.ctx.strokeStyle = "red";
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(mo.x, mo.y, mo.width, mo.height);
+        this.ctx.restore();
+      }
       this.ctx.restore();
     } else {
       this.ctx.fillStyle = "magenta";
