@@ -10,7 +10,7 @@ class World {
     this.enemies = level1.enemies;
     this.clouds = level1.clouds;
     this.backgrounds = level1.backgrounds;
-    this.character= new Character();
+    this.character = new Character();
     this.ctx = canvas.getContext("2d");
     this.canvas = canvas;
     this.keyboard = keyboard;
@@ -45,42 +45,48 @@ class World {
     // setTimeout(() => IntervalHub.stopAllIntervals(), 3000);
   }
 
-loop() {
-  if (!this.running) return;
+  loop() {
+    if (!this.running) return;
 
-  const currentTime = performance.now();
-  const deltaTime = currentTime - this.lastTime;
-  this.lastTime = currentTime;
+    const enemiesAndObjects = [...this.enemies, ]; // ...world.items (any collidable objects)
+    const collided = this.character.checkCollisions(enemiesAndObjects);
+    if (collided) {
+      console.log("Hit something!", collided);
+    }
 
-  let moving = false;
-  let moveDir = 0;       // -1 = left, +1 = right
-  const jumpInput = this.keyboard.jump;
+    const currentTime = performance.now();
+    const deltaTime = currentTime - this.lastTime;
+    this.lastTime = currentTime;
 
-  if (this.keyboard.left && this.character.x > this.level.startX) {
-    moving = true;
-    moveDir = -1;
-    this.character.otherDirection = false;
+    let moving = false;
+    let moveDir = 0; // -1 = left, +1 = right
+    const jumpInput = this.keyboard.jump;
+
+    if (this.keyboard.left && this.character.x > this.level.startX) {
+      moving = true;
+      moveDir = -1;
+      this.character.otherDirection = false;
+    }
+    if (this.keyboard.right && this.character.x < this.level.endX) {
+      moving = true;
+      moveDir = 1;
+      this.character.otherDirection = true;
+    }
+
+    // Single update call handles movement + jump + gravity
+    this.character.update(deltaTime, moving, jumpInput, moveDir);
+
+    // Update enemies
+    this.enemies.forEach((enemy) => enemy.update?.(deltaTime));
+
+    // Camera
+    this.camera_x = -this.character.x + this.canvas.width / 6;
+
+    this.keyboard.update();
+    this.draw();
+
+    requestAnimationFrame(this._loop);
   }
-  if (this.keyboard.right && this.character.x < this.level.endX) {
-    moving = true;
-    moveDir = 1;
-    this.character.otherDirection = true;
-  }
-
-  // Single update call handles movement + jump + gravity
-  this.character.update(deltaTime, moving, jumpInput, moveDir);
-
-  // Update enemies
-  this.enemies.forEach(enemy => enemy.update?.(deltaTime));
-
-  // Camera
-  this.camera_x = -this.character.x + this.canvas.width / 6;
-
-  this.keyboard.update();
-  this.draw();
-
-  requestAnimationFrame(this._loop);
-}
 
   updateClouds() {
     this.clouds.forEach((c) => c.moveLeft());

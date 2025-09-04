@@ -1,16 +1,18 @@
 class MovableObject {
   x = 120;
   y = 280;
-  height = 150;
   width = 100;
+  height = 150;
   imageCache = {};
   otherDirection = false;
+  debug = false; // toggle debug mode
 
   constructor(stateMachine) {
     this.stateMachine = stateMachine;
+    this.world = null; // optional, set by World
   }
 
-  // ✅ NEU: Sprite Loading Helper
+  // ✅ Sprite loading
   loadSprites(sprites) {
     return AssetManager.loadAll(Object.values(sprites).flat()).then(() => {
       this.img = this.stateMachine.getFrame();
@@ -22,15 +24,11 @@ class MovableObject {
     this.img.src = path;
   }
 
-  /**
-   * Startet die Bewegung + Animation in eine Richtung
-   * @param {number} direction -1 = links, +1 = rechts
-   */
   startMoving(direction) {
-    this.stop(); // immer erst altes loop beenden
+    this.stop();
 
     let lastTime = performance.now();
-    const speed = 60; // px/s
+    const speed = 60;
     const frameDuration = 1000 / this.stateMachine.frameRate;
     let frameTimer = 0;
 
@@ -46,9 +44,19 @@ class MovableObject {
         if (frame) this.img = frame;
       }
 
-      // ---- Bewegung ----
+      // ---- Movement ----
       if (this.stateMachine.currentState === "walk") {
         this.x += direction * speed * (delta / 1000);
+      }
+
+      // ---- Debug hitbox ----
+      if (this.debug && this.world?.ctx) {
+        const ctx = this.world.ctx;
+        ctx.save();
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.restore();
       }
 
       this._moveFrame = requestAnimationFrame(loop);
@@ -74,13 +82,38 @@ class MovableObject {
     this.stop();
     this.stateMachine.setState("dead");
   }
+
+  /**
+   * 🔹 Collision detection ignoring clouds
+   * @param {MovableObject[]} objects
+   * @returns {MovableObject|null} first collision found, or null
+   */
+  checkCollisions(objects) {
+    for (const obj of objects) {
+      // Ignore clouds
+      if (this.world?.clouds?.includes(obj)) continue;
+
+      if (obj !== this && isColliding(this, obj)) {
+        if (this.debug) console.log("Collision detected with", obj);
+        return obj;
+      }
+    }
+    return null;
+  }
+
+  toggleDebug(value) {
+    this.debug = value !== undefined ? value : !this.debug;
+  }
 }
 
+/**
+ * Axis-Aligned Bounding Box
+ */
 function isColliding(a, b) {
   return (
-    a.x < b.x + b.w &&
-    a.x + a.w > b.x &&
-    a.y < b.y + b.h &&
-    a.y + a.h > b.y
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
   );
 }
