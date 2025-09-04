@@ -49,11 +49,11 @@ class World {
     if (!this.running) return;
 
     const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastTime;
+  let deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
     // FPS messen
-    this.fps = Math.round(1000 / deltaTime);
+    this.fps = Math.round(1 / deltaTime);
 
     const enemiesAndObjects = [...this.enemies]; // ...world.items (any collidable objects)
     const collided = this.character.checkCollisions(enemiesAndObjects);
@@ -90,8 +90,8 @@ class World {
     this.draw();
 
     // FPS anzeigen
-    this.ctx.fillStyle = "black";
-    this.ctx.font = "16px Arial";
+    this.ctx.fillStyle = "brown";
+    this.ctx.font = "20px Arial";
     this.ctx.fillText(`FPS: ${this.fps}`, 10, 20);
 
     requestAnimationFrame(this._loop);

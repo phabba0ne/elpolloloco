@@ -5,7 +5,7 @@ class StateMachine {
     this.currentFrame = 0;
     this.frameRate = frameRate;        // frames per second
     this.frameTimer = 0;               // ms elapsed
-    this.frameInterval = 1000 / frameRate;
+    this.frameInterval = 1 / frameRate;
   }
 
   setState(newState) {
