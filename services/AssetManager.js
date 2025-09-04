@@ -9,7 +9,25 @@ class AssetManager {
   static imageCache = new Map();
   static audioCache = new Map();
 
-  // ---------- Sprite definitions ----------
+  // (DOC: New Character STEP 1 - Define Sprites)
+
+  static SALSABOTTLE
+
+  static COIN_SPRITES = {
+    idle: [
+      "assets/img/coin/coinOne.png",
+      "assets/img/coin/coinTwo.png",
+    ]
+  }
+
+  static CHICKENSMALL_SPRITES = {
+    walk: [
+      "assets/img/enemiesChicken/chickenSmall/walk/oneW.png",
+      "assets/img/enemiesChicken/chickenSmall/walk/twoW.png",
+      "assets/img/enemiesChicken/chickenSmall/walk/threeW.png",
+    ],
+    dead: ["assets/img/enemiesChicken/chickenSmall/dead/dead.png"],
+  };
 
   static CHICKENBOSS_SPRITES = {
     alert: [
@@ -22,7 +40,7 @@ class AssetManager {
       "assets/img/enemyBossChicken/alert/gEleven.png",
       "assets/img/enemyBossChicken/alert/gTwelve.png",
     ],
-    attack:[
+    attack: [
       "assets/img/enemyBossChicken/attack/gThirteen.png",
       "assets/img/enemyBossChicken/attack/gFourteen.png",
       "assets/img/enemyBossChicken/attack/gFifteen.png",
@@ -32,22 +50,22 @@ class AssetManager {
       "assets/img/enemyBossChicken/attack/gNineteen.png",
       "assets/img/enemyBossChicken/attack/gTwenty.png",
     ],
-    dead:[
+    dead: [
       "assets/img/enemyBossChicken/dead/gTwentyFour.png",
       "assets/img/enemyBossChicken/dead/gTwentyFive.png",
       "assets/img/enemyBossChicken/dead/gTwentySix.png",
     ],
-    hurt:[
+    hurt: [
       "assets/img/enemyBossChicken/hurt/gTwentyOne.png",
       "assets/img/enemyBossChicken/hurt/gTwentyTwo.png",
       "assets/img/enemyBossChicken/hurt/gTwentyThree.png",
     ],
-    walk:[
+    walk: [
       "assets/img/enemyBossChicken/walk/gOne.png",
       "assets/img/enemyBossChicken/walk/gTwo.png",
       "assets/img/enemyBossChicken/walk/gThree.png",
       "assets/img/enemyBossChicken/walk/gFour.png",
-    ]
+    ],
   };
 
   static PEPE_SPRITES = {
