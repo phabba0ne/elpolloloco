@@ -23,51 +23,47 @@ class Character extends MovableObject {
     this.longIdleThreshold = 6000;
   }
 
-  update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
-    // ---- Jumping ----
-    if (jumpInput && !this.isJumping && this.isOnGround()) {
-      this.speedY = -this.jumpPower; // upward
-      this.isJumping = true;
-      this.stateMachine.setState("jump");
-    }
+update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
+  // --- Jumping ---
+  if (jumpInput && !this.isJumping && this.isOnGround()) {
+    this.speedY = -this.jumpPower;
+    this.isJumping = true;
+    this.stateMachine.setState("jump");
+  }
 
-    // ---- Apply gravity ----
-    this.speedY += this.gravity;
-    this.y += this.speedY;
-
-    if (this.y >= this.groundY) {
-      this.y = this.groundY;
-      this.speedY = 0;
-      if (this.isJumping) {
-        this.isJumping = false;
-        if (!moving) this.stateMachine.setState("idle");
-      }
-    }
-
-    // ---- Horizontal movement ----
-    if (moving) {
-      this.x += moveDir * this.moveSpeed;
-      if (!this.isJumping && this.stateMachine.currentState !== "walk") {
-        this.stateMachine.setState("walk");
-      }
-      this.idleTimer = 0;
-    } else if (!this.isJumping) {
-      this.idleTimer += deltaTime;
-      if (this.idleTimer >= this.longIdleThreshold) {
-        this.stateMachine.setState("longIdle");
-      } else if (this.stateMachine.currentState !== "idle") {
-        this.stateMachine.setState("idle");
-      }
-    }
-
-    // ---- Animation ----
-    this.frameTimer += deltaTime;
-    if (this.frameTimer >= this.frameInterval) {
-      this.frameTimer = 0;
-      const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame;
+  // --- Gravity ---
+  this.speedY += this.gravity;
+  this.y += this.speedY;
+  if (this.y >= this.groundY) {
+    this.y = this.groundY;
+    this.speedY = 0;
+    if (this.isJumping) {
+      this.isJumping = false;
+      if (!moving) this.stateMachine.setState("idle");
     }
   }
+
+  // --- Horizontal movement ---
+  if (moving) {
+    this.x += moveDir * this.moveSpeed;
+    if (!this.isJumping && this.stateMachine.currentState !== "walk") {
+      this.stateMachine.setState("walk");
+    }
+    this.idleTimer = 0;
+  } else if (!this.isJumping) {
+    this.idleTimer += deltaTime;
+    if (this.idleTimer >= this.longIdleThreshold) {
+      this.stateMachine.setState("longIdle");
+    } else if (this.stateMachine.currentState !== "idle") {
+      this.stateMachine.setState("idle");
+    }
+  }
+
+  // --- Animation ---
+  this.stateMachine.update(deltaTime);
+  const frame = this.stateMachine.getFrame();
+  if (frame) this.img = frame;
+}
 
   isOnGround() {
     return this.y >= this.groundY;
