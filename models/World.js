@@ -48,16 +48,20 @@ class World {
   loop() {
     if (!this.running) return;
 
-    const enemiesAndObjects = [...this.enemies, ]; // ...world.items (any collidable objects)
+    const currentTime = performance.now();
+    const deltaTime = currentTime - this.lastTime;
+    this.lastTime = currentTime;
+
+    // FPS messen
+    this.fps = Math.round(1000 / deltaTime);
+
+    const enemiesAndObjects = [...this.enemies]; // ...world.items (any collidable objects)
     const collided = this.character.checkCollisions(enemiesAndObjects);
     if (collided) {
       console.log("Hit something!", collided);
     }
 
-    const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastTime;
-    this.lastTime = currentTime;
-
+    //Input
     let moving = false;
     let moveDir = 0; // -1 = left, +1 = right
     const jumpInput = this.keyboard.jump;
@@ -84,6 +88,11 @@ class World {
 
     this.keyboard.update();
     this.draw();
+
+    // FPS anzeigen
+    this.ctx.fillStyle = "black";
+    this.ctx.font = "16px Arial";
+    this.ctx.fillText(`FPS: ${this.fps}`, 10, 20);
 
     requestAnimationFrame(this._loop);
   }
