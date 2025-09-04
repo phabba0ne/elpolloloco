@@ -181,17 +181,18 @@ class World {
       } else {
         this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
       }
-      if (mo.debug || this.debug) {
-        this.ctx.save();
-        this.ctx.strokeStyle = "red";
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(mo.x, mo.y, mo.width, mo.height);
-        this.ctx.restore();
-      }
+
       this.ctx.restore();
     } else {
       this.ctx.fillStyle = "magenta";
       this.ctx.fillRect(mo.x, mo.y, mo.width, mo.height);
+    }
+    if (mo.debug || this.debug) {
+      this.ctx.save();
+      this.ctx.strokeStyle = "red";
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(mo.x, mo.y, mo.width, mo.height);
+      this.ctx.restore();
     }
   }
 }
