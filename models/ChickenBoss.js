@@ -8,7 +8,7 @@ class ChickenBoss extends MovableObject {
     this.stateMachine = new StateMachine(AssetManager.CHICKENBOSS_SPRITES, "alert", 6);
     this.loadSprites(AssetManager.CHICKENBOSS_SPRITES); // ✅ Nutzt Superklasse
 
-    this.x = 700;
+    this.x = 10000;
     this.moveLeft();
   }
 }
