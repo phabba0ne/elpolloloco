@@ -6,27 +6,29 @@ class Cloud extends MovableObject {
 
   SPRITES = [
     "assets/img/background/layers/clouds/one.png",
-    "assets/img/background/layers/clouds/two.png",
+    "assets/img/background/layers/clouds/two.png", 
     "assets/img/background/layers/clouds/full.png",
   ];
 
-  constructor() {
+  constructor(x = null, y = null) {
     super();
-    this.x = Math.random() * 500;
-    this.y = 20 + Math.random() * 120;
-    this.setRandomSprite(); // erstes Bild setzen
+    
+    // Position setzen
+    this.x = x || Math.random() * 500;
+    this.y = y || (20 + Math.random() * 120);
+    
+    this.setRandomSprite();
   }
 
   setRandomSprite() {
-    const randomSprite =
-      this.SPRITES[Math.floor(Math.random() * this.SPRITES.length)];
+    const randomSprite = this.SPRITES[Math.floor(Math.random() * this.SPRITES.length)];
     this.loadImage(randomSprite);
   }
-  //IntervalHub
+
   moveLeft() {
-    this.x -= 2; // verschiebe Wolke nach links
+    this.x -= 2;
     if (this.x + this.width < 0) {
-      this.x = 800; // reset am rechten Rand
+      this.x = 800;
     }
   }
 }
