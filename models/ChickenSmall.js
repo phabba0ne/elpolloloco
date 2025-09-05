@@ -1,9 +1,14 @@
 class ChickenSmall extends Chicken {
+  strength = 5;
   constructor() {
     super();
 
     // Override StateMachine für Small Chicken
-    this.stateMachine = new StateMachine(AssetManager.CHICKENSMALL_SPRITES, "walk", 6);
+    this.stateMachine = new StateMachine(
+      AssetManager.CHICKENSMALL_SPRITES,
+      "walk",
+      6
+    );
     this.loadSprites(AssetManager.CHICKENSMALL_SPRITES);
 
     // Optional: Position zufällig
@@ -17,7 +22,7 @@ class ChickenSmall extends Chicken {
   update(deltaTime) {
     this.x -= this.speedX * deltaTime; // FPS-unabhängig
 
-    this.stateMachine.update(deltaTime);
+    super.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
   }

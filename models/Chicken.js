@@ -3,6 +3,7 @@ class Chicken extends MovableObject {
   width = 60;
   height = 60;
   speedX = 100; // px/sec jetzt, nicht pro Frame
+  strength = 10;
 
   constructor() {
     super();
@@ -18,7 +19,7 @@ class Chicken extends MovableObject {
     this.x -= this.speedX * deltaTime; // DeltaTime berücksichtigt
 
     // --- Sprites / Animation ---
-    this.stateMachine.update(deltaTime);
+    super.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
   }

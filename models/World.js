@@ -187,7 +187,7 @@ class World {
       this.ctx.fillStyle = "magenta";
       this.ctx.fillRect(mo.x, mo.y, mo.width, mo.height);
     }
-    if (mo.debug || this.debug) {
+    if (mo.debug || this.debug && !(mo instanceof Cloud)) {
       this.ctx.save();
       this.ctx.strokeStyle = "red";
       this.ctx.lineWidth = 2;
