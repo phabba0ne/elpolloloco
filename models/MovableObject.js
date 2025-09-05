@@ -7,18 +7,20 @@ class MovableObject {
   otherDirection = false;
   health = 100;
   strength = 10;
+  isDead = false;
+  debug = false;
 
   constructor(stateMachine) {
     this.stateMachine = stateMachine;
   }
 
-  // ✅ Sprite loading
+  // --- Sprites ---
   loadSprites(sprites) {
     return AssetManager.loadAll(Object.values(sprites).flat()).then(() => {
       this.img = this.stateMachine.getFrame();
     });
   }
-  //TODO: AssetManager call
+
   loadImage(path) {
     this.img = new Image();
     this.img.src = path;
@@ -26,10 +28,13 @@ class MovableObject {
 
   // --- Update Animation ---
   update(deltaTime) {
-    if (this.isDead) return; // keine Bewegung mehr
+    // Immer Animation updaten, auch wenn tot
     this.stateMachine?.update(deltaTime);
     const frame = this.stateMachine?.getFrame();
     if (frame) this.img = frame;
+
+    // Bewegung & Logik nur, wenn lebendig
+    if (this.isDead) return;
   }
 
   // --- Zeichnen + Debug-Hitbox ---
@@ -51,66 +56,74 @@ class MovableObject {
   }
 
   // --- Damage System ---
-getDamage(source) {
+  getDamage(source) {
     if (!source || !(source instanceof MovableObject)) return;
     if (this.isDead) return;
 
     this.health -= source.strength;
 
-    console.log(
+    if (this.debug) {
+      console.log(
         `${this.constructor.name} took ${source.strength} damage from ${source.constructor.name}. Health now: ${this.health}`
-    );
+      );
+    }
 
     if (this.health <= 0) {
-        this.die();
+      this.die();
     }
-}
+  }
 
-doDamage(target) {
+  doDamage(target) {
     if (this.isDead) return;
     if (!target || !(target instanceof MovableObject)) return;
 
     console.log(
-        `%c${this.constructor.name} attacks ${target.constructor.name} for ${this.strength} damage`,
-        "color:orange"
+      `%c${this.constructor.name} attacks ${target.constructor.name} for ${this.strength} damage`,
+      "color:orange"
     );
-
     target.getDamage(this);
-}
+  }
 
-die() {
+  die() {
     if (this.isDead) return;
     this.isDead = true;
-    this.stateMachine?.setState("dead");
+    this.stateMachine.setState("dead");
     console.log(`${this.constructor.name} died.`);
-}
+  }
 
-  /**
-   * 🔹 Collision detection ignoring clouds
-   * @param {MovableObject[]} objects
-   * @returns {MovableObject|null} first collision found, or null
-   */
-  checkCollisions(objects) {
+  // --- Collision detection ---
+ collisionCooldown = 0;     // ms bis zur nächsten Kollisionsprüfung
+  collisionInterval = 150;   // alle 150 ms prüfen
+
+  // --- Collision detection ---
+  checkCollisions(objects, deltaTime) {
+    if (this.isDead) return null;
+
+    // Countdown runterzählen
+    this.collisionCooldown -= deltaTime * 1000; // deltaTime in Sekunden → ms
+    if (this.collisionCooldown > 0) return null;
+
+    // Reset Cooldown
+    this.collisionCooldown = this.collisionInterval;
+
+    // Charakter Invulnerable? Dann Kollision überspringen
+    if (this instanceof Character && this.isInvulnerable) {
+      if (this.debug) console.log(`[SKIP] ${this.constructor.name} is invulnerable, skipping collision checks.`);
+      return null;
+    }
+
     for (const obj of objects) {
-      // Ignore clouds
       if (this.world?.clouds?.includes(obj)) continue;
-
       if (obj !== this && isColliding(this, obj)) {
         if (this.debug) console.log("Collision detected with", obj);
 
-        // 🔹 Wenn Character kollidiert → Schaden nehmen
-        if (this instanceof Character) {
+        if (this instanceof Character && !this.isInvulnerable) {
           this.getDamage(obj);
         }
-
         return obj;
       }
     }
     return null;
-  }
-
-  toggleDebug(value) {
-    this.debug = value !== undefined ? value : !this.debug;
   }
 }
 

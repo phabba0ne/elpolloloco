@@ -20,10 +20,9 @@ class ChickenSmall extends Chicken {
   }
 
   update(deltaTime) {
-    this.x -= this.speedX * deltaTime; // FPS-unabhängig
-
+    if (!this.isDead) {
+      this.x -= this.speedX * deltaTime; // FPS-unabhängig
+    }
     super.update(deltaTime);
-    const frame = this.stateMachine.getFrame();
-    if (frame) this.img = frame;
   }
 }

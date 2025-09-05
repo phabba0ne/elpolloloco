@@ -15,12 +15,9 @@ class Chicken extends MovableObject {
   }
 
   update(deltaTime) {
-    // --- Move left ---
-    this.x -= this.speedX * deltaTime; // DeltaTime berücksichtigt
-
-    // --- Sprites / Animation ---
+    if (!this.isDead) {
+      this.x -= this.speedX * deltaTime; // FPS-unabhängig
+    }
     super.update(deltaTime);
-    const frame = this.stateMachine.getFrame();
-    if (frame) this.img = frame;
   }
 }

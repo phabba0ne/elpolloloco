@@ -79,10 +79,6 @@ class World {
     }
     if (this.keyboard.debug) {
       this.debug = !this.debug;
-      // Toggle debug für alle relevanten Objekte
-      this.character.toggleDebug(this.debug);
-      this.enemies.forEach((e) => e.toggleDebug(this.debug));
-      this.clouds.forEach((c) => c.toggleDebug(this.debug)); // optional
     }
 
     // Single update call handles movement + jump + gravity
