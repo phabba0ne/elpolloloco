@@ -15,7 +15,7 @@ class ChickenBoss extends MovableObject {
 
   update(deltaTime) {
     if (!this.isDead) {
-      this.x -= this.speedX * deltaTime; // FPS-unabhängig
+      // this.x -= this.speedX * deltaTime; // FPS-unabhängig
     }
     super.update(deltaTime);
   }
