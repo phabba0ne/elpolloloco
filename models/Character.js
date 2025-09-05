@@ -8,13 +8,13 @@ class Character extends MovableObject {
   speedY = 0;
   moveSpeed = 4;
   jumpPower = 12;
-  gravity = 0.5 ;
+  gravity = 0.5;
   groundY = 250;
   isJumping = false;
 
   constructor() {
     super();
-    this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10 );
+    this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10);
     this.loadSprites(AssetManager.PEPE_SPRITES);
 
     this.frameTimer = 0;
@@ -26,17 +26,24 @@ class Character extends MovableObject {
     this.isInvulnerable = false;
     this.invulnerableDuration = 2000; // 2 Sekunden
   }
-
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
-    // --- Dead Animation ---
+    // --- Dead Animation + Fall ---
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         console.log("[STATE] Character died. Switching to dead animation.");
-        this.stateMachine.setState("dead", true); // einmalig
+        this.stateMachine.setState("dead");
+        this.stateMachine.currentFrame = 0;
       }
+
+      // Apply gravity so he falls off the screen
+      this.speedY += this.gravity;
+      this.y += this.speedY;
+
       this.stateMachine.update(deltaTime);
-      this.img = this.stateMachine.getFrame();
-      return; 
+      const frame = this.stateMachine.getFrame();
+      if (frame) this.img = frame;
+
+      return; // stop movement logic
     }
 
     // --- Hurt Animation ---
@@ -47,7 +54,7 @@ class Character extends MovableObject {
       }
       this.stateMachine.update(deltaTime);
       this.img = this.stateMachine.getFrame();
-      return; 
+      return;
     }
 
     // --- Jumping ---
@@ -109,12 +116,16 @@ class Character extends MovableObject {
       return;
     }
     if (this.isInvulnerable) {
-      console.log(`[LOG] Character is invulnerable. No damage taken from ${source.constructor.name}.`);
+      console.log(
+        `[LOG] Character is invulnerable. No damage taken from ${source.constructor.name}.`
+      );
       return;
     }
 
     this.health -= source.strength;
-    console.log(`[LOG] Character took ${source.strength} damage from ${source.constructor.name}. Health: ${this.health}`);
+    console.log(
+      `[LOG] Character took ${source.strength} damage from ${source.constructor.name}. Health: ${this.health}`
+    );
 
     this.isHurt = true;
     this.isInvulnerable = true;
@@ -129,7 +140,9 @@ class Character extends MovableObject {
     // 2 Sekunden Unverwundbarkeit
     setTimeout(() => {
       this.isInvulnerable = false;
-      console.log(`[FLAG] Character is now vulnerable again. isInvulnerable: false`);
+      console.log(
+        `[FLAG] Character is now vulnerable again. isInvulnerable: false`
+      );
     }, this.invulnerableDuration);
 
     if (this.health <= 0) this.die();
@@ -139,6 +152,8 @@ class Character extends MovableObject {
     if (this.isDead) return;
     this.isDead = true;
     this.stateMachine.setState("dead", true);
-    console.log(`[STATE] Character died. isDead: true, switching to dead animation.`);
+    console.log(
+      `[STATE] Character died. isDead: true, switching to dead animation.`
+    );
   }
 }

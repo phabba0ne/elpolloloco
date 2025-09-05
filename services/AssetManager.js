@@ -11,6 +11,8 @@ class AssetManager {
 
   // (DOC: New Character STEP 1 - Define Sprites)
 
+  // #region bottle
+
   static SALSABOTTLE = {
     spin: [
       "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
@@ -28,9 +30,30 @@ class AssetManager {
     ],
   };
 
+  // #endregion bottle
+
+  // #region coin
+
   static COIN_SPRITES = {
     idle: ["assets/img/coin/coinOne.png", "assets/img/coin/coinTwo.png"],
   };
+
+  // #endregion coin
+
+  // #region chickenNormal
+  
+    static CHICKEN_SPRITES = {
+    walk: [
+      "assets/img/enemiesChicken/chickenNormal/walk/oneW.png",
+      "assets/img/enemiesChicken/chickenNormal/walk/twoW.png",
+      "assets/img/enemiesChicken/chickenNormal/walk/threeW.png",
+    ],
+    dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
+  };
+
+  // #endregion chickenNormal
+
+  // #region chickenSmall
 
   static CHICKENSMALL_SPRITES = {
     walk: [
@@ -40,6 +63,10 @@ class AssetManager {
     ],
     dead: ["assets/img/enemiesChicken/chickenSmall/dead/dead.png"],
   };
+
+  // #endregion chickenSmall
+
+// #region chickenBoss
 
   static CHICKENBOSS_SPRITES = {
     alert: [
@@ -80,6 +107,10 @@ class AssetManager {
     ],
   };
 
+  // #endregion chickenBoss
+
+  //#region pepe
+
   static PEPE_SPRITES = {
     walk: [
       "assets/img/characterPepe/walk/wTwentyOne.png",
@@ -108,6 +139,9 @@ class AssetManager {
       "assets/img/characterPepe/idle/idle/iFive.png",
       "assets/img/characterPepe/idle/idle/iSix.png",
       "assets/img/characterPepe/idle/idle/iSeven.png",
+      "assets/img/characterPepe/idle/idle/iEight.png",
+      "assets/img/characterPepe/idle/idle/iNine.png",
+      "assets/img/characterPepe/idle/idle/iTen.png",
     ],
     longIdle: [
       "assets/img/characterPepe/idle/longIdle/iEleven.png",
@@ -130,17 +164,15 @@ class AssetManager {
       "assets/img/characterPepe/dead/dFiftyOne.png",
       "assets/img/characterPepe/dead/dFiftyTwo.png",
       "assets/img/characterPepe/dead/dFiftyThree.png",
+      "assets/img/characterPepe/dead/dFiftyFour.png",
+      "assets/img/characterPepe/dead/dFiftyFive.png",
+      "assets/img/characterPepe/dead/dFiftySix.png",
+      "assets/img/characterPepe/dead/dFiftySeven.png",
+
     ],
   };
 
-  static CHICKEN_SPRITES = {
-    walk: [
-      "assets/img/enemiesChicken/chickenNormal/walk/oneW.png",
-      "assets/img/enemiesChicken/chickenNormal/walk/twoW.png",
-      "assets/img/enemiesChicken/chickenNormal/walk/threeW.png",
-    ],
-    dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
-  };
+  //#endregion pepe
 
   // static preloadLevelAssets(level) {
   //   const allAssets = [
