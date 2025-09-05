@@ -1,5 +1,5 @@
 class Background extends MovableObject {
-  height = 480;
+  height = 480 ;
   // bestimmt, wie stark jeder Hintergrund mitscrollt
   speedFactor=1;
 

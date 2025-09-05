@@ -112,11 +112,11 @@ class World {
       if (bg.img && bg.img.complete) {
         // Modulo sorgt dafür, dass der Layer endlos wiederholt wird
         const bgWidth = 1440;
-        const offset = (this.camera_x * bg.speedFactor) % bgWidth;
+        let offset = (this.camera_x * bg.speedFactor) % bgWidth;
 
         // Bild zeichnen
         this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-
+      offset = Math.floor(offset);
         // zweite Kopie rechts zeichnen, falls nötig
         if (offset > 0) {
           this.ctx.drawImage(
