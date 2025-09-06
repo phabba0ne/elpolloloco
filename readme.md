@@ -225,3 +225,12 @@ this.stateMachine.setState("attack");
 - Keep frame rates consistent per character to avoid animation glitches.
 - Integrate `StateMachine` updates within the main loop or controlled intervals.
 - Avoid long-running intervals for animation; prefer `requestAnimationFrame` for smooth updates if performance is critical.
+
+
+TODO: 
+- gitignore
+- desktop only or mobile landscape (turn your device to play)
+- mobile touch buttons only visible when mobile size reached
+- no scroll bars
+- deactivate context menu (right click etc) on mobile
+-legal imprint

@@ -1,4 +1,4 @@
-class MovableObject {
+class MovableObject extends DrawableObject{
   x = 120;
   y = 280;
   width = 100;
@@ -11,6 +11,7 @@ class MovableObject {
   debug = false;
 
   constructor(stateMachine) {
+    super();
     this.stateMachine = stateMachine;
   }
 
