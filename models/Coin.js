@@ -1,41 +1,55 @@
 import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
+import StateMachine from "../services/StateMachine.js";
 
 export default class Coin extends MovableObject {
   width = 50;
   height = 50;
   collected = false;
 
-  constructor({ x = 0, y = 0, enabled = true, debug = false } = {}) {
+  constructor({ x = 0, y = null, enabled = true, debug = false, character = null } = {}) {
     super({ debug });
     this.type = "coin";
     this.x = x;
-    this.y = y;
     this.enabled = enabled;
 
-    this.sprites = { idle: AssetManager.COIN_SPRITES.idle };
-    this.loadSprites(this.sprites);
+    // y nur einmalig beim Spawn bestimmen
+    if (y === null && character) {
+      const maxJumpHeight = character.groundY - (character.jumpPower ** 2) / (2 * character.gravity);
+      this.y = Math.random() * (character.groundY - maxJumpHeight) + maxJumpHeight;
+    } else {
+      this.y = y ?? 250;
+    }
+
+    // --- StateMachine für Animation ---
+    const sprites = { idle: AssetManager.COIN_SPRITES.idle };
+    this.stateMachine = new StateMachine(sprites, "idle", 10); // 10 Frames pro Sekunde
+    this.loadSprites(sprites);
   }
 
   async loadSprites(sprites) {
     if (!sprites?.idle) return;
     await AssetManager.loadAll(Object.values(sprites).flat());
-    this.img = AssetManager.getImage(sprites.idle[0]);
+    this.img = this.stateMachine.getFrame();
   }
 
-  // --- Optional update, nur wenn Coin aktiviert ---
   update(deltaTime, world) {
     if (!this.enabled || this.collected || !world?.character) return;
 
+    // Kollisionsprüfung
     if (this.checkCollisions([world.character], deltaTime)) {
       this.collect(world.character);
     }
+
+    // Animation aktualisieren
+    this.stateMachine.update(deltaTime);
+    const frame = this.stateMachine.getFrame();
+    if (frame) this.img = frame;
   }
 
   collect(character) {
     this.collected = true;
     character.gold = (character.gold || 0) + 1;
-
     if (this.debug) {
       console.log(`[COIN] ${character.constructor.name} collected a coin! Total: ${character.gold}`);
     }
@@ -43,7 +57,6 @@ export default class Coin extends MovableObject {
 
   draw(ctx) {
     if (!this.enabled || this.collected) return;
-
     if (this.img) {
       ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
     } else {
