@@ -1,191 +1,142 @@
+// Nur noch Character-spezifische Logik
 import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
 export default class Character extends MovableObject {
-  width = 100;
-  height = 200;
-  x = 120;
-  y = 250;
-  speedX = 0;
-  speedY = 0;
-  moveSpeed = 3;
-  jumpPower = 15;
-  gravity = 0.5;
-  groundY = 250;
-  isJumping = false;
-
   constructor({
     x = 120,
     y = 250,
     width = 100,
     height = 200,
-    moveSpeed = 2,
+    moveSpeed = 3,
     jumpPower = 15,
     gravity = 0.5,
     groundY = 250,
     sprites = AssetManager.PEPE_SPRITES,
     longIdleThreshold = 6000,
     invulnerableDuration = 2000,
+    health = 100
   } = {}) {
-    super();
-    this.type = "character"; // ✅ wichtig
-    // Position und Größen
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
+    super({
+      x, y, width, height,
+      gravity,
+      health,
+      type: "character"
+    });
 
-    // Bewegung & Physik
+    // CHARACTER-SPEZIFISCH
     this.moveSpeed = moveSpeed;
     this.jumpPower = jumpPower;
-    this.gravity = gravity;
     this.groundY = groundY;
-
-    // StateMachine
-    this.stateMachine = new StateMachine(sprites, "idle", 8);
-    this.loadSprites(sprites);
-
-    // Animation / Idle-Timer
-    this.frameTimer = 0;
-    this.frameInterval = 60;
-    this.idleTimer = 0;
-    this.longIdleThreshold = longIdleThreshold;
-
-    // Damage / Invulnerability
+    this.isJumping = false;
+    
+    // CHARACTER DAMAGE SYSTEM
     this.isHurt = false;
     this.isInvulnerable = false;
     this.invulnerableDuration = invulnerableDuration;
+    
+    // CHARACTER IDLE SYSTEM
+    this.idleTimer = 0;
+    this.longIdleThreshold = longIdleThreshold;
+
+    // StateMachine für Character
+    this.stateMachine = new StateMachine(sprites, "idle", 8);
+    this.loadSprites(sprites);
   }
 
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
-    // --- Dead Animation + Fall ---
+    // Dead state
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
-        console.log("[STATE] Character died. Switching to dead animation.");
         this.stateMachine.setState("dead");
-        this.stateMachine.currentFrame = 0;
       }
-
-      // Apply gravity so he falls off the screen
+      // Gravity fall
       this.speedY += this.gravity;
       this.y += this.speedY;
-
-      this.stateMachine.update(deltaTime);
-      const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame;
-
-      return; // stop movement logic
-    }
-
-    // --- Hurt Animation ---
-    if (this.isHurt) {
-      if (this.stateMachine.currentState !== "hurt") {
-        console.log("[STATE] Character hurt. Switching to hurt animation.");
-        this.stateMachine.setState("hurt", true); // einmalig
-      }
-      this.stateMachine.update(deltaTime);
-      this.img = this.stateMachine.getFrame();
+      
+      this.updateStateMachine(deltaTime);
       return;
     }
 
-    // --- Jumping ---
+    // Hurt state - CHARACTER-SPEZIFISCH
+    if (this.isHurt) {
+      if (this.stateMachine.currentState !== "hurt") {
+        this.stateMachine.setState("hurt", true);
+      }
+      this.updateStateMachine(deltaTime);
+      return;
+    }
+
+    // Jumping - CHARACTER-SPEZIFISCH
     if (jumpInput && !this.isJumping && this.isOnGround()) {
       this.speedY = -this.jumpPower;
       this.isJumping = true;
-      console.log("[ACTION] Character starts jumping.");
       this.stateMachine.setState("jump");
     }
 
-    // --- Gravity ---
+    // Gravity
     this.speedY += this.gravity;
     this.y += this.speedY;
+    
+    // Ground collision - CHARACTER-SPEZIFISCH
     if (this.y >= this.groundY) {
       this.y = this.groundY;
       this.speedY = 0;
       if (this.isJumping) {
         this.isJumping = false;
-        console.log("[ACTION] Character landed.");
         if (!moving) this.stateMachine.setState("idle");
       }
     }
 
-    // --- Horizontal movement ---
+    // Horizontal movement
     if (moving) {
       this.x += moveDir * this.moveSpeed;
       if (!this.isJumping && this.stateMachine.currentState !== "walk") {
         this.stateMachine.setState("walk");
-        console.log("[STATE] Character walking.");
       }
       this.idleTimer = 0;
     } else if (!this.isJumping) {
+      // Idle system - CHARACTER-SPEZIFISCH
       this.idleTimer += deltaTime;
       if (this.idleTimer >= this.longIdleThreshold) {
         if (this.stateMachine.currentState !== "longIdle") {
           this.stateMachine.setState("longIdle");
-          console.log("[STATE] Character long idle.");
         }
       } else if (this.stateMachine.currentState !== "idle") {
         this.stateMachine.setState("idle");
-        console.log("[STATE] Character idle.");
       }
     }
 
-    // --- Animation ---
-    this.stateMachine.update(deltaTime);
-    const frame = this.stateMachine.getFrame();
-    if (frame) this.img = frame;
+    this.updateStateMachine(deltaTime);
   }
 
   isOnGround() {
     return this.y >= this.groundY;
   }
 
-  // --- Damage / Hurt Handling mit Logs ---
-  getDamage(source) {
-    if (this.isDead) {
-      console.log(`[LOG] Character is already dead. No damage applied.`);
-      return;
-    }
-    if (this.isInvulnerable) {
-      console.log(
-        `[LOG] Character is invulnerable. No damage taken from ${source.constructor.name}.`
-      );
-      return;
-    }
-
-    this.health -= source.strength;
-    console.log(
-      `[LOG] Character took ${source.strength} damage from ${source.constructor.name}. Health: ${this.health}`
-    );
-
+  // CHARACTER DAMAGE OVERRIDE
+  onDamage(source) {
     this.isHurt = true;
     this.isInvulnerable = true;
-    console.log(`[FLAG] isHurt: true, isInvulnerable: true`);
-
-    // Hurt Animation kurz anzeigen
+    
+    // Hurt animation timer
     setTimeout(() => {
       this.isHurt = false;
-      console.log(`[FLAG] Hurt animation ended. isHurt: false`);
     }, 300);
 
-    // 2 Sekunden Unverwundbarkeit
+    // Invulnerability timer
     setTimeout(() => {
       this.isInvulnerable = false;
-      console.log(
-        `[FLAG] Character is now vulnerable again. isInvulnerable: false`
-      );
     }, this.invulnerableDuration);
-
-    if (this.health <= 0) this.die();
   }
 
-  die() {
-    if (this.isDead) return;
-    this.isDead = true;
-    this.stateMachine.setState("dead", true);
-    console.log(
-      `[STATE] Character died. isDead: true, switching to dead animation.`
-    );
+  // Override parent getDamage für Invulnerability
+  getDamage(source) {
+    if (this.isDead || this.isInvulnerable) {
+      console.log(`[CHARACTER] Damage blocked - Dead: ${this.isDead}, Invulnerable: ${this.isInvulnerable}`);
+      return;
+    }
+    super.getDamage(source);
   }
 }

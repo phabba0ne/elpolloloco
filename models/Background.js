@@ -1,21 +1,31 @@
+// Nur Background-spezifisch
 import MovableObject from "./MovableObject.js";
 
 export default class Background extends MovableObject {
-  height = 480;
-  speedFactor = 1;
-
   constructor({
     imgPath,
     x = 0,
     y = null,
+    width = 1440,  // Background-typical width
     height = 480,
     speedFactor = 1
   } = {}) {
-    super();
-    this.loadImage(imgPath);
-    this.x = x;
-    this.height = height;
-    this.y = y ?? 480 - this.height; // wenn y nicht gesetzt: automatisch unten ausrichten
+    super({
+      x,
+      y: y ?? 480 - height, // auto-align bottom
+      width,
+      height,
+      imgPath,
+      type: "background"
+    });
+    
+    // BACKGROUND-SPEZIFISCH
     this.speedFactor = speedFactor;
+  }
+  
+  // Background bewegt sich nicht wie normale MovableObjects
+  update(deltaTime) {
+    // Backgrounds update differently - no physics needed
+    // Override to prevent normal movement/physics
   }
 }
