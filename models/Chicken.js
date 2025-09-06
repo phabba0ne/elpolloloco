@@ -18,7 +18,7 @@ export default class Chicken extends MovableObject {
     this.y = y ?? this.y;
 
     // StateMachine initialisieren
-    this.stateMachine = new StateMachine(sprites, "walk", 10);
+    this.stateMachine = new StateMachine(sprites, "walk", 4);
     this.loadSprites(sprites);
   }
 

@@ -3,30 +3,30 @@ import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
 export default class Character extends MovableObject {
-  // --- Standardwerte ---
-  x = 120;
-  y = 250;
   width = 100;
   height = 200;
+  x = 120;
+  y = 250;
   speedX = 0;
   speedY = 0;
   moveSpeed = 3;
-  jumpPower = 12;
-  gravity = 0.7;
+  jumpPower = 15;
+  gravity = 0.5;
   groundY = 250;
   isJumping = false;
+
   constructor({
     x = 120,
     y = 250,
     width = 100,
     height = 200,
-    moveSpeed = 3,
-    jumpPower = 12,
-    gravity = 0.7,
+    moveSpeed = 2,
+    jumpPower = 15,
+    gravity = 0.5,
     groundY = 250,
     sprites = AssetManager.PEPE_SPRITES,
-    longIdleThreshold = 6000, // ms bis zur "longIdle"-Animation
-    invulnerableDuration = 2000, // ms nach Schaden unverwundbar
+    longIdleThreshold = 6000,
+    invulnerableDuration = 2000,
   } = {}) {
     super();
     this.type = "character"; // ✅ wichtig
@@ -43,7 +43,7 @@ export default class Character extends MovableObject {
     this.groundY = groundY;
 
     // StateMachine
-    this.stateMachine = new StateMachine(sprites, "idle", 10);
+    this.stateMachine = new StateMachine(sprites, "idle", 8);
     this.loadSprites(sprites);
 
     // Animation / Idle-Timer

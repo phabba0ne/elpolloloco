@@ -2,7 +2,7 @@ import IntervalHub from "../services/IntervalHub.js";
 import Character from "./Character.js";
 import Cloud from "./Cloud.js";
 import RandomSpawner from "../services/RandomSpawner.js"; // <- unser kombinierter Spawner
-
+import ItemSpawner from "../services/ItemSpawner.js";
 export default class World {
   debug = true;
   camera_x = 0;
@@ -21,7 +21,12 @@ export default class World {
     this.backgrounds = level.backgrounds;
     this.character = character;
     this.debug = debug;
-
+    this.items = new ItemSpawner({
+      world: this,
+      coinCount: 50,
+      salsaCount: 10,
+      debug,
+    });
     this.lastTime = performance.now();
     this.running = true;
 
@@ -70,8 +75,12 @@ export default class World {
     this.fps = Math.round(1 / deltaTime);
 
     // Kollisionsprüfung
-    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
-    if (collided && this.debug) console.log("Character collided with:", collided);
+    const collided = this.character.checkCollisions(
+      [...this.enemies],
+      deltaTime
+    );
+    if (collided && this.debug)
+      console.log("Character collided with:", collided);
 
     // Input
     let moving = false;
@@ -123,8 +132,10 @@ export default class World {
       let offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
 
       this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-      if (offset > 0) this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
-      if (offset < 0) this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
+      if (offset > 0)
+        this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+      if (offset < 0)
+        this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
     // Alle Objekte in Kamera transformieren
@@ -148,7 +159,11 @@ export default class World {
   addToMap(mo) {
     if (!mo) return;
 
-    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
+    if (
+      mo.img instanceof Image &&
+      mo.img.complete &&
+      mo.img.naturalWidth !== 0
+    ) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);
