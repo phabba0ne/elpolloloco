@@ -2,23 +2,26 @@ import DrawableObject from "./DrawableObject.js";
 import AssetManager from "../services/AssetManager.js";
 
 export default class MovableObject extends DrawableObject {
-  x = 120;
-  y = 280;
-  width = 100;
-  height = 150;
+  speedX = 0;
+  speedY = 0;
+  gravity = 0;
   imageCache = {};
   otherDirection = false;
   health = 100;
   strength = 10;
   isDead = false;
+  collisionCooldown = 0;
+  collisionInterval = 150;
   debug = false;
 
-  constructor(stateMachine) {
-    super();
+  constructor(stateMachine, options = {}) {
+    super(options);
     this.stateMachine = stateMachine;
+    if (options.type) this.type = options.type;
+    if (options.world) this.world = options.world;
   }
 
-  // --- Sprites ---
+  // --- Sprites laden ---
   async loadSprites(sprites) {
     await AssetManager.loadAll(Object.values(sprites).flat());
     this.img = this.stateMachine.getFrame();
@@ -29,26 +32,33 @@ export default class MovableObject extends DrawableObject {
     this.img.src = path;
   }
 
-  // --- Update Animation ---
-
+  // --- Update Animation & Bewegung ---
   update(deltaTime) {
-    // Animation synchronisiert über StateMachine
+    if (this.isDead) return;
+
+    // Animation
     this.stateMachine?.update(deltaTime);
     const frame = this.stateMachine?.getFrame();
     if (frame) this.img = frame;
 
-    // Bewegung / Logik nur, wenn lebendig
-    if (this.isDead) return;
-
-    this.x += this.speedX;
-    this.speedY += this.gravity;
-    this.y += this.speedY;
+    // Bewegung
+    this.x += this.speedX * deltaTime;
+    this.y += this.speedY * deltaTime;
+    this.speedY += this.gravity * deltaTime;
   }
 
-  // --- Zeichnen + Debug-Hitbox ---
+  // --- Draw ---
   draw(ctx) {
     if (this.img) {
-      ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+      if (this.otherDirection) {
+        ctx.save();
+        ctx.translate(this.x + this.width, this.y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.img, 0, 0, this.width, this.height);
+        ctx.restore();
+      } else {
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+      }
     } else {
       ctx.fillStyle = "magenta";
       ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -63,93 +73,47 @@ export default class MovableObject extends DrawableObject {
     }
   }
 
-  // --- Damage System ---
+  // --- Damage & Death ---
   getDamage(source) {
-    if (!source || !(source instanceof MovableObject)) return;
-    if (this.isDead) return;
-
+    if (!source || this.isDead) return;
     this.health -= source.strength;
-
-    if (this.debug) {
-      console.log(
-        `${this.constructor.name} took ${source.strength} damage from ${source.constructor.name}. Health now: ${this.health}`
-      );
-    }
-
-    if (this.health <= 0) {
-      this.die();
-    }
+    if (this.health <= 0) this.die();
   }
 
   doDamage(target) {
-    if (!this.enabled || this.isDead) return;
-    if (!target || !(target instanceof MovableObject)) return;
-
-    console.log(
-      `%c${this.constructor.name} attacks ${target.constructor.name} for ${this.strength} damage`,
-      "color:orange"
-    );
+    if (!target || this.isDead) return;
     target.getDamage(this);
   }
 
   die() {
     if (this.isDead) return;
     this.isDead = true;
-    this.stateMachine.setState("dead");
-    console.log(`${this.constructor.name} died.`);
+    this.stateMachine?.setState("dead");
   }
 
-  // --- Collision detection ---
-  collisionCooldown = 0; // ms bis zur nächsten Kollisionsprüfung
-  collisionInterval = 150; // alle 150 ms prüfen
-
-  // --- Collision detection ---
+  // --- Kollision ---
   checkCollisions(objects, deltaTime) {
     if (this.isDead) return null;
 
-    // Cooldown runterzählen
     this.collisionCooldown -= deltaTime * 1000;
     if (this.collisionCooldown > 0) return null;
     this.collisionCooldown = this.collisionInterval;
 
     for (const obj of objects) {
-      if (obj === this) continue; // sich selbst überspringen
-      if (this.world?.clouds?.includes(obj)) continue; // Clouds ignorieren
+      if (!obj || obj === this) continue;
       if (!isColliding(this, obj)) continue;
 
-      // Debug
-      if (this.debug) {
-        console.log("Collision detected:", {
-          self: { x: this.x, y: this.y, w: this.width, h: this.height },
-          other: { x: obj.x, y: obj.y, w: obj.width, h: obj.height },
-        });
-      }
+      // Schaden bei Character <-> Enemy
+      if (this.type === "character" && obj.type === "enemy") this.getDamage(obj);
+      if (this.type === "enemy" && obj.type === "character") this.getDamage(obj);
 
-      // Charakter bekommt Schaden von Gegner
-      if (
-        this.type === "character" &&
-        obj.type === "enemy" &&
-        !this.isInvulnerable
-      ) {
-        this.getDamage(obj);
-      }
-
-      // Gegner bekommt Schaden vom Character (falls nötig)
-      if (this.type === "enemy" && obj.type === "character") {
-        this.getDamage(obj); // optional, z.B. für Touch-Damage
-      }
-
-      // Kollision zurückgeben
       return obj;
     }
-
     return null;
   }
 }
 
-/**
- * Axis-Aligned Bounding Box
- */
+// AABB-Kollision
 function isColliding(a, b) {
   return (
     a.x < b.x + b.width &&

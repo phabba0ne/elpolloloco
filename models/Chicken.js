@@ -23,15 +23,41 @@ export default class Chicken extends MovableObject {
   }
 
   async loadSprites(sprites) {
-    // Alle Sprites preloaden und Startbild setzen
+    // Alle Sprites preloaden
     await AssetManager.loadAll(Object.values(sprites).flat());
-    this.img = this.stateMachine.getFrame();
+    this.img = this.stateMachine.getFrame(); // Startframe
   }
 
   update(deltaTime) {
     if (!this.isDead) {
       this.x -= this.speedX * deltaTime; // FPS-unabhängig
     }
+    this.stateMachine.update(deltaTime); // Animation updaten
+    this.img = this.stateMachine.getFrame(); // aktuelles Frame setzen
     super.update(deltaTime);
+  }
+
+  draw(ctx) {
+    if (!this.img) return;
+
+    ctx.save();
+    // Optional: spiegeln, falls andere Richtung benötigt
+    if (this.otherDirection) {
+      ctx.translate(this.x + this.width, this.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(this.img, 0, 0, this.width, this.height);
+    } else {
+      ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    }
+    ctx.restore();
+
+    // Debugbox
+    if (this.debug) {
+      ctx.save();
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
+    }
   }
 }

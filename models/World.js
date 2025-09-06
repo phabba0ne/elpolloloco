@@ -1,8 +1,8 @@
 import IntervalHub from "../services/IntervalHub.js";
 import Character from "./Character.js";
 import Cloud from "./Cloud.js";
-import RandomSpawner from "../services/RandomSpawner.js"; // <- unser kombinierter Spawner
 import ItemSpawner from "../services/ItemSpawner.js";
+
 export default class World {
   debug = true;
   camera_x = 0;
@@ -21,12 +21,15 @@ export default class World {
     this.backgrounds = level.backgrounds;
     this.character = character;
     this.debug = debug;
+
+    // Items
     this.items = new ItemSpawner({
       world: this,
       coinCount: 50,
       salsaCount: 10,
       debug,
     });
+
     this.lastTime = performance.now();
     this.running = true;
 
@@ -42,14 +45,6 @@ export default class World {
       enemy.otherDirection = false;
       enemy.type = "enemy"; // wichtig für Kollisionslogik
       enemy.world = this;
-    });
-
-    // RandomSpawner für Coins & Salsas
-    this.spawner = new RandomSpawner({
-      world: this,
-      coinCount: 100,
-      salsaCount: 10,
-      debug: this.debug,
     });
 
     this.start();
@@ -75,12 +70,8 @@ export default class World {
     this.fps = Math.round(1 / deltaTime);
 
     // Kollisionsprüfung
-    const collided = this.character.checkCollisions(
-      [...this.enemies],
-      deltaTime
-    );
-    if (collided && this.debug)
-      console.log("Character collided with:", collided);
+    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
+    if (collided && this.debug) console.log("Character collided with:", collided);
 
     // Input
     let moving = false;
@@ -102,7 +93,9 @@ export default class World {
     // Update
     this.character.update(deltaTime, moving, jumpInput, moveDir);
     this.enemies.forEach((e) => e.update(deltaTime));
-    this.spawner.update(deltaTime); // <- Coins & Salsas
+
+    // Items aktualisieren
+    this.items.update(deltaTime);
 
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
@@ -146,8 +139,8 @@ export default class World {
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
 
-    // Coins & Salsas
-    this.spawner.draw(this.ctx);
+    // Coins & Salsas zeichnen
+    this.items.draw(this.ctx);
 
     this.ctx.restore();
   }
@@ -159,11 +152,7 @@ export default class World {
   addToMap(mo) {
     if (!mo) return;
 
-    if (
-      mo.img instanceof Image &&
-      mo.img.complete &&
-      mo.img.naturalWidth !== 0
-    ) {
+    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);
