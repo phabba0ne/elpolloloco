@@ -1,4 +1,6 @@
-class Keyboard {
+
+
+export default class Keyboard {
   constructor() {
     this.keys = {};      // aktueller Status
     this.prevKeys = {};  // Status im letzten Frame

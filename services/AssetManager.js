@@ -4,7 +4,8 @@
  * Central hub for preloading and caching images & audio.
  * Ensures assets are available before the game world initializes.
  */
-class AssetManager {
+
+export default class AssetManager {
   // ---------- Caches ----------
   static imageCache = new Map();
   static audioCache = new Map();
@@ -174,20 +175,35 @@ class AssetManager {
 
   //#endregion pepe
 
-  // static preloadLevelAssets(level) {
-  //   const allAssets = [
-  //     ...level.backgrounds.map(bg => bg.imagePath),
-  //     ...level.clouds.map(cloud => cloud.imagePath),
-  //     ...level.enemies.map(enemy => enemy.getSpritePaths()).flat(),
-  //     // Character sprites separat laden
-  //   ];
-  //   return this.loadImages(allAssets);
-  // }
+    /**
+   * Preload all known assets defined in static sprite maps
+   */
+  static async preload() {
+    const assetGroups = [
+      this.SALSABOTTLE,
+      this.COIN_SPRITES,
+      this.CHICKEN_SPRITES,
+      this.CHICKENSMALL_SPRITES,
+      this.CHICKENBOSS_SPRITES,
+      this.PEPE_SPRITES,
+    ];
 
-  // static getImageSafely(path) {
-  //   const img = this.getImage(path);
-  //   return img && img.complete && img.naturalWidth > 0 ? img : null;
-  // }
+    // Alle Arrays extrahieren und flatten
+    const allPaths = assetGroups
+      .map(group => Object.values(group).flat())
+      .flat();
+
+    console.log(`AssetManager: Preloading ${allPaths.length} assets...`);
+
+    await this.loadAll(allPaths);
+
+    console.log("✅ AssetManager: Alle Assets geladen.");
+  }
+
+  static getImageSafely(path) {
+    const img = this.getImage(path);
+    return img && img.complete && img.naturalWidth > 0 ? img : null;
+  }
 
   // ---------- Images ----------
   static loadImage(path) {
@@ -249,4 +265,4 @@ class AssetManager {
   }
 }
 
-window.AssetManager = AssetManager;
+

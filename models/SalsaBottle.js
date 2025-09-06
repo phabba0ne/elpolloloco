@@ -1,4 +1,8 @@
-class SalsaBottle extends MovableObject {
+import MovableObject from "./MovableObject.js";
+import AssetManager from "../services/AssetManager.js";
+import StateMachine from "../services/StateMachine.js";
+
+export default class SalsaBottle extends MovableObject {
   width = 50;
   height = 50;
   speedX = 0;
@@ -9,22 +13,23 @@ class SalsaBottle extends MovableObject {
   damage = 50;
   thrown = false;
 
-  constructor(x, y, direction = 1) {
+  constructor(x = 0, y = 0, direction = 1) {
     super();
+    this.type = "projectile"; // wichtig für Collision / World
     this.x = x;
     this.y = y;
     this.speedX = 10 * direction;
+    this.thrown = true;
 
     // StateMachine für Spin und Hit
     this.stateMachine = new StateMachine({
       spin: AssetManager.SALSABOTTLE.spin,
-      hit: AssetManager.SALSABOTTLE.hit
+      hit: AssetManager.SALSABOTTLE.hit,
     }, "spin", 10);
 
+    // Erstes Frame laden
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
-
-    this.thrown = true;
   }
 
   update(deltaTime, objects = []) {
@@ -40,7 +45,7 @@ class SalsaBottle extends MovableObject {
 
     // Kollision prüfen
     for (const obj of objects) {
-      if (obj !== this && isColliding(this, obj)) {
+      if (obj !== this && this.isCollidingWith(obj)) {
         console.log(`[HIT] SalsaBottle hit ${obj.constructor.name}`);
         if (obj.getDamage) obj.getDamage(this);
         this.explode();
@@ -55,9 +60,10 @@ class SalsaBottle extends MovableObject {
   }
 
   explode() {
+    if (!this.thrown) return;
+    this.thrown = false;
     this.stateMachine.setState("hit");
     this.stateMachine.currentFrame = 0;
-    this.thrown = false;
     console.log("[ACTION] SalsaBottle exploded");
   }
 
@@ -70,8 +76,20 @@ class SalsaBottle extends MovableObject {
     ctx.restore();
 
     if (this.debug) {
+      ctx.save();
       ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
       ctx.strokeRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
     }
+  }
+
+  isCollidingWith(obj) {
+    return (
+      this.x < obj.x + obj.width &&
+      this.x + this.width > obj.x &&
+      this.y < obj.y + obj.height &&
+      this.y + this.height > obj.y
+    );
   }
 }

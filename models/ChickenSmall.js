@@ -1,24 +1,37 @@
-class ChickenSmall extends Chicken {
-  strength = 5;
+import Chicken from "./Chicken.js";
+import AssetManager from "../services/AssetManager.js";
+import StateMachine from "../services/StateMachine.js";
 
-  constructor(x = null, y = null) {
-    super();
-    
+export default class ChickenSmall extends Chicken {
+  width = 48;
+  height = 48;
+  speedX = 40;
+  strength = 5;
+  y = 396;
+
+  constructor(x = null) {
+    super(x, 396); // ruft den Chicken-Konstruktor auf
+    this.type = "chickenSmall"; // wichtig für World/Kollisionslogik
+
     // Override StateMachine für Small Chicken
-    this.stateMachine = new StateMachine(AssetManager.CHICKENSMALL_SPRITES, "walk", 12);
+    this.stateMachine = new StateMachine(
+      AssetManager.CHICKENSMALL_SPRITES,
+      "walk",
+      12
+    );
+
     this.loadSprites(AssetManager.CHICKENSMALL_SPRITES);
-    
-    // Position und Eigenschaften
-    this.x = x || (800 + Math.random() * 1200);
-    this.y = 396;
-    this.width = 48;
-    this.height = 48;
-    this.speedX = 40; // px/sec - schneller als normale Chicken
+  }
+
+  async loadSprites(sprites) {
+    // Preload alle Sprites und setze Startframe
+    await AssetManager.loadAll(Object.values(sprites).flat());
+    this.img = this.stateMachine.getFrame();
   }
 
   update(deltaTime) {
     if (!this.isDead) {
-      this.x -= this.speedX * deltaTime;
+      this.x -= this.speedX * deltaTime; // FPS-unabhängig
     }
     super.update(deltaTime);
   }

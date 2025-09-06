@@ -4,7 +4,10 @@
  * Central manager for all setIntervals.
  * Allows starting intervals and stopping them all at once.
  */
-class IntervalHub {
+
+
+
+export default class IntervalHub {
     static allIntervals = [];
 
     static startInterval(func, timer) {

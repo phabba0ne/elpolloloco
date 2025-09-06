@@ -1,4 +1,7 @@
-class MovableObject extends DrawableObject{
+import DrawableObject from "./DrawableObject.js";
+import AssetManager from "../services/AssetManager.js";
+
+export default class MovableObject extends DrawableObject{
   x = 120;
   y = 280;
   width = 100;
@@ -16,10 +19,9 @@ class MovableObject extends DrawableObject{
   }
 
   // --- Sprites ---
-  loadSprites(sprites) {
-    return AssetManager.loadAll(Object.values(sprites).flat()).then(() => {
-      this.img = this.stateMachine.getFrame();
-    });
+  async loadSprites(sprites) {
+    await AssetManager.loadAll(Object.values(sprites).flat());
+    this.img = this.stateMachine.getFrame();
   }
 
   loadImage(path) {
@@ -97,35 +99,43 @@ class MovableObject extends DrawableObject{
   collisionInterval = 150;   // alle 150 ms prüfen
 
   // --- Collision detection ---
-  checkCollisions(objects, deltaTime) {
-    if (this.isDead) return null;
+checkCollisions(objects, deltaTime) {
+  if (this.isDead) return null;
 
-    // Countdown runterzählen
-    this.collisionCooldown -= deltaTime * 1000; // deltaTime in Sekunden → ms
-    if (this.collisionCooldown > 0) return null;
+  // Cooldown runterzählen
+  this.collisionCooldown -= deltaTime * 1000;
+  if (this.collisionCooldown > 0) return null;
+  this.collisionCooldown = this.collisionInterval;
 
-    // Reset Cooldown
-    this.collisionCooldown = this.collisionInterval;
+  for (const obj of objects) {
+    if (obj === this) continue;             // sich selbst überspringen
+    if (this.world?.clouds?.includes(obj)) continue; // Clouds ignorieren
+    if (!isColliding(this, obj)) continue;
 
-    // Charakter Invulnerable? Dann Kollision überspringen
-    if (this instanceof Character && this.isInvulnerable) {
-      if (this.debug) console.log(`[SKIP] ${this.constructor.name} is invulnerable, skipping collision checks.`);
-      return null;
+    // Debug
+    if (this.debug) {
+      console.log("Collision detected:", {
+        self: { x: this.x, y: this.y, w: this.width, h: this.height },
+        other: { x: obj.x, y: obj.y, w: obj.width, h: obj.height },
+      });
     }
 
-    for (const obj of objects) {
-      if (this.world?.clouds?.includes(obj)) continue;
-      if (obj !== this && isColliding(this, obj)) {
-        if (this.debug) console.log("Collision detected with", obj);
-
-        if (this instanceof Character && !this.isInvulnerable) {
-          this.getDamage(obj);
-        }
-        return obj;
-      }
+    // Charakter bekommt Schaden von Gegner
+    if (this.type === "character" && obj.type === "enemy" && !this.isInvulnerable) {
+      this.getDamage(obj);
     }
-    return null;
+
+    // Gegner bekommt Schaden vom Character (falls nötig)
+    if (this.type === "enemy" && obj.type === "character") {
+      this.getDamage(obj); // optional, z.B. für Touch-Damage
+    }
+
+    // Kollision zurückgeben
+    return obj;
   }
+
+  return null;
+}
 }
 
 /**

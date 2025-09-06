@@ -1,31 +1,63 @@
-class Character extends MovableObject {
+import MovableObject from "./MovableObject.js";
+import AssetManager from "../services/AssetManager.js";
+import StateMachine from "../services/StateMachine.js";
+
+export default class Character extends MovableObject {
+  // --- Standardwerte ---
+  x = 120;
+  y = 250;
   width = 100;
   height = 200;
-  y = 250;
-  x = 120;
-
   speedX = 0;
   speedY = 0;
-  moveSpeed = 4;
+  moveSpeed = 3;
   jumpPower = 12;
-  gravity = 0.5;
+  gravity = 0.7;
   groundY = 250;
   isJumping = false;
-
-  constructor() {
+  constructor({
+    x = 120,
+    y = 250,
+    width = 100,
+    height = 200,
+    moveSpeed = 3,
+    jumpPower = 12,
+    gravity = 0.7,
+    groundY = 250,
+    sprites = AssetManager.PEPE_SPRITES,
+    longIdleThreshold = 6000, // ms bis zur "longIdle"-Animation
+    invulnerableDuration = 2000, // ms nach Schaden unverwundbar
+  } = {}) {
     super();
-    this.stateMachine = new StateMachine(AssetManager.PEPE_SPRITES, "idle", 10);
-    this.loadSprites(AssetManager.PEPE_SPRITES);
+    this.type = "character"; // ✅ wichtig
+    // Position und Größen
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
 
+    // Bewegung & Physik
+    this.moveSpeed = moveSpeed;
+    this.jumpPower = jumpPower;
+    this.gravity = gravity;
+    this.groundY = groundY;
+
+    // StateMachine
+    this.stateMachine = new StateMachine(sprites, "idle", 10);
+    this.loadSprites(sprites);
+
+    // Animation / Idle-Timer
     this.frameTimer = 0;
     this.frameInterval = 60;
     this.idleTimer = 0;
-    this.longIdleThreshold = 6000;
+    this.longIdleThreshold = longIdleThreshold;
 
+    // Damage / Invulnerability
     this.isHurt = false;
     this.isInvulnerable = false;
-    this.invulnerableDuration = 2000; // 2 Sekunden
+    this.invulnerableDuration = invulnerableDuration;
   }
+
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
     // --- Dead Animation + Fall ---
     if (this.isDead) {

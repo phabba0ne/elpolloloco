@@ -1,70 +1,71 @@
-class World {
-  debug = true; // global debug flag
-  canvas;
-  ctx;
-  camera_x = 0;
-  keyboard;
-  character;
+import IntervalHub from "../services/IntervalHub.js";
+import Character from "./Character.js";
+import Cloud from "./Cloud.js";
 
-  constructor(canvas, keyboard) {
-    this.level = level1;
-    this.enemies = level1.enemies;
-    this.clouds = level1.clouds;
-    this.backgrounds = level1.backgrounds;
-    this.character = new Character();
-    this.ctx = canvas.getContext("2d");
+export default class World {
+  debug = true;
+  camera_x = 0;
+
+  constructor({ canvas, keyboard, level, character, debug = true } = {}) {
+    if (!canvas || !keyboard || !level || !character) {
+      throw new Error("World requires { canvas, keyboard, level, character }");
+    }
+
     this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
+    this.level = level;
+    this.enemies = level.enemies;
+    this.clouds = level.clouds;
+    this.backgrounds = level.backgrounds;
+    this.character = character;
+    this.debug = debug;
+
     this.lastTime = performance.now();
     this.running = true;
+
+    // Character koppeln
     this.setWorld();
 
-    // Character schaut zu Beginn nach rechts
+    // Startausrichtung
     this.character.otherDirection = true;
+    this.character.type = "character"; // wichtig für Kollisionslogik
 
-    // Alle Chickens laufen von rechts nach links
-    this.enemies.forEach((chicken) => (chicken.otherDirection = false)); // ✅ Das ist OK
+    // Gegner initialisieren
+    this.enemies.forEach((enemy) => {
+      enemy.otherDirection = false;
+      enemy.type = "enemy"; // wichtig für Kollisionslogik
+      enemy.world = this;
+    });
 
     this.start();
   }
 
-  //koppelt world an character
   setWorld() {
     this.character.world = this;
   }
 
-  //IntervalHub
   start() {
-    // Hauptloop per requestAnimationFrame
     this._loop = this.loop.bind(this);
     requestAnimationFrame(this._loop);
-
-    // Clouds bewegen sich alle 50ms
     IntervalHub.startInterval(() => this.updateClouds(), 50);
-
-    //test
-    // setTimeout(() => IntervalHub.stopAllIntervals(), 3000);
   }
 
   loop() {
     if (!this.running) return;
 
     const currentTime = performance.now();
-    let deltaTime = (currentTime - this.lastTime) / 1000;
+    const deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
-    // FPS messen
     this.fps = Math.round(1 / deltaTime);
 
-    const enemiesAndObjects = [...this.enemies]; // ...world.items (any collidable objects)
-    const collided = this.character.checkCollisions(enemiesAndObjects);
-    if (collided) {
-      console.log("Hit something!", collided);
-    }
+    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
+    if (collided && this.debug) console.log("Character collided with:", collided);
 
-    //Input
+    // Input
     let moving = false;
-    let moveDir = 0; // -1 = left, +1 = right
+    let moveDir = 0;
     const jumpInput = this.keyboard.jump;
 
     if (this.keyboard.left && this.character.x > this.level.startX) {
@@ -81,19 +82,14 @@ class World {
       this.debug = !this.debug;
     }
 
-    // Single update call handles movement + jump + gravity
     this.character.update(deltaTime, moving, jumpInput, moveDir);
-
-    // Update enemies
     this.enemies.forEach((enemy) => enemy.update?.(deltaTime));
 
-    // Camera
     this.camera_x = -this.character.x + this.canvas.width / 6;
-
     this.keyboard.update();
     this.draw();
 
-    // FPS anzeigen
+    // FPS
     this.ctx.fillStyle = "brown";
     this.ctx.font = "20px Arial";
     this.ctx.fillText(`FPS: ${this.fps}`, 10, 20);
@@ -109,38 +105,18 @@ class World {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.backgrounds.forEach((bg) => {
-      if (bg.img && bg.img.complete) {
-        // Modulo sorgt dafür, dass der Layer endlos wiederholt wird
-        const bgWidth = 1440;
-        let offset = (this.camera_x * bg.speedFactor) % bgWidth;
+      if (!bg.img || !bg.img.complete) return;
 
-        // Bild zeichnen
-        this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
+      const bgWidth = 1440;
+      let offset = (this.camera_x * bg.speedFactor) % bgWidth;
       offset = Math.floor(offset);
-        // zweite Kopie rechts zeichnen, falls nötig
-        if (offset > 0) {
-          this.ctx.drawImage(
-            bg.img,
-            offset - bgWidth,
-            bg.y,
-            bgWidth,
-            bg.height
-          );
-        }
-        // zweite Kopie links zeichnen, falls nötig
-        if (offset < 0) {
-          this.ctx.drawImage(
-            bg.img,
-            offset + bgWidth,
-            bg.y,
-            bgWidth,
-            bg.height
-          );
-        }
-      }
+
+      this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
+
+      if (offset > 0) this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+      if (offset < 0) this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
-    // --- Clouds, Character, Enemies mit Kamera-Offset ---
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
     this.addObjectsToMap(this.clouds);
@@ -150,40 +126,28 @@ class World {
   }
 
   addObjectsToMap(objects) {
-    objects.forEach((o) => {
-      this.addToMap(o);
-    });
+    objects.forEach((o) => this.addToMap(o));
   }
 
   addToMap(mo) {
     if (!mo) return;
 
-    if (
-      mo.img instanceof Image &&
-      mo.img.complete &&
-      mo.img.naturalWidth !== 0
-    ) {
+    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
       this.ctx.save();
-
-      // Wenn es ein Character ist → Richtungsflag beachten
-      if (mo instanceof Character) {
-        if (!mo.otherDirection) {
-          this.ctx.translate(mo.x + mo.width, mo.y);
-          this.ctx.scale(-1, 1);
-          this.ctx.drawImage(mo.img, 0, 0, mo.width, mo.height);
-        } else {
-          this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
-        }
+      if (mo instanceof Character && !mo.otherDirection) {
+        this.ctx.translate(mo.x + mo.width, mo.y);
+        this.ctx.scale(-1, 1);
+        this.ctx.drawImage(mo.img, 0, 0, mo.width, mo.height);
       } else {
         this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
       }
-
       this.ctx.restore();
     } else {
       this.ctx.fillStyle = "magenta";
       this.ctx.fillRect(mo.x, mo.y, mo.width, mo.height);
     }
-    if (mo.debug || this.debug && !(mo instanceof Cloud)) {
+
+    if (mo.debug || (this.debug && !(mo instanceof Cloud))) {
       this.ctx.save();
       this.ctx.strokeStyle = "red";
       this.ctx.lineWidth = 2;
