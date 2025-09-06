@@ -28,14 +28,14 @@ export default class Chicken extends MovableObject {
     this.img = this.stateMachine.getFrame(); // Startframe
   }
 
-  update(deltaTime) {
-    if (!this.isDead) {
-      this.x -= this.speedX * deltaTime; // FPS-unabhängig
-    }
-    this.stateMachine.update(deltaTime); // Animation updaten
-    this.img = this.stateMachine.getFrame(); // aktuelles Frame setzen
-    super.update(deltaTime);
+update(deltaTime) {
+  if (!this.isDead) {
+    this.x -= this.speedX * deltaTime;
   }
+  this.stateMachine.update(deltaTime);
+  this.img = this.stateMachine.getFrame();
+  // super.update(deltaTime);
+}
 
   draw(ctx) {
     if (!this.img) return;
