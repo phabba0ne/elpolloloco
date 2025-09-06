@@ -1,6 +1,7 @@
+import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
-import MovableObject from "./MovableObject.js";
+
 
 export default class ChickenBoss extends MovableObject {
   width = 300;

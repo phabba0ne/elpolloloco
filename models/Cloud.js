@@ -1,6 +1,8 @@
 import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 
+
+// TODO: REFAC 
 export default class Cloud extends MovableObject {
   static DEFAULT_SPRITES = [
     "assets/img/background/layers/clouds/one.png",

@@ -13,47 +13,40 @@ export default class SalsaBottle extends MovableObject {
   damage = 50;
   thrown = false;
 
-  constructor(x = 0, y = 0, direction = 1) {
-    super();
-    this.type = "projectile"; // wichtig für Collision / World
+  constructor({ x = 0, y = 0, direction = 1, enabled = true, debug = false } = {}) {
+    super({ debug });
+    this.type = "projectile";
     this.x = x;
     this.y = y;
     this.speedX = 10 * direction;
     this.thrown = true;
+    this.enabled = enabled;
 
-    // StateMachine für Spin und Hit
     this.stateMachine = new StateMachine({
       spin: AssetManager.SALSABOTTLE.spin,
       hit: AssetManager.SALSABOTTLE.hit,
     }, "spin", 10);
 
-    // Erstes Frame laden
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
   }
 
   update(deltaTime, objects = []) {
-    if (!this.thrown) return;
+    if (!this.enabled || !this.thrown) return;
 
-    // Bewegung
     this.x += this.speedX;
     this.speedY += this.gravity;
     this.y += this.speedY;
-
-    // Rotation
     this.rotation += this.rotationSpeed;
 
-    // Kollision prüfen
     for (const obj of objects) {
       if (obj !== this && this.isCollidingWith(obj)) {
-        console.log(`[HIT] SalsaBottle hit ${obj.constructor.name}`);
         if (obj.getDamage) obj.getDamage(this);
         this.explode();
         break;
       }
     }
 
-    // Animation aktualisieren
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
@@ -64,11 +57,11 @@ export default class SalsaBottle extends MovableObject {
     this.thrown = false;
     this.stateMachine.setState("hit");
     this.stateMachine.currentFrame = 0;
-    console.log("[ACTION] SalsaBottle exploded");
   }
 
   draw(ctx) {
-    if (!this.img) return;
+    if (!this.enabled || !this.img) return;
+
     ctx.save();
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
     ctx.rotate(this.rotation);

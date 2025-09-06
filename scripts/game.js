@@ -34,3 +34,24 @@ async function init() {
 
 // Start, wenn Fenster geladen ist
 window.addEventListener("load", init);
+
+
+
+
+// TODO:
+// Coin
+// update(deltaTime, world)
+// Coin
+// collect(character)
+// Coin
+// draw(ctx)
+// MovableObject
+// doDamage(target)
+// SalsaBottle
+// update(deltaTime, objects)
+// SalsaBottle
+// explode()
+// SalsaBottle
+// draw(ctx)
+// SalsaBottle
+// isCollidingWith(obj)

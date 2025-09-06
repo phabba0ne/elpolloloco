@@ -6,37 +6,35 @@ export default class Coin extends MovableObject {
   height = 50;
   collected = false;
 
-  constructor({ x = 0, y = 0 } = {}) {
-    super();
-    this.type = "coin"; // wichtig für World/Kollision
+  constructor({ x = 0, y = 0, enabled = true, debug = false } = {}) {
+    super({ debug });
+    this.type = "coin";
     this.x = x;
     this.y = y;
+    this.enabled = enabled;
 
-    // Sprites laden
     this.sprites = { idle: AssetManager.COIN_SPRITES.idle };
     this.loadSprites(this.sprites);
   }
 
   async loadSprites(sprites) {
-    if (!sprites || !sprites.idle) return;
+    if (!sprites?.idle) return;
     await AssetManager.loadAll(Object.values(sprites).flat());
     this.img = AssetManager.getImage(sprites.idle[0]);
   }
 
+  // --- Optional update, nur wenn Coin aktiviert ---
   update(deltaTime, world) {
-    if (this.collected) return;
+    if (!this.enabled || this.collected || !world?.character) return;
 
-    // Prüfe Kollisionen mit Character
-    if (world?.character) {
-      const collided = this.checkCollisions([world.character], deltaTime);
-      if (collided) this.collect(world.character);
+    if (this.checkCollisions([world.character], deltaTime)) {
+      this.collect(world.character);
     }
   }
 
   collect(character) {
     this.collected = true;
-    if (!character.gold) character.gold = 0;
-    character.gold += 1;
+    character.gold = (character.gold || 0) + 1;
 
     if (this.debug) {
       console.log(`[COIN] ${character.constructor.name} collected a coin! Total: ${character.gold}`);
@@ -44,7 +42,7 @@ export default class Coin extends MovableObject {
   }
 
   draw(ctx) {
-    if (this.collected) return;
+    if (!this.enabled || this.collected) return;
 
     if (this.img) {
       ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
