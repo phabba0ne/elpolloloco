@@ -7,11 +7,10 @@ export default class StateMachine {
     this.currentFrame = 0;
     this.frameRate = frameRate;
     this.frameTimer = 0;
-    this.frameInterval = 1 / frameRate;
-    this.onceStates = new Set(); // Tracks states that should play once
+    this.frameInterval = 1 / frameRate; // Sekunden pro Frame
+    this.onceStates = new Set(); // für einmalige Animationen
   }
 
-  // optional: once = true für einmalige Animation
   setState(newState, once = false) {
     if (this.currentState !== newState) {
       this.currentState = newState;
@@ -24,20 +23,19 @@ export default class StateMachine {
 
   update(deltaTime) {
     const frames = this.states[this.currentState];
-    if (!frames || frames.length === 0) return;
+    if (!frames?.length) return;
 
+    // FrameTimer inkrementieren mit deltaTime
     this.frameTimer += deltaTime;
-    if (this.frameTimer >= this.frameInterval) {
-      this.frameTimer = 0;
+
+    // Solange wir ein Frame überspringen müssen (deltaTime > frameInterval)
+    while (this.frameTimer >= this.frameInterval) {
+      this.frameTimer -= this.frameInterval;
       this.currentFrame++;
 
-      // Wenn Animation „einmalig“ abgespielt wird, am Ende stehen bleiben
       if (this.onceStates.has(this.currentState)) {
-        if (this.currentFrame >= frames.length) {
-          this.currentFrame = frames.length - 1;
-        }
+        if (this.currentFrame >= frames.length) this.currentFrame = frames.length - 1;
       } else {
-        // loop normal
         this.currentFrame %= frames.length;
       }
     }
@@ -45,7 +43,7 @@ export default class StateMachine {
 
   getFrame() {
     const frames = this.states[this.currentState];
-    if (!frames || frames.length === 0) return null;
+    if (!frames?.length) return null;
     const path = frames[this.currentFrame];
     return AssetManager.getImage(path) || null;
   }

@@ -30,14 +30,19 @@ export default class MovableObject extends DrawableObject {
   }
 
   // --- Update Animation ---
+
   update(deltaTime) {
-    // Immer Animation updaten, auch wenn tot
+    // Animation synchronisiert über StateMachine
     this.stateMachine?.update(deltaTime);
     const frame = this.stateMachine?.getFrame();
     if (frame) this.img = frame;
 
-    // Bewegung & Logik nur, wenn lebendig
+    // Bewegung / Logik nur, wenn lebendig
     if (this.isDead) return;
+
+    this.x += this.speedX;
+    this.speedY += this.gravity;
+    this.y += this.speedY;
   }
 
   // --- Zeichnen + Debug-Hitbox ---
