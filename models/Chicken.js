@@ -16,9 +16,9 @@ export default class Chicken extends MovableObject {
     // Position setzen
     this.x = x ?? 700 + Math.random() * 1500;
     this.y = y ?? this.y;
-
-    // StateMachine initialisieren
-    this.stateMachine = new StateMachine(sprites, "walk", 4);
+ 
+     // StateMachine initialisieren
+    this.stateMachine = new StateMachine(sprites, "walk", 6);
     this.loadSprites(sprites);
   }
 
@@ -34,7 +34,6 @@ update(deltaTime) {
   }
   this.stateMachine.update(deltaTime);
   this.img = this.stateMachine.getFrame();
-  // super.update(deltaTime);
 }
 
   draw(ctx) {
