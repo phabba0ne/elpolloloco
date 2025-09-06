@@ -1,83 +1,111 @@
+// Alle Movement-Properties und StateMachine nach oben
 import DrawableObject from "./DrawableObject.js";
 import AssetManager from "../services/AssetManager.js";
 
 export default class MovableObject extends DrawableObject {
-  speedX = 0;
-  speedY = 0;
-  gravity = 0;
-  imageCache = {};
-  otherDirection = false;
-  health = 100;
-  strength = 10;
-  isDead = false;
-  collisionCooldown = 0;
-  collisionInterval = 150;
-  debug = false;
-
-  constructor(stateMachine, options = {}) {
+  constructor(options = {}) {
     super(options);
-    this.stateMachine = stateMachine;
-    if (options.type) this.type = options.type;
-    if (options.world) this.world = options.world;
+    
+    // MOVEMENT - gemeinsam für Character, Chicken, ChickenBoss
+    this.speedX = options.speedX || 0;
+    this.speedY = options.speedY || 0;
+    this.otherDirection = options.otherDirection || false;
+    
+    // PHYSICS - gemeinsam verwendet
+    this.gravity = options.gravity || 0;
+    
+    // HEALTH SYSTEM - alle Enemies und Character haben das
+    this.health = options.health || 100;
+    this.strength = options.strength || 10;
+    this.isDead = false;
+    
+    // COLLISION SYSTEM - alle verwenden das
+    this.collisionCooldown = 0;
+    this.collisionInterval = options.collisionInterval || 150;
+    
+    // STATE MACHINE - Character, Chicken, ChickenBoss alle verwenden StateMachine
+    this.stateMachine = null;
+    this.frameTimer = 0;
+    this.frameInterval = options.frameInterval || 60;
+    
+    // WORLD REFERENCE - alle brauchen das
+    this.world = options.world || null;
   }
 
-  // --- Sprites laden ---
+  // GEMEINSAME loadSprites Methode für StateMachine-Objekte
   async loadSprites(sprites) {
-    await AssetManager.loadAll(Object.values(sprites).flat());
-    this.img = this.stateMachine.getFrame();
+    await super.loadSprites(sprites); // Parent-Cache verwenden
+    if (this.stateMachine) {
+      this.img = this.stateMachine.getFrame(); // Startframe setzen
+    }
   }
 
-  loadImage(path) {
-    this.img = new Image();
-    this.img.src = path;
+  // GEMEINSAME Update-Logik für StateMachine
+  updateStateMachine(deltaTime) {
+    if (this.stateMachine) {
+      this.stateMachine.update(deltaTime);
+      const frame = this.stateMachine.getFrame();
+      if (frame) this.img = frame;
+    }
   }
 
-  // --- Update Animation & Bewegung ---
-  update(deltaTime) {
-    if (this.isDead) return;
-
-    // Animation
-    this.stateMachine?.update(deltaTime);
-    const frame = this.stateMachine?.getFrame();
-    if (frame) this.img = frame;
-
-    // Bewegung
+  // BEWEGUNG - alle MovableObjects bewegen sich
+  move(deltaTime) {
     this.x += this.speedX * deltaTime;
     this.y += this.speedY * deltaTime;
-    this.speedY += this.gravity * deltaTime;
   }
 
-  // --- Draw ---
-  draw(ctx) {
-    if (this.img) {
-      if (this.otherDirection) {
-        ctx.save();
-        ctx.translate(this.x + this.width, this.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(this.img, 0, 0, this.width, this.height);
-        ctx.restore();
-      } else {
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
-      }
-    } else {
-      ctx.fillStyle = "magenta";
-      ctx.fillRect(this.x, this.y, this.width, this.height);
+  // PHYSICS UPDATE - Character und Enemies verwenden das
+  updatePhysics(deltaTime) {
+    // Apply gravity if needed
+    if (this.gravity > 0) {
+      this.speedY += this.gravity;
     }
-
-    if (this.debug) {
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
-      ctx.restore();
-    }
+    
+    // Move
+    this.move(deltaTime);
   }
 
-  // --- Damage & Death ---
+  // COLLISION DETECTION - alle verwenden AABB
+  isCollidingWith(other) {
+    return (
+      this.x < other.x + other.width &&
+      this.x + this.width > other.x &&
+      this.y < other.y + other.height &&
+      this.y + this.height > other.y
+    );
+  }
+
+  // COLLISION CHECKING - Character und Enemies verwenden das
+  checkCollisions(objects, deltaTime) {
+    if (this.isDead) return null;
+    
+    this.collisionCooldown -= deltaTime * 1000;
+    if (this.collisionCooldown > 0) return null;
+
+    for (const obj of objects) {
+      if (!obj || obj === this) continue;
+      if (!this.isCollidingWith(obj)) continue;
+      
+      this.collisionCooldown = this.collisionInterval;
+      this.onCollision(obj);
+      return obj;
+    }
+    return null;
+  }
+
+  // DAMAGE SYSTEM - Character und Enemies verwenden das
   getDamage(source) {
     if (!source || this.isDead) return;
+    
     this.health -= source.strength;
-    if (this.health <= 0) this.die();
+    console.log(`[${this.type}] Took ${source.strength} damage. Health: ${this.health}`);
+    
+    if (this.health <= 0) {
+      this.die();
+    } else {
+      this.onDamage(source);
+    }
   }
 
   doDamage(target) {
@@ -85,40 +113,50 @@ export default class MovableObject extends DrawableObject {
     target.getDamage(this);
   }
 
+  // DEATH HANDLING - alle haben das
   die() {
     if (this.isDead) return;
     this.isDead = true;
-    this.stateMachine?.setState("dead");
-  }
-
-  // --- Kollision ---
-  checkCollisions(objects, deltaTime) {
-    if (this.isDead) return null;
-
-    this.collisionCooldown -= deltaTime * 1000;
-    if (this.collisionCooldown > 0) return null;
-    this.collisionCooldown = this.collisionInterval;
-
-    for (const obj of objects) {
-      if (!obj || obj === this) continue;
-      if (!isColliding(this, obj)) continue;
-
-      // Schaden bei Character <-> Enemy
-      if (this.type === "character" && obj.type === "enemy") this.getDamage(obj);
-      if (this.type === "enemy" && obj.type === "character") this.getDamage(obj);
-
-      return obj;
+    
+    if (this.stateMachine && this.stateMachine.sprites.dead) {
+      this.stateMachine.setState("dead");
     }
-    return null;
+    
+    console.log(`[${this.type}] Died`);
+    this.onDeath();
   }
-}
 
-// AABB-Kollision
-function isColliding(a, b) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  // GEMEINSAME Update-Methode
+  update(deltaTime) {
+    if (this.isDead && this.stateMachine?.currentState === "dead") {
+      // Nur Animation aktualisieren wenn tot
+      this.updateStateMachine(deltaTime);
+      return;
+    }
+    
+    // Physics und Movement
+    this.updatePhysics(deltaTime);
+    
+    // Animation
+    this.updateStateMachine(deltaTime);
+  }
+
+  // Override-Points für Subklassen
+  onCollision(other) {
+    // Character <-> Enemy collision logic
+    if (this.type === "character" && other.type === "enemy") {
+      this.getDamage(other);
+    }
+    if (this.type === "enemy" && other.type === "character") {
+      this.doDamage(other);
+    }
+  }
+
+  onDamage(source) {
+    // Override in subclasses
+  }
+
+  onDeath() {
+    // Override in subclasses  
+  }
 }
