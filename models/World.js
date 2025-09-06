@@ -1,7 +1,7 @@
 import IntervalHub from "../services/IntervalHub.js";
 import Character from "./Character.js";
 import Cloud from "./Cloud.js";
-import CoinSpawner from "../services/CoinSpawner.js";
+import RandomSpawner from "../services/RandomSpawner.js"; // <- unser kombinierter Spawner
 
 export default class World {
   debug = true;
@@ -39,12 +39,12 @@ export default class World {
       enemy.world = this;
     });
 
-    // Münzmaschine
-    this.coinSpawner = new CoinSpawner({
+    // RandomSpawner für Coins & Salsas
+    this.spawner = new RandomSpawner({
       world: this,
-      count: 15,
-      respawn: false,
-      debug,
+      coinCount: 100,
+      salsaCount: 10,
+      debug: this.debug,
     });
 
     this.start();
@@ -69,13 +69,9 @@ export default class World {
 
     this.fps = Math.round(1 / deltaTime);
 
-    const collided = this.character.checkCollisions(
-      [...this.enemies],
-      deltaTime
-    );
-
-    if (collided && this.debug)
-      console.log("Character collided with:", collided);
+    // Kollisionsprüfung
+    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
+    if (collided && this.debug) console.log("Character collided with:", collided);
 
     // Input
     let moving = false;
@@ -92,18 +88,19 @@ export default class World {
       moveDir = 1;
       this.character.otherDirection = true;
     }
-    if (this.keyboard.debug) {
-      this.debug = !this.debug;
-    }
+    if (this.keyboard.debug) this.debug = !this.debug;
 
+    // Update
     this.character.update(deltaTime, moving, jumpInput, moveDir);
-    this.enemies.forEach((enemy) => enemy.update?.(deltaTime));
-    this.coinSpawner.update(deltaTime);
+    this.enemies.forEach((e) => e.update(deltaTime));
+    this.spawner.update(deltaTime); // <- Coins & Salsas
+
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
+
     this.draw();
 
-    // FPS
+    // FPS Anzeige
     this.ctx.fillStyle = "red";
     this.ctx.font = "20px Arial";
     this.ctx.fillText(`FPS: ${this.fps}`, 10, 20);
@@ -118,28 +115,29 @@ export default class World {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Backgrounds
     this.backgrounds.forEach((bg) => {
       if (!bg.img || !bg.img.complete) return;
 
       const bgWidth = 1440;
-      let offset = (this.camera_x * bg.speedFactor) % bgWidth;
-      offset = Math.floor(offset);
+      let offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
 
       this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-
-      if (offset > 0)
-        this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
-      if (offset < 0)
-        this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
+      if (offset > 0) this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+      if (offset < 0) this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
-    this.coinSpawner.draw(this.ctx);
+    // Alle Objekte in Kamera transformieren
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
+
     this.addObjectsToMap(this.clouds);
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
-    this.coinSpawner.draw(this.ctx);
+
+    // Coins & Salsas
+    this.spawner.draw(this.ctx);
+
     this.ctx.restore();
   }
 
@@ -150,11 +148,7 @@ export default class World {
   addToMap(mo) {
     if (!mo) return;
 
-    if (
-      mo.img instanceof Image &&
-      mo.img.complete &&
-      mo.img.naturalWidth !== 0
-    ) {
+    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);
