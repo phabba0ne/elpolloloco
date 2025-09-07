@@ -30,7 +30,6 @@ export default class RandomSpawner {
             10
           ),
           enabled: true,
-          debug: this.debug
         }));
       }
 
@@ -46,7 +45,6 @@ export default class RandomSpawner {
             10
           ),
           enabled: true,
-          debug: this.debug
         }));
       }
     }

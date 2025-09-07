@@ -15,6 +15,13 @@ export default class AssetManager {
   // #region bottle
 
   static SALSABOTTLE = {
+    spawn:[
+      "assets/img/salsaBottle/salsaBottle.png",
+      "assets/img/salsaBottle/salsaBottleOnGround.png",
+      "assets/img/salsaBottle/salsaBottleOnGroundTwo.png",
+
+    ],
+    
     spin: [
       "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
       "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",

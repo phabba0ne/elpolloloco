@@ -15,7 +15,7 @@ export default class SalsaBottle extends MovableObject {
 
   constructor({ x = 0, y = 0, direction = 1, enabled = true, debug = false } = {}) {
     super({ debug });
-    this.type = "projectile";
+    this.type = "salsa";
     this.x = x;
     this.y = y;
     this.speedX = 0;
@@ -25,7 +25,8 @@ export default class SalsaBottle extends MovableObject {
     this.stateMachine = new StateMachine({
       spin: AssetManager.SALSABOTTLE.spin,
       hit: AssetManager.SALSABOTTLE.hit,
-    }, "spin", 10);
+      spawn: AssetManager.SALSABOTTLE.spawn
+    }, "spawn", 10);
 
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;

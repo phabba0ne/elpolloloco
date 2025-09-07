@@ -67,8 +67,6 @@ export default class World {
     const deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
-    this.fps = Math.round(1 / deltaTime);
-
     // Kollisionsprüfung
     const collided = this.character.checkCollisions([...this.enemies], deltaTime);
     if (collided && this.debug) console.log("Character collided with:", collided);
@@ -90,23 +88,13 @@ export default class World {
     }
     if (this.keyboard.debug) this.debug = !this.debug;
 
-    // Update
+
     this.character.update(deltaTime, moving, jumpInput, moveDir);
     this.enemies.forEach((e) => e.update(deltaTime));
-
-    // Items aktualisieren
     this.items.update(deltaTime);
-
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
-
     this.draw();
-
-    // FPS Anzeige
-    this.ctx.fillStyle = "red";
-    this.ctx.font = "20px Arial";
-    this.ctx.fillText(`FPS: ${this.fps}`, 10, 20);
-
     requestAnimationFrame(this._loop);
   }
 
