@@ -217,24 +217,7 @@ export default class IntervalHub {
       }
     });
   }
-
-  // TODO #1: Legacy method - will be deprecated
-  static startInterval(func, timer) {
-    const newInterval = setInterval(func, timer);
-    this.allIntervals.push({
-      id: `legacy_${++this.intervalCounter}`,
-      func,
-      timer,
-      type: "legacy",
-      target: null,
-      paused: false,
-      lastExecution: 0,
-      nativeInterval: newInterval,
-    });
-    this.notifyStateMachine();
-    return newInterval;
-  }
-
+  
   // TODO #1: Enhanced stop all with async cleanup
   static async stopAllIntervals() {
     return new Promise((resolve) => {
@@ -279,6 +262,8 @@ export default class IntervalHub {
 }
 // TODO #1: Global access for testing and debugging
 window.IntervalHub = IntervalHub;
+
+//REGISTER EVERYTHING ON INTERVAL HUB
 
 // TODO #1: Test and debug functionality
 // console.log('IntervalHub initialized:', IntervalHub.getState());

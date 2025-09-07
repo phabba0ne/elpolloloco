@@ -1,46 +1,39 @@
-// Alle Movement-Properties und StateMachine nach oben
 import DrawableObject from "./DrawableObject.js";
 import AssetManager from "../services/AssetManager.js";
 
 export default class MovableObject extends DrawableObject {
   constructor(options = {}) {
     super(options);
-    
-    // MOVEMENT - gemeinsam für Character, Chicken, ChickenBoss
+
     this.speedX = options.speedX || 0;
     this.speedY = options.speedY || 0;
     this.otherDirection = options.otherDirection || false;
-    
-    // PHYSICS - gemeinsam verwendet
     this.gravity = options.gravity || 0;
-    
-    // HEALTH SYSTEM - alle Enemies und Character haben das
     this.health = options.health || 100;
-    this.strength = options.strength || 10;
     this.isDead = false;
-    
-    // COLLISION SYSTEM - alle verwenden das
-    this.collisionCooldown = 0;
-    this.collisionInterval = options.collisionInterval || 150;
-    
-    // STATE MACHINE - Character, Chicken, ChickenBoss alle verwenden StateMachine
+
+    // Kollisionsverwaltung
+    this.collisionCooldown = 0;                 // verbleibende Zeit bis wieder Schaden möglich
+    this.collisionInterval = options.collisionInterval || 100; // ms zwischen Schadentreffern
+
+    // Animationssystem
     this.stateMachine = null;
     this.frameTimer = 0;
     this.frameInterval = options.frameInterval || 60;
-    
-    // WORLD REFERENCE - alle brauchen das
+
+    // Referenz zur Welt
     this.world = options.world || null;
   }
 
-  // GEMEINSAME loadSprites Methode für StateMachine-Objekte
+  /** 🔹 Gemeinsame Sprites laden */
   async loadSprites(sprites) {
-    await super.loadSprites(sprites); // Parent-Cache verwenden
+    await super.loadSprites(sprites);
     if (this.stateMachine) {
-      this.img = this.stateMachine.getFrame(); // Startframe setzen
+      this.img = this.stateMachine.getFrame();
     }
   }
 
-  // GEMEINSAME Update-Logik für StateMachine
+  /** 🔹 StateMachine updaten */
   updateStateMachine(deltaTime) {
     if (this.stateMachine) {
       this.stateMachine.update(deltaTime);
@@ -49,24 +42,21 @@ export default class MovableObject extends DrawableObject {
     }
   }
 
-  // BEWEGUNG - alle MovableObjects bewegen sich
+  /** 🔹 Bewegung */
   move(deltaTime) {
     this.x += this.speedX * deltaTime;
     this.y += this.speedY * deltaTime;
   }
 
-  // PHYSICS UPDATE - Character und Enemies verwenden das
+  /** 🔹 Physik */
   updatePhysics(deltaTime) {
-    // Apply gravity if needed
     if (this.gravity > 0) {
       this.speedY += this.gravity;
     }
-    
-    // Move
     this.move(deltaTime);
   }
 
-  // COLLISION DETECTION - alle verwenden AABB
+  /** 🔹 AABB-Kollision */
   isCollidingWith(other) {
     return (
       this.x < other.x + other.width &&
@@ -76,31 +66,42 @@ export default class MovableObject extends DrawableObject {
     );
   }
 
-  // COLLISION CHECKING - Character und Enemies verwenden das
+  /** 🔹 Kollisionsprüfung mit Cooldown */
   checkCollisions(objects, deltaTime) {
     if (this.isDead) return null;
-    
+
+    // Zeit herunterzählen
     this.collisionCooldown -= deltaTime * 1000;
-    if (this.collisionCooldown > 0) return null;
 
     for (const obj of objects) {
       if (!obj || obj === this) continue;
       if (!this.isCollidingWith(obj)) continue;
-      
-      this.collisionCooldown = this.collisionInterval;
-      this.onCollision(obj);
-      return obj;
+
+      // ✅ Erste Kollision sofort behandeln, danach Sperre
+      if (this.collisionCooldown <= 0) {
+        if (this.type === "character" && obj.type === "enemy") {
+          this.getDamage(obj);
+        }
+        if (this.type === "enemy" && obj.type === "character") {
+          this.doDamage(obj);
+        }
+
+        this.collisionCooldown = this.collisionInterval;
+        this.onCollision(obj);
+      }
+      return obj; // Nur ein Treffer pro Frame nötig
     }
+
     return null;
   }
 
-  // DAMAGE SYSTEM - Character und Enemies verwenden das
+  /** 🔹 Schaden nehmen */
   getDamage(source) {
     if (!source || this.isDead) return;
-    
-    this.health -= source.strength;
-    console.log(`[${this.type}] Took ${source.strength} damage. Health: ${this.health}`);
-    
+
+    this.health -= source.strength || 10; // Default-Schaden 10
+    console.log(`[${this.type}] Took ${source.strength || 10} damage. Health: ${this.health}`);
+
     if (this.health <= 0) {
       this.die();
     } else {
@@ -108,55 +109,38 @@ export default class MovableObject extends DrawableObject {
     }
   }
 
+  /** 🔹 Schaden austeilen */
   doDamage(target) {
     if (!target || this.isDead) return;
     target.getDamage(this);
   }
 
-  // DEATH HANDLING - alle haben das
+  /** 🔹 Sterben */
   die() {
     if (this.isDead) return;
     this.isDead = true;
-    
+
     if (this.stateMachine && this.stateMachine.sprites.dead) {
       this.stateMachine.setState("dead");
     }
-    
+
     console.log(`[${this.type}] Died`);
     this.onDeath();
   }
 
-  // GEMEINSAME Update-Methode
+  /** 🔹 Gemeinsames Update */
   update(deltaTime) {
     if (this.isDead && this.stateMachine?.currentState === "dead") {
-      // Nur Animation aktualisieren wenn tot
       this.updateStateMachine(deltaTime);
       return;
     }
-    
-    // Physics und Movement
+
     this.updatePhysics(deltaTime);
-    
-    // Animation
     this.updateStateMachine(deltaTime);
   }
 
-  // Override-Points für Subklassen
-  onCollision(other) {
-    // Character <-> Enemy collision logic
-    if (this.type === "character" && other.type === "enemy") {
-      this.getDamage(other);
-    }
-    if (this.type === "enemy" && other.type === "character") {
-      this.doDamage(other);
-    }
-  }
-
-  onDamage(source) {
-    // Override in subclasses
-  }
-
-  onDeath() {
-    // Override in subclasses  
-  }
+  // Hooks – Subklassen können überschreiben
+  onCollision(obj) {}
+  onDamage(source) {}
+  onDeath() {}
 }

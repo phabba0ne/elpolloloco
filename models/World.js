@@ -25,8 +25,8 @@ export default class World {
     // Items
     this.items = new ItemSpawner({
       world: this,
-      coinCount: 50,
-      salsaCount: 10,
+      coinCount: 10,
+      salsaCount: 5,
       debug,
     });
 
@@ -60,6 +60,16 @@ export default class World {
     IntervalHub.startInterval(() => this.updateClouds(), 50);
   }
 
+  getVisibleEnemies() {
+    const margin = 200; // etwas Puffer links/rechts
+    const leftBound = -this.camera_x - margin;
+    const rightBound = -this.camera_x + this.canvas.width + margin;
+
+    return this.enemies.filter(
+      (e) => e.x + e.width > leftBound && e.x < rightBound
+    );
+  }
+
   loop() {
     if (!this.running) return;
 
@@ -67,9 +77,11 @@ export default class World {
     const deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
-    // Kollisionsprüfung
-    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
-    if (collided && this.debug) console.log("Character collided with:", collided);
+    const visibleEnemies = this.getVisibleEnemies();
+    const collided = this.character.checkCollisions(visibleEnemies, deltaTime);
+    if (collided && this.debug) {
+      console.log("Character collided with:", collided);
+    }
 
     // Input
     let moving = false;
@@ -88,9 +100,8 @@ export default class World {
     }
     if (this.keyboard.debug) this.debug = !this.debug;
 
-
     this.character.update(deltaTime, moving, jumpInput, moveDir);
-    this.enemies.forEach((e) => e.update(deltaTime));
+    visibleEnemies.forEach((e) => e.update(deltaTime));
     this.items.update(deltaTime);
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
@@ -140,7 +151,11 @@ export default class World {
   addToMap(mo) {
     if (!mo) return;
 
-    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
+    if (
+      mo.img instanceof Image &&
+      mo.img.complete &&
+      mo.img.naturalWidth !== 0
+    ) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);

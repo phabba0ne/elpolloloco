@@ -22,6 +22,8 @@ export default class SalsaBottle extends MovableObject {
     this.thrown = false;
     this.enabled = enabled;
 
+
+    //TODO:
     this.stateMachine = new StateMachine({
       spin: AssetManager.SALSABOTTLE.spin,
       hit: AssetManager.SALSABOTTLE.hit,
