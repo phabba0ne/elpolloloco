@@ -15,13 +15,12 @@ export default class AssetManager {
   // #region bottle
 
   static SALSABOTTLE = {
-    spawn:[
+    spawn: [
       "assets/img/salsaBottle/salsaBottle.png",
       "assets/img/salsaBottle/salsaBottleOnGround.png",
       "assets/img/salsaBottle/salsaBottleOnGroundTwo.png",
-
     ],
-    
+
     spin: [
       "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
       "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",
@@ -37,6 +36,12 @@ export default class AssetManager {
       "assets/img/salsaBottle/bottleRotation/bottleSplashSix.png",
     ],
   };
+  static SALSASOUNDS = {
+    spawn: [""],
+    collect:["assets/sounds/collectibles/bottleCollectSound.wav"],
+    spin: [""],
+    hit: [""],
+  };
 
   // #endregion bottle
 
@@ -45,12 +50,15 @@ export default class AssetManager {
   static COIN_SPRITES = {
     idle: ["assets/img/coin/coinOne.png", "assets/img/coin/coinTwo.png"],
   };
+  static COIN_SOUNDS = {
+    collect: ["assets/sounds/collectibles/collectSound.wav"],
+  };
 
   // #endregion coin
 
   // #region chickenNormal
-  
-    static CHICKEN_SPRITES = {
+
+  static CHICKEN_SPRITES = {
     walk: [
       "assets/img/enemiesChicken/chickenNormal/walk/oneW.png",
       "assets/img/enemiesChicken/chickenNormal/walk/twoW.png",
@@ -58,7 +66,11 @@ export default class AssetManager {
     ],
     dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
   };
-
+  static CHICKEN_SOUNDS = {
+    spawn: [""],
+    walk: [""],
+    dead: ["assets/sounds/chicken/chickenDead.mp3"],
+  };
   // #endregion chickenNormal
 
   // #region chickenSmall
@@ -71,10 +83,14 @@ export default class AssetManager {
     ],
     dead: ["assets/img/enemiesChicken/chickenSmall/dead/dead.png"],
   };
-
+  static CHICKENSMALL_SOUNDS = {
+    spawn: [""],
+    walk: [""],
+    dead: ["assets/sounds/chicken/chickenDead2.mp3"],
+  };
   // #endregion chickenSmall
 
-// #region chickenBoss
+  // #region chickenBoss
 
   static CHICKENBOSS_SPRITES = {
     alert: [
@@ -114,7 +130,14 @@ export default class AssetManager {
       "assets/img/enemyBossChicken/walk/gFour.png",
     ],
   };
-
+  static CHICKENBOSS_SOUNDS = {
+    approach:[""],
+    alert: [""],
+    attack: [""],
+    walk: [""],
+    hurt: [""],
+    dead: [""],
+  };
   // #endregion chickenBoss
 
   //#region pepe
@@ -176,13 +199,19 @@ export default class AssetManager {
       "assets/img/characterPepe/dead/dFiftyFive.png",
       "assets/img/characterPepe/dead/dFiftySix.png",
       "assets/img/characterPepe/dead/dFiftySeven.png",
-
     ],
   };
-
+  static PEPE_SOUNDS = {
+    walk: ["assets/sounds/character/characterRun.mp3"],    
+    jump: ["assets/sounds/character/characterJump.wav"],
+    longIdle:["assets/sounds/character/characterSnoring.mp3"],
+    hurt: ["assets/sounds/character/characterDamage.mp3"],
+    dead: ["assets/sounds/character/characterDead.wav"],
+    throw: [""],
+  };
   //#endregion pepe
 
-    /**
+  /**
    * Preload all known assets defined in static sprite maps
    */
   static async preload() {
@@ -194,10 +223,8 @@ export default class AssetManager {
       this.CHICKENBOSS_SPRITES,
       this.PEPE_SPRITES,
     ];
-
-    // Alle Arrays extrahieren und flatten
     const allPaths = assetGroups
-      .map(group => Object.values(group).flat())
+      .map((group) => Object.values(group).flat())
       .flat();
 
     console.log(`AssetManager: Preloading ${allPaths.length} assets...`);
@@ -205,6 +232,17 @@ export default class AssetManager {
     await this.loadAll(allPaths);
 
     console.log("✅ AssetManager: Alle Assets geladen.");
+  }
+
+  // ---------- Generic ----------
+  static async loadAll(assets) {
+    const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
+    const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
+
+    await Promise.all([
+      this.loadImages(imagePaths),
+      this.loadAudios(audioPaths),
+    ]);
   }
 
   static getImageSafely(path) {
@@ -259,17 +297,4 @@ export default class AssetManager {
   static getAudio(path) {
     return this.audioCache.get(path);
   }
-
-  // ---------- Generic ----------
-  static async loadAll(assets) {
-    const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
-    const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
-
-    await Promise.all([
-      this.loadImages(imagePaths),
-      this.loadAudios(audioPaths),
-    ]);
-  }
 }
-
-
