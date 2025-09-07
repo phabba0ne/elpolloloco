@@ -30,8 +30,9 @@ export default class World {
       debug,
     });
 
-    this.lastTime = performance.now();
-    this.running = true;
+    // TODO #2 - step01: Remove old loop timing properties
+    // this.lastTime = performance.now();
+    // this.running = true;
 
     // Character koppeln
     this.setWorld();
@@ -47,6 +48,7 @@ export default class World {
       enemy.world = this;
     });
 
+    //couple character
     this.start();
   }
 
@@ -55,48 +57,59 @@ export default class World {
   }
 
   start() {
-    this._loop = this.loop.bind(this);
-    requestAnimationFrame(this._loop);
-    IntervalHub.startInterval(() => this.updateClouds(), 50);
+    // TODO #2 - step02: Replace old loop system with IntervalHub
+    // requestAnimationFrame(this._loop);
+    // IntervalHub.startInterval(() => this.updateClouds(), 50); ...
+
+    // ... and use IntervalHub instead
+    // IntervalHub.registerInterval({...});
+    IntervalHub.registerInterval({
+      id: "world-clouds-movement",
+      func: () => this.updateClouds(),
+      timer: 50,
+      type: "world-system",
+      target: this,
+    });
+    IntervalHub.startCentralLoop({ world: this });
   }
 
-  loop() {
-    if (!this.running) return;
+  //#2: step03 move to intHub
+  // loop() {
+  //   if (!this.running) return;
 
-    const currentTime = performance.now();
-    const deltaTime = (currentTime - this.lastTime) / 1000;
-    this.lastTime = currentTime;
+  //   const currentTime = performance.now();
+  //   const deltaTime = (currentTime - this.lastTime) / 1000;
+  //   this.lastTime = currentTime;
 
-    // Kollisionsprüfung
-    const collided = this.character.checkCollisions([...this.enemies], deltaTime);
-    if (collided && this.debug) console.log("Character collided with:", collided);
+  //   // Kollisionsprüfung
+  //   const collided = this.character.checkCollisions([...this.enemies], deltaTime);
+  //   if (collided && this.debug) console.log("Character collided with:", collided);
 
-    // Input
-    let moving = false;
-    let moveDir = 0;
-    const jumpInput = this.keyboard.jump;
+  //   // Input
+  //   let moving = false;
+  //   let moveDir = 0;
+  //   const jumpInput = this.keyboard.jump;
 
-    if (this.keyboard.left && this.character.x > this.level.startX) {
-      moving = true;
-      moveDir = -1;
-      this.character.otherDirection = false;
-    }
-    if (this.keyboard.right && this.character.x < this.level.endX) {
-      moving = true;
-      moveDir = 1;
-      this.character.otherDirection = true;
-    }
-    if (this.keyboard.debug) this.debug = !this.debug;
+  //   if (this.keyboard.left && this.character.x > this.level.startX) {
+  //     moving = true;
+  //     moveDir = -1;
+  //     this.character.otherDirection = false;
+  //   }
+  //   if (this.keyboard.right && this.character.x < this.level.endX) {
+  //     moving = true;
+  //     moveDir = 1;
+  //     this.character.otherDirection = true;
+  //   }
+  //   if (this.keyboard.debug) this.debug = !this.debug;
 
-
-    this.character.update(deltaTime, moving, jumpInput, moveDir);
-    this.enemies.forEach((e) => e.update(deltaTime));
-    this.items.update(deltaTime);
-    this.camera_x = -this.character.x + this.canvas.width / 6;
-    this.keyboard.update();
-    this.draw();
-    requestAnimationFrame(this._loop);
-  }
+  //   this.character.update(deltaTime, moving, jumpInput, moveDir);
+  //   this.enemies.forEach((e) => e.update(deltaTime));
+  //   this.items.update(deltaTime);
+  //   this.camera_x = -this.character.x + this.canvas.width / 6;
+  //   this.keyboard.update();
+  //   this.draw();
+  //   requestAnimationFrame(this._loop);
+  // }
 
   updateClouds() {
     this.clouds.forEach((c) => c.moveLeft());
@@ -140,7 +153,11 @@ export default class World {
   addToMap(mo) {
     if (!mo) return;
 
-    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth !== 0) {
+    if (
+      mo.img instanceof Image &&
+      mo.img.complete &&
+      mo.img.naturalWidth !== 0
+    ) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);

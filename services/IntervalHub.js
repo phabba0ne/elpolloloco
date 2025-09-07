@@ -289,3 +289,15 @@ window.IntervalHub = IntervalHub;
 //     timer: 1000,
 //     type: 'test'
 // });
+
+//testing with IntervalHub.getState()
+
+//TODO: REGISTER (1 EVOL)
+// Instead of: setInterval(() => this.animate(), 100)
+// IntervalHub.registerInterval({ 
+//     id: `${this.constructor.name}_${this.instanceId}_animation`,
+//     func: () => this.animate(), 
+//     timer: 100,
+//     type: this.constructor.name,
+//     target: this
+// });
