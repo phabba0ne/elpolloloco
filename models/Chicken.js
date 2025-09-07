@@ -23,6 +23,9 @@ export default class Chicken extends MovableObject {
       type: "enemy"
     });
 
+    //Animation
+    this.set
+
     // StateMachine für Chicken
     this.stateMachine = new StateMachine(sprites, "walk", 6);
     this.loadSprites(sprites);

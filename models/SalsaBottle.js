@@ -18,8 +18,8 @@ export default class SalsaBottle extends MovableObject {
     this.type = "projectile";
     this.x = x;
     this.y = y;
-    this.speedX = 10 * direction;
-    this.thrown = true;
+    this.speedX = 0;
+    this.thrown = false;
     this.enabled = enabled;
 
     this.stateMachine = new StateMachine({
@@ -67,14 +67,6 @@ export default class SalsaBottle extends MovableObject {
     ctx.rotate(this.rotation);
     ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
     ctx.restore();
-
-    if (this.debug) {
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
-      ctx.restore();
-    }
   }
 
   isCollidingWith(obj) {
