@@ -16,13 +16,20 @@ export default class Character extends MovableObject {
     sprites = AssetManager.PEPE_SPRITES,
     longIdleThreshold = 6000,
     invulnerableDuration = 2000,
-    health = 100
+    health = 100,
+    gold = 0,
+    salsas = 0,
   } = {}) {
     super({
-      x, y, width, height,
+      x,
+      y,
+      width,
+      height,
       gravity,
       health,
-      type: "character"
+      type: "character",
+      gold,
+      salsas,
     });
 
     // CHARACTER-SPEZIFISCH
@@ -30,12 +37,12 @@ export default class Character extends MovableObject {
     this.jumpPower = jumpPower;
     this.groundY = groundY;
     this.isJumping = false;
-    
+
     // CHARACTER DAMAGE SYSTEM
     this.isHurt = false;
     this.isInvulnerable = false;
     this.invulnerableDuration = invulnerableDuration;
-    
+
     // CHARACTER IDLE SYSTEM
     this.idleTimer = 0;
     this.longIdleThreshold = longIdleThreshold;
@@ -54,7 +61,7 @@ export default class Character extends MovableObject {
       // Gravity fall
       this.speedY += this.gravity;
       this.y += this.speedY;
-      
+
       this.updateStateMachine(deltaTime);
       return;
     }
@@ -78,7 +85,7 @@ export default class Character extends MovableObject {
     // Gravity
     this.speedY += this.gravity;
     this.y += this.speedY;
-    
+
     // Ground collision - CHARACTER-SPEZIFISCH
     if (this.y >= this.groundY) {
       this.y = this.groundY;
@@ -119,7 +126,7 @@ export default class Character extends MovableObject {
   onDamage(source) {
     this.isHurt = true;
     this.isInvulnerable = true;
-    
+
     // Hurt animation timer
     setTimeout(() => {
       this.isHurt = false;
@@ -134,7 +141,9 @@ export default class Character extends MovableObject {
   // Override parent getDamage für Invulnerability
   getDamage(source) {
     if (this.isDead || this.isInvulnerable) {
-      console.log(`[CHARACTER] Damage blocked - Dead: ${this.isDead}, Invulnerable: ${this.isInvulnerable}`);
+      console.log(
+        `[CHARACTER] Damage blocked - Dead: ${this.isDead}, Invulnerable: ${this.isInvulnerable}`
+      );
       return;
     }
     super.getDamage(source);
