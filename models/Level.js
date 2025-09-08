@@ -4,12 +4,13 @@ export default class Level {
     clouds = [],
     backgrounds = [],
     startX = 120,
-    endX = 10000
+    endX = 10000,
   } = {}) {
     this.enemies = enemies;
     this.clouds = clouds;
     this.backgrounds = backgrounds;
     this.startX = startX;
     this.endX = endX;
+    this.type = "level";
   }
 }

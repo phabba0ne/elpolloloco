@@ -1,16 +1,9 @@
-/**
- * AssetManager
- * ------------
- * Central hub for preloading and caching images & audio.
- * Ensures assets are available before the game world initializes.
- */
-
 export default class AssetManager {
   // ---------- Caches ----------
   static imageCache = new Map();
   static audioCache = new Map();
 
-  // (DOC: New Character STEP 1 - Define Sprites)
+// #region assets
 
   // #region bottle
 
@@ -211,9 +204,8 @@ export default class AssetManager {
   };
   //#endregion pepe
 
-  /**
-   * Preload all known assets defined in static sprite maps
-   */
+// #endregion assets
+
   static async preload() {
     const assetGroups = [
       this.SALSABOTTLE,

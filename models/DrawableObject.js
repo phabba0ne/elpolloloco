@@ -9,22 +9,22 @@ export default class DrawableObject {
     height = 100,
     debug = false,
     type = null,
-    imgPath = null
+    imgPath = null,
   } = {}) {
     // Position & Dimensionen - GEMEINSAM für alle
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
-    
+
     // Rendering - GEMEINSAM für alle
     this.img = null;
     this.debug = debug;
     this.type = type;
-    
+
     // Image-Cache für alle Klassen verfügbar
     this.imageCache = {};
-    
+    this.type = "drawable";
     // Image sofort laden falls Pfad gegeben
     if (imgPath) {
       this.loadImage(imgPath);
@@ -41,7 +41,7 @@ export default class DrawableObject {
   // Async Sprites laden mit Cache - VON ALLEN SUBKLASSEN VERWENDET
   async loadSprites(sprites) {
     const allSprites = Object.values(sprites).flat();
-    const promises = allSprites.map(src => {
+    const promises = allSprites.map((src) => {
       if (!this.imageCache[src]) {
         return new Promise((resolve, reject) => {
           const img = new Image();
@@ -55,7 +55,7 @@ export default class DrawableObject {
       }
       return Promise.resolve(this.imageCache[src]);
     });
-    
+
     await Promise.all(promises);
     return this.imageCache;
   }
@@ -103,7 +103,7 @@ export default class DrawableObject {
       left: this.x,
       right: this.x + this.width,
       top: this.y,
-      bottom: this.y + this.height
+      bottom: this.y + this.height,
     };
   }
 }

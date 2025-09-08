@@ -223,6 +223,7 @@ export default class MovableObject extends DrawableObject {
     this.onUpdate?.(deltaTime);
   }
 
+  // Hooks – Subklassen können überschreiben
   onCollision(obj, deltaTime) {}
   onDamage(source, damage) {}
   onDeath() {}

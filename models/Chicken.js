@@ -53,19 +53,12 @@ export default class Chicken extends MovableObject {
         }
       }
     }
-
-    // Update StateMachine
     this.updateStateMachine(deltaTime);
   }
 
   die() {
     if (this.isDead) return;
     this.isDead = true;
-    // ✅ Dead-State aktivieren
-
-    this.stateMachine.setState("dead", 6); // Animation speed z.B. 6
-    this.stateMachine.getFrame("dead"); // Frames für dead laden
-
-    console.log("[CHICKEN] Dead");
+    this.stateMachine.setState("dead", 6);
   }
 }
