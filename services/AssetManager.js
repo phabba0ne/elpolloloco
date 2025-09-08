@@ -131,7 +131,7 @@ export default class AssetManager {
     ],
   };
   static CHICKENBOSS_SOUNDS = {
-    approach:[""],
+    approach:["assets/sounds/endboss/endbossApproach.wav"],
     alert: [""],
     attack: [""],
     walk: [""],
