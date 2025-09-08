@@ -11,7 +11,7 @@ export default class World {
     if (!canvas || !keyboard || !level || !character) {
       throw new Error("World requires { canvas, keyboard, level, character }");
     }
-
+    this.IntervalHub=new IntervalHub();
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
@@ -57,7 +57,6 @@ export default class World {
   start() {
     this._loop = this.loop.bind(this);
     requestAnimationFrame(this._loop);
-    IntervalHub.startInterval(() => this.updateClouds(), 50);
   }
 
   getVisibleEnemies() {
