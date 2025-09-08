@@ -1,4 +1,3 @@
-// Nur noch Character-spezifische Logik
 import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
@@ -10,12 +9,12 @@ export default class Character extends MovableObject {
     width = 120,
     height = 250,
     moveSpeed = 3,
-    jumpPower = 12,
-    gravity = 0.4,
+    jumpPower = 13,
+    gravity = 0.44,
     groundY = 200,
     sprites = AssetManager.PEPE_SPRITES,
-    longIdleThreshold = 6000,
-    invulnerableDuration = 2000,
+    longIdleThreshold = 6,
+    invulnerableDuration = 10,
     health = 100,
     gold = 0,
     salsas = 0,
@@ -32,33 +31,28 @@ export default class Character extends MovableObject {
       salsas,
     });
 
-    // CHARACTER-SPEZIFISCH
     this.moveSpeed = moveSpeed;
     this.jumpPower = jumpPower;
     this.groundY = groundY;
     this.isJumping = false;
 
-    // CHARACTER DAMAGE SYSTEM
     this.isHurt = false;
     this.isInvulnerable = false;
     this.invulnerableDuration = invulnerableDuration;
 
-    // CHARACTER IDLE SYSTEM
-    this.idleTimer = 0;
+    this.idleTimer = 1;
     this.longIdleThreshold = longIdleThreshold;
 
-    // StateMachine für Character
-    this.stateMachine = new StateMachine(sprites, "idle", 8);
+    this.stateMachine = new StateMachine(sprites, "idle", 10);
     this.loadSprites(sprites);
   }
 
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
-    // Dead state
+
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
       }
-      // Gravity fall
       this.speedY += this.gravity;
       this.y += this.speedY;
 
@@ -66,7 +60,6 @@ export default class Character extends MovableObject {
       return;
     }
 
-    // Hurt state - CHARACTER-SPEZIFISCH
     if (this.isHurt) {
       if (this.stateMachine.currentState !== "hurt") {
         this.stateMachine.setState("hurt", true);
@@ -75,18 +68,15 @@ export default class Character extends MovableObject {
       return;
     }
 
-    // Jumping - CHARACTER-SPEZIFISCH
     if (jumpInput && !this.isJumping && this.isOnGround()) {
       this.speedY = -this.jumpPower;
       this.isJumping = true;
       this.stateMachine.setState("jump");
     }
 
-    // Gravity
     this.speedY += this.gravity;
     this.y += this.speedY;
 
-    // Ground collision - CHARACTER-SPEZIFISCH
     if (this.y >= this.groundY) {
       this.y = this.groundY;
       this.speedY = 0;

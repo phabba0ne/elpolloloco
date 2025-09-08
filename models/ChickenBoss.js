@@ -30,7 +30,7 @@ export default class ChickenBoss extends MovableObject {
 
     // BOSS PROPERTIES
     this.player = player;   // ✅ speichern
-    this.active = false;
+    this.active = true;
     this.speedX = 0;
     this.speedY = 0;
     this.moveSpeed = 40;
@@ -99,9 +99,7 @@ export default class ChickenBoss extends MovableObject {
   update(deltaTime) {
     this.debugCounters.updateCalls++;
 
-    if (this.debug && this.debugCounters.updateCalls % 60 === 0) {
-      console.log("🐔👑 [DEBUG] Update Stats:", this.getDebugInfo());
-    }
+  
 
     // Sprite Check
     if (!this.img) return;
@@ -120,7 +118,7 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  /** Schaden */
+
   getDamage(source) {
     console.log("🐔👑 [DEBUG] Boss taking damage from:", source.type);
     super.getDamage(source);
@@ -132,7 +130,6 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  /** Tod */
   die() {
     console.log("🐔👑 [DEBUG] 💀 BOSS DYING!");
     super.die();
@@ -161,35 +158,8 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  /** Debug Info */
-  getDebugInfo() {
-    return {
-      position: { x: this.x, y: this.y },
-      speedX: this.speedX,
-      speedY: this.speedY,
-      active: this.active,
-      behavior: this.currentBehavior,
-      isDead: this.isDead,
-      hasPlayer: !!this.player,
-      hasImg: !!this.img,
-      counters: this.debugCounters
-    };
-  }
-
-  /** Cleanup */
   destroy() {
     console.log("🐔👑 [DEBUG] 🧹 Destroying boss...");
     IntervalHub.stopIntervalsByType("chickenBoss"); // ✅ nur eigene Intervalle killen
   }
 }
-
-// ✅ GLOBAL DEBUG HELPER
-window.debugChickenBoss = function(boss) {
-  console.log("🐔👑 [DEBUG] === BOSS DEBUG INFO ===");
-  console.log(boss.getDebugInfo());
-
-  console.log("\n🔧 Available Commands:");
-  console.log("boss.updateSimpleMovement() - Test movement");
-  console.log("boss.setState('walk') - Force state");
-  console.log("boss.getDebugInfo() - Show info");
-};

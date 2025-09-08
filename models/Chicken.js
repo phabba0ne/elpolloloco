@@ -20,7 +20,7 @@ export default class Chicken extends MovableObject {
       height,
       speedX,
       strength,
-      type: "enemy",
+      type: "chicken",
     });
 
     // StateMachine für Chicken
@@ -48,7 +48,7 @@ export default class Chicken extends MovableObject {
           character.speedY > 0
         ) {
           this.die();
-          character.speedY = -character.jumpPower * 1.2; // kräftiger Instant-Bounce
+          character.speedY = -character.jumpPower * 1; // kräftiger Instant-Bounce
           console.log("[CHICKEN] Stomped by Pepe!");
         }
       }

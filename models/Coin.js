@@ -49,9 +49,6 @@ export default class Coin extends MovableObject {
   collect(character) {
     this.collected = true;
     character.gold = (character.gold || 0) + 1;
-    if (this.debug) {
-      console.log(`[COIN] ${character.constructor.name} collected a coin! Total: ${character.gold}`);
-    }
   }
 
   draw(ctx) {
