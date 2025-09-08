@@ -11,7 +11,7 @@ export default class World {
     if (!canvas || !keyboard || !level || !character) {
       throw new Error("World requires { canvas, keyboard, level, character }");
     }
-    this.IntervalHub=new IntervalHub();
+    this.IntervalHub = new IntervalHub();
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
@@ -69,20 +69,23 @@ export default class World {
     );
   }
 
-  loop() {
+  loop(currentTime = performance.now()) {
     if (!this.running) return;
 
-    const currentTime = performance.now();
+    // Zeitdifferenz in Sekunden berechnen
     const deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
+    // 1. Nur Gegner im Viewport prüfen (Performance)
     const visibleEnemies = this.getVisibleEnemies();
+
+    // 2. Kollisionsprüfung (mit Rate-Limit, falls eingebaut)
     const collided = this.character.checkCollisions(visibleEnemies, deltaTime);
     if (collided && this.debug) {
       console.log("Character collided with:", collided);
     }
 
-    // Input
+    // 3. Input verarbeiten
     let moving = false;
     let moveDir = 0;
     const jumpInput = this.keyboard.jump;
@@ -99,13 +102,28 @@ export default class World {
     }
     if (this.keyboard.debug) this.debug = !this.debug;
 
+
+    this.items.salsas.forEach((salsa) => {
+      salsa.tryCollect(this.character);
+    });
+
+    // 4. Updates (deltaTime wichtig!)
     this.character.update(deltaTime, moving, jumpInput, moveDir);
-    visibleEnemies.forEach((e) => e.update(deltaTime));
+    visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
     this.items.update(deltaTime);
+    this.updateClouds(deltaTime);
+
+    // Kamera folgt Charakter
     this.camera_x = -this.character.x + this.canvas.width / 6;
+
+    // Tastaturstatus refreshen
     this.keyboard.update();
+
+    // 5. Zeichnen
     this.draw();
-    requestAnimationFrame(this._loop);
+
+    // Nächsten Frame anfordern
+    requestAnimationFrame((t) => this.loop(t));
   }
 
   updateClouds() {

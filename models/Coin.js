@@ -3,12 +3,11 @@ import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
 export default class Coin extends MovableObject {
-  width = 50;
-  height = 50;
-  collected = false;
-
+  width = 100;
+  height = 100;
+  collected = true;
   constructor({ x = 0, y = null, enabled = true, debug = false, character = null } = {}) {
-    super({ debug });
+    super();
     this.type = "coin";
     this.x = x;
     this.enabled = enabled;

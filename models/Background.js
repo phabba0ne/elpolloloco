@@ -16,9 +16,8 @@ export default class Background extends MovableObject {
       width,
       height,
       imgPath,
-      type: "background"
     });
-    
+    this.type="background";
     // BACKGROUND-SPEZIFISCH
     this.speedFactor = speedFactor;
   }

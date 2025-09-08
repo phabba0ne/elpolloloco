@@ -11,7 +11,7 @@ export default class Cloud extends MovableObject {
   ];
 
   constructor({
-    x = Math.random() * 500,
+    x = 700+Math.random() * 700,
     y = 20 + Math.random() * 120,
     width = 500,
     height = 250,

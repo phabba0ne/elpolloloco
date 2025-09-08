@@ -9,15 +9,15 @@ export default class ChickenBoss extends MovableObject {
     y = 155,
     width = 300,
     height = 300,
-    strength = 20,
+    strength = 50, //TODO: doesnt work
     sprites = AssetManager.CHICKENBOSS_SPRITES,
-    debug = true, // DEBUG AKTIVIERT
+    debug = true,
     player = null,
     spawnThreshold = 900,
     health = 500,
   } = {}) {
     super({
-      x, y, width, height, 
+      x, y, width, height,
       health, strength,
       type: "chickenBoss",
       hitboxOffsetX: 30,
@@ -29,33 +29,32 @@ export default class ChickenBoss extends MovableObject {
     });
 
     // BOSS PROPERTIES
+    this.player = player;   // ✅ speichern
     this.active = false;
     this.speedX = 0;
     this.speedY = 0;
-    this.moveSpeed = 40; // Basis Geschwindigkeit
-    
+    this.moveSpeed = 40;
+
     // BEHAVIOR STATES
     this.currentBehavior = "sleeping";
-    this.behaviorTimer = 0;
     this.lastAttackTime = 0;
     this.attackCooldown = 3000;
-    
-    // VISUAL EFFECTS
+
+    // VISUAL FX
     this.isFlashing = false;
     this.screenShake = { active: false, intensity: 0, duration: 0 };
-    
-    // ✅ DEBUG COUNTERS
+
+    // DEBUG COUNTERS
+    this.debug = debug;
     this.debugCounters = {
       updateCalls: 0,
       movementUpdates: 0,
-      behaviorChanges: 0,
-      intervalCalls: 0
+      behaviorChanges: 0
     };
 
     // StateMachine setup
     this.stateMachine = new StateMachine(sprites, "alert", 3);
-    
-    // ✅ SIMPLIFIED INIT - erst Sprites, dann Animationen
+
     this.initBoss();
   }
 
@@ -67,104 +66,73 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  // ✅ VEREINFACHTE MOVEMENT LOGIC
+  /** Bewegung Richtung Spieler */
   updateSimpleMovement() {
     if (!this.player) return;
-    
+
     const distanceToPlayer = Math.abs(this.player.x - this.x);
     const direction = Math.sign(this.player.x - this.x);
-    
-    // ✅ DIRECT SPEED SETTING
+
     this.speedX = direction * this.moveSpeed;
     this.otherDirection = direction > 0;
-    
-    // ✅ DEBUG LOG
+
     if (this.debug && this.debugCounters.movementUpdates % 30 === 0) {
       console.log("🐔👑 [DEBUG] Movement:", {
         playerX: this.player.x,
         bossX: this.x,
         distance: distanceToPlayer,
-        direction: direction,
-        speedX: this.speedX,
-        otherDirection: this.otherDirection
+        direction,
+        speedX: this.speedX
       });
     }
-    
     this.debugCounters.movementUpdates++;
-    
-    // ✅ ANIMATION STATES
+
     if (distanceToPlayer > 50) {
       this.setState("walk", 4);
     } else {
       this.setState("attack", 6);
-      this.speedX = 0; // Stop bei Angriff
+      this.speedX = 0;
     }
   }
 
-  // ✅ ENHANCED UPDATE mit Debug
+  /** Hauptupdate */
   update(deltaTime) {
     this.debugCounters.updateCalls++;
-    
-    // ✅ DEBUG LOG alle 60 Updates (1 Sekunde bei 60 FPS)
+
     if (this.debug && this.debugCounters.updateCalls % 60 === 0) {
-      console.log("🐔👑 [DEBUG] Update Stats:", {
-        updateCalls: this.debugCounters.updateCalls,
-        position: { x: this.x, y: this.y },
-        speedX: this.speedX,
-        speedY: this.speedY,
-        active: this.active,
-        behavior: this.currentBehavior,
-        isDead: this.isDead,
-        hasPlayer: !!this.player,
-        hasImg: !!this.img
-      });
+      console.log("🐔👑 [DEBUG] Update Stats:", this.getDebugInfo());
     }
 
-    // ✅ SPRITE CHECK
-    if (!this.img) {
-      if (this.debug) console.log("🐔👑 [DEBUG] No sprite loaded yet");
-      return;
-    }
+    // Sprite Check
+    if (!this.img) return;
 
-    // ✅ MOVEMENT APPLICATION
+    // Bewegung anwenden
     if (this.speedX !== 0) {
-      const oldX = this.x;
       this.x += this.speedX * deltaTime;
-      
-      // ✅ BOUNDARY CHECK
       if (this.x < 0) this.x = 0;
       if (this.x > 1200) this.x = 1200;
-      
-      // ✅ DEBUG MOVEMENT
-      if (this.debug && Math.abs(oldX - this.x) > 0.1) {
-        console.log("🐔👑 [DEBUG] Position changed:", oldX, "→", this.x, "Speed:", this.speedX);
-      }
     }
 
-    // ✅ SUPER UPDATE
-    super.update(deltaTime);
-    
-    // ✅ STATEMACHINE UPDATE
+    // Animation updaten
     if (this.stateMachine) {
       this.stateMachine.update(deltaTime);
       this.img = this.stateMachine.getFrame();
     }
   }
 
-  // ✅ SIMPLIFIED DAMAGE für Debug
+  /** Schaden */
   getDamage(source) {
     console.log("🐔👑 [DEBUG] Boss taking damage from:", source.type);
     super.getDamage(source);
-    
+
     if (!this.isDead) {
       this.setState("hurt", 8);
-      // Flash effect
       this.isFlashing = true;
       setTimeout(() => this.isFlashing = false, 500);
     }
   }
 
-  // ✅ SIMPLIFIED DEATH
+  /** Tod */
   die() {
     console.log("🐔👑 [DEBUG] 💀 BOSS DYING!");
     super.die();
@@ -173,7 +141,6 @@ export default class ChickenBoss extends MovableObject {
     this.currentBehavior = "dead";
   }
 
-  // ORIGINAL METHODS für Kompatibilität
   async loadSprites(sprites) {
     try {
       await AssetManager.loadAll(Object.values(sprites).flat());
@@ -194,22 +161,25 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  walk() {
-    this.setState("walk", 3);
+  /** Debug Info */
+  getDebugInfo() {
+    return {
+      position: { x: this.x, y: this.y },
+      speedX: this.speedX,
+      speedY: this.speedY,
+      active: this.active,
+      behavior: this.currentBehavior,
+      isDead: this.isDead,
+      hasPlayer: !!this.player,
+      hasImg: !!this.img,
+      counters: this.debugCounters
+    };
   }
 
-  attack() {
-    this.setState("attack", 4);
-  }
-
-  alert() {
-    this.setState("alert", 3);
-  }
-
-  // ✅ CLEANUP
+  /** Cleanup */
   destroy() {
     console.log("🐔👑 [DEBUG] 🧹 Destroying boss...");
-    IntervalHub.stopAllIntervals();
+    IntervalHub.stopIntervalsByType("chickenBoss"); // ✅ nur eigene Intervalle killen
   }
 }
 
@@ -217,10 +187,9 @@ export default class ChickenBoss extends MovableObject {
 window.debugChickenBoss = function(boss) {
   console.log("🐔👑 [DEBUG] === BOSS DEBUG INFO ===");
   console.log(boss.getDebugInfo());
-  
+
   console.log("\n🔧 Available Commands:");
-  console.log("boss.forceActivate() - Force activate boss");
-  console.log("boss.testMovement() - Test movement for 1 second");
-  console.log("boss.setPlayer(character) - Set player reference");
-  console.log("boss.getDebugInfo() - Get full debug info");
+  console.log("boss.updateSimpleMovement() - Test movement");
+  console.log("boss.setState('walk') - Force state");
+  console.log("boss.getDebugInfo() - Show info");
 };
