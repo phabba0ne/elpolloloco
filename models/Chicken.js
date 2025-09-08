@@ -7,15 +7,15 @@ export default class Chicken extends MovableObject {
   constructor({
     x = null,
     y = 100,
-    width = 60,
-    height = 60,
+    width = 100,
+    height = 100,
     speedX = 60,
-    strength = 10,
+    strength = 20,
     sprites = AssetManager.CHICKEN_SPRITES,
   } = {}) {
     super({
       x: x ?? 700 + Math.random() * 1500,
-      y,
+      y:345,
       width,
       height,
       speedX,
@@ -36,10 +36,10 @@ export default class Chicken extends MovableObject {
       // Minimal: Pepe von oben drauf prüfen
       if (character && !character.isDead) {
         const characterFeet = character.y + character.height;
-        const chickenHead = this.y + 30; // Kopfzone
+        const chickenHead = this.y + 10; // Kopfzone
         const horizontalOverlap =
-          character.x + character.width > this.x &&
-          character.x < this.x + this.width;
+          character.x + character.width >= this.x &&
+          character.x <= this.x + this.width;
 
         if (
           characterFeet >= this.y &&
