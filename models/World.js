@@ -144,6 +144,9 @@ export default class World {
       enemy.otherDirection = false;
       enemy.type = "enemy"; // wichtig für Kollisionslogik
       enemy.world = this;
+      if (enemy.subtype=="chickenBoss") {
+        enemy.player = this.character;
+      }
     });
 
     this.start();
@@ -200,7 +203,6 @@ export default class World {
       this.character.otherDirection = true;
     }
     if (this.keyboard.debug) this.debug = !this.debug;
-
 
     this.items.salsas.forEach((salsa) => {
       salsa.tryCollect(this.character);

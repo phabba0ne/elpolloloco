@@ -18,7 +18,8 @@ export default class MovableObject extends DrawableObject {
     this.stateMachine = null;
     this.world = options.world || null;
     this.type = options.type || "movable";
-    this.id = options.id || `${this.type}_${Math.random().toString(36).substr(2, 9)}`;
+    this.id =
+      options.id || `${this.type}_${Math.random().toString(36).substr(2, 9)}`;
     this.maxSpeedX = options.maxSpeedX || Infinity;
     this.maxSpeedY = options.maxSpeedY || Infinity;
     this.friction = options.friction || 0;
@@ -29,7 +30,10 @@ export default class MovableObject extends DrawableObject {
       return; // Dead objects don't move unless death animation needs physics
     }
     if (this.gravity > 0) {
-      this.speedY = Math.min(this.speedY + (this.gravity * deltaTime), this.maxSpeedY);
+      this.speedY = Math.min(
+        this.speedY + this.gravity * deltaTime,
+        this.maxSpeedY
+      );
     }
 
     if (this.friction > 0) {
@@ -41,8 +45,14 @@ export default class MovableObject extends DrawableObject {
       }
     }
 
-    this.speedX = Math.max(-this.maxSpeedX, Math.min(this.maxSpeedX, this.speedX));
-    this.speedY = Math.max(-this.maxSpeedY, Math.min(this.maxSpeedY, this.speedY));
+    this.speedX = Math.max(
+      -this.maxSpeedX,
+      Math.min(this.maxSpeedX, this.speedX)
+    );
+    this.speedY = Math.max(
+      -this.maxSpeedY,
+      Math.min(this.maxSpeedY, this.speedY)
+    );
 
     this.x += this.speedX * deltaTime;
     this.y += this.speedY * deltaTime;
@@ -70,22 +80,31 @@ export default class MovableObject extends DrawableObject {
     }
   }
 
+  getHitbox() {
+    return {
+      x: this.x + (this.hitboxOffsetX || 0),
+      y: this.y + (this.hitboxOffsetY || 0),
+      width: this.hitboxWidth || this.width,
+      height: this.hitboxHeight || this.height,
+    };
+  }
+
   checkCollisions(objects, deltaTime) {
     if (this.isDead || !Array.isArray(objects)) return null;
-    
+
     if (this.collisionCooldown > 0) {
       this.collisionCooldown -= deltaTime * 1000;
     }
 
     for (const obj of objects) {
       if (!obj || obj === this || obj.isDead) continue;
-      
+
       if (this.isCollidingWith(obj)) {
         if (this.collisionCooldown <= 0 || this.lastCollidedWith !== obj) {
           this.handleCollision(obj, deltaTime);
           this.lastCollidedWith = obj;
           this.collisionCooldown = this.collisionInterval;
-          return obj; 
+          return obj;
         }
       }
     }
@@ -93,11 +112,13 @@ export default class MovableObject extends DrawableObject {
   }
 
   isCollidingWith(obj) {
+    const a = this.getHitbox();
+    const b = obj.getHitbox();
     return (
-      this.x < obj.x + obj.width &&
-      this.x + this.width > obj.x &&
-      this.y < obj.y + obj.height &&
-      this.y + this.height > obj.y
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
     );
   }
 
@@ -107,21 +128,23 @@ export default class MovableObject extends DrawableObject {
 
     this.onCollision(obj, deltaTime);
 
-    if (obj.onCollision && typeof obj.onCollision === 'function') {
+    if (obj.onCollision && typeof obj.onCollision === "function") {
       obj.onCollision(this, deltaTime);
     }
   }
 
   getDamage(source, amount = null) {
     if (!source || this.isDead) return;
-  
-    const damage = amount !== null ? amount : (source.strength || 10);
+
+    const damage = amount !== null ? amount : source.strength || 10;
     const oldHealth = this.health;
-    
+
     this.health = Math.max(0, this.health - damage);
 
     if (this.world?.debug) {
-      console.log(`${this.id} took ${damage} damage (${oldHealth} -> ${this.health})`);
+      console.log(
+        `${this.id} took ${damage} damage (${oldHealth} -> ${this.health})`
+      );
     }
 
     if (this.health <= 0) {
@@ -133,8 +156,8 @@ export default class MovableObject extends DrawableObject {
 
   doDamage(target, amount = null) {
     if (!target || this.isDead) return;
-    
-    if (typeof target.getDamage === 'function') {
+
+    if (typeof target.getDamage === "function") {
       target.getDamage(this, amount);
     }
   }
@@ -146,7 +169,9 @@ export default class MovableObject extends DrawableObject {
     this.health = Math.min(this.maxHealth, this.health + amount);
 
     if (this.world?.debug) {
-      console.log(`${this.id} healed ${amount} (${oldHealth} -> ${this.health})`);
+      console.log(
+        `${this.id} healed ${amount} (${oldHealth} -> ${this.health})`
+      );
     }
 
     this.onHeal?.(amount);
@@ -154,11 +179,11 @@ export default class MovableObject extends DrawableObject {
 
   die() {
     if (this.isDead) return;
-    
+
     this.isDead = true;
     this.health = 0;
     this.speedX = 0; // Stop movement when dead
-    
+
     if (this.stateMachine?.sprites?.dead) {
       this.stateMachine.setState("dead");
     }
@@ -166,7 +191,7 @@ export default class MovableObject extends DrawableObject {
     if (this.world?.debug) {
       console.log(`${this.id} died`);
     }
-    
+
     this.onDeath();
   }
 
@@ -196,7 +221,7 @@ export default class MovableObject extends DrawableObject {
 
   applyForce(forceX, forceY) {
     if (this.isDead) return;
-    
+
     this.speedX += forceX;
     this.speedY += forceY;
   }
@@ -219,13 +244,17 @@ export default class MovableObject extends DrawableObject {
     }
 
     this.updateStateMachine(deltaTime);
-    
+
     this.onUpdate?.(deltaTime);
   }
 
   // Hooks – Subklassen können überschreiben
   onCollision(obj, deltaTime) {}
-  onDamage(source, damage) {}
+  onDamage(source, damage) {
+    if (this.type === "enemy" && this.world?.statusBarManager) {
+      this.world.statusBarManager.updateBossHealth(this.health);
+    }
+  }
   onDeath() {}
   onGroundHit() {}
   onUpdate(deltaTime) {}

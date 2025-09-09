@@ -50,8 +50,8 @@ export default class StatusBar extends DrawableObject {
     y = 10,
     width = 200,
     height = 60,
-    maxValue = 100,
-    currentValue = 100,
+    maxValue = 500,
+    currentValue = 500,
     barType = 'health', // 'health', 'coins', 'salsas'
     sprites = [],
     debug = false

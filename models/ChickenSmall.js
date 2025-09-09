@@ -10,15 +10,13 @@ export default class ChickenSmall extends Chicken {
   y = 396;
 
   constructor(x = null) {
-    super(x, 396); // ruft den Chicken-Konstruktor auf
-    this.type = "chickenSmall"; // wichtig für World/Kollisionslogik
-
-    // Override StateMachine für Small Chicken
-    this.stateMachine = new StateMachine(
-      AssetManager.CHICKENSMALL_SPRITES,
-      "walk",
-      12
-    );
+    super(x, 396);
+      // Override StateMachine für Small Chicken
+      (this.stateMachine = new StateMachine(
+        AssetManager.CHICKENSMALL_SPRITES,
+        "walk",
+        12
+      ));
 
     this.loadSprites(AssetManager.CHICKENSMALL_SPRITES);
   }

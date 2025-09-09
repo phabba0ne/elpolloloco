@@ -111,6 +111,15 @@ export default class Character extends MovableObject {
     return this.y >= this.groundY;
   }
 
+  getHitbox() {
+    return {
+      x: this.x + 10,
+      y: this.y + 10,
+      width: this.width - 20,
+      height: this.height - 10,
+    };
+  }
+
   // CHARACTER DAMAGE OVERRIDE
   onDamage(source) {
     this.isHurt = true;

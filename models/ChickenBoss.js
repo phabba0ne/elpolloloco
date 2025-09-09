@@ -12,6 +12,8 @@ export default class ChickenBoss extends MovableObject {
     strength = 50,
     health = 500,
     sprites = AssetManager.CHICKENBOSS_SPRITES,
+    type = "enemy",
+    subtype = "chickenBoss",
     player = null,
     debug = true,
   } = {}) {
@@ -22,7 +24,8 @@ export default class ChickenBoss extends MovableObject {
       height,
       strength,
       health,
-      type: "chickenBoss",
+      type,
+      subtype,
       hitboxOffsetX: 30,
       hitboxOffsetY: 50,
       hitboxWidth: 240,
@@ -41,7 +44,7 @@ export default class ChickenBoss extends MovableObject {
 
     this.currentBehavior = "alert";
     this.lastAttackTime = 0;
-    this.attackCooldown = 3000;
+    this.attackCooldown = 3000; // ms
 
     this.isFlashing = false;
 
@@ -64,33 +67,85 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  /** Bewegung Richtung Spieler */
-  updateMovement() {
-    if (!this.player || this.isDead) return;
+  /** Gibt die aktuelle Hitbox zurück */
+  getHitbox() {
+    return {
+      x: this.x + this.hitboxOffsetX,
+      y: this.y + this.hitboxOffsetY,
+      width: this.hitboxWidth,
+      height: this.hitboxHeight,
+    };
+  }
 
-    const distanceToPlayer = Math.abs(this.player.x - this.x);
-    const direction = Math.sign(this.player.x - this.x);
+  /** Verhalten & States */
 
-    this.speedX = direction * this.moveSpeed;
-    this.otherDirection = direction > 0;
+  updateBehavior() {
+    if (this.isDead) return;
+    if (!this.player) {
+      if (this.world?.character) {
+        this.player = this.world.character;
+      } else {
+        return;
+      }
+    }
 
-    if (distanceToPlayer > 80) {
-      this.setState("walk", 4);
-    } else {
+    const distance = Math.abs(this.player.x - this.x);
+
+    // --- Dead ---
+    if (this.health <= 0) {
+      this.setState("dead", 2);
+      this.die();
+      return;
+    }
+
+    // --- Attack ---
+    if (distance < 200) {
       this.setState("attack", 6);
       this.speedX = 0;
+
+      const now = performance.now();
+      if (now - this.lastAttackTime > this.attackCooldown) {
+        this.performAttack();
+        this.lastAttackTime = now;
+      }
+      return;
     }
+
+    // --- Walk ---
+    if (distance < 500) {
+      this.setState("walk", 4);
+      const dir = Math.sign(this.player.x - this.x);
+      this.speedX = dir * this.moveSpeed;
+      this.otherDirection = dir > 0;
+      return;
+    }
+
+    // --- Alert (Idle) ---
+    this.setState("alert", 3);
+    this.speedX = 0;
+  }
+
+  performAttack() {
+    if (this.debug) console.log("🐔👑 [ATTACK] Boss greift an!");
+
+    // Animation immer neu starten
+    this.setState("attack", 6, true);
+
+    // Optional: nach Attacke zurück zu alert
+    setTimeout(() => {
+      if (!this.isDead) this.setState("alert", 3);
+    }, this.stateMachine.getAnimationDuration("attack"));
   }
 
   /** Hauptupdate */
   update(deltaTime) {
     if (!this.img || this.isDead) return;
 
-    this.updateMovement();
+    this.updateBehavior();
 
     // Bewegung anwenden
     this.x += this.speedX * deltaTime;
-    this.x = Math.max(0, Math.min(1200, this.x));
+    this.x = Math.max(0, Math.min(4000, this.x)); // Level-Bounds
 
     // Animation updaten
     this.stateMachine.update(deltaTime);
@@ -104,6 +159,12 @@ export default class ChickenBoss extends MovableObject {
     if (!this.isDead) {
       this.setState("hurt", 8);
       this.isFlashing = true;
+
+      // Boss-Bar updaten
+      if (this.world?.statusBarManager) {
+        this.world.statusBarManager.updateBossHealth(this.health);
+      }
+
       setTimeout(() => (this.isFlashing = false), 500);
     }
   }
@@ -111,9 +172,14 @@ export default class ChickenBoss extends MovableObject {
   /** Todesevent */
   die() {
     super.die();
-    this.setState("die", 2);
+    this.setState("dead", 2);
     this.speedX = 0;
     this.currentBehavior = "dead";
+
+    if (this.world?.statusBarManager) {
+      this.world.statusBarManager.hideBossBar();
+    }
+
     if (this.debug) {
       console.log("🐔👑 [DEBUG] Boss gestorben");
     }
@@ -128,6 +194,7 @@ export default class ChickenBoss extends MovableObject {
         );
       }
       this.stateMachine.setState(stateName, speed);
+      this.currentBehavior = stateName;
     }
   }
 

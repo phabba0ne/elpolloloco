@@ -20,7 +20,7 @@ const level1 = new Level({
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
 
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 1000, y: 160 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({ x: 1200, y: 160 }), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre
