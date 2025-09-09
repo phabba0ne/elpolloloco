@@ -29,10 +29,10 @@ export default class ChickenSmall extends Chicken {
     this.img = this.stateMachine.getFrame();
   }
 
-  update(deltaTime) {
+  update(deltaTime, character) {
     if (!this.isDead) {
-      this.x -= this.speedX * deltaTime; // FPS-unabhängig
+      this.x -= this.speedX * deltaTime;
     }
-    super.update(deltaTime);
+    super.update(deltaTime, character);
   }
 }

@@ -26,29 +26,28 @@ export default class Character extends MovableObject {
       height,
       gravity,
       health,
-      type: "character",
       gold,
       salsas,
+      type: "character",
     });
 
     this.moveSpeed = moveSpeed;
     this.jumpPower = jumpPower;
     this.groundY = groundY;
     this.isJumping = false;
-
     this.isHurt = false;
     this.isInvulnerable = false;
     this.invulnerableDuration = invulnerableDuration;
-
     this.idleTimer = 1;
     this.longIdleThreshold = longIdleThreshold;
-
     this.stateMachine = new StateMachine(sprites, "idle", 10);
     this.loadSprites(sprites);
+    this.health = 100;
+    this.gold = 0;
+    this.salsas = 0;
   }
 
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
-
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");

@@ -9,66 +9,64 @@ export default class ChickenBoss extends MovableObject {
     y = 155,
     width = 300,
     height = 300,
-    strength = 50, //TODO: doesnt work
-    sprites = AssetManager.CHICKENBOSS_SPRITES,
-    debug = true,
-    player = null,
-    spawnThreshold = 900,
+    strength = 50,
     health = 500,
+    sprites = AssetManager.CHICKENBOSS_SPRITES,
+    player = null,
+    debug = true,
   } = {}) {
     super({
-      x, y, width, height,
-      health, strength,
+      x,
+      y,
+      width,
+      height,
+      strength,
+      health,
       type: "chickenBoss",
       hitboxOffsetX: 30,
       hitboxOffsetY: 50,
       hitboxWidth: 240,
       hitboxHeight: 200,
       canBeInstakilled: false,
-      canInstakillOthers: false
+      canInstakillOthers: false,
     });
 
     // BOSS PROPERTIES
-    this.player = player;   // ✅ speichern
-    this.active = true;
+    this.player = player;
+    this.debug = debug;
+
+    this.moveSpeed = 40;
     this.speedX = 0;
     this.speedY = 0;
-    this.moveSpeed = 40;
 
-    // BEHAVIOR STATES
-    this.currentBehavior = "sleeping";
+    this.currentBehavior = "alert";
     this.lastAttackTime = 0;
     this.attackCooldown = 3000;
 
-    // VISUAL FX
     this.isFlashing = false;
-    this.screenShake = { active: false, intensity: 0, duration: 0 };
 
-    // DEBUG COUNTERS
-    this.debug = debug;
-    this.debugCounters = {
-      updateCalls: 0,
-      movementUpdates: 0,
-      behaviorChanges: 0
-    };
-
-    // StateMachine setup
+    // StateMachine
     this.stateMachine = new StateMachine(sprites, "alert", 3);
 
-    this.initBoss();
+    this.loadSprites(sprites);
   }
 
-  async initBoss() {
+  /** Lädt alle Boss-Sprites */
+  async loadSprites(sprites) {
     try {
-      await this.loadSprites(AssetManager.CHICKENBOSS_SPRITES);
-    } catch (error) {
-      console.error("🐔👑 [ERROR] Boss init failed:", error);
+      await AssetManager.loadAll(Object.values(sprites).flat());
+      this.img = this.stateMachine.getFrame();
+      if (this.debug) {
+        console.log("🐔👑 [DEBUG] Sprites geladen");
+      }
+    } catch (err) {
+      console.error("🐔👑 [ERROR] Sprites konnten nicht geladen werden:", err);
     }
   }
 
   /** Bewegung Richtung Spieler */
-  updateSimpleMovement() {
-    if (!this.player) return;
+  updateMovement() {
+    if (!this.player || this.isDead) return;
 
     const distanceToPlayer = Math.abs(this.player.x - this.x);
     const direction = Math.sign(this.player.x - this.x);
@@ -76,18 +74,7 @@ export default class ChickenBoss extends MovableObject {
     this.speedX = direction * this.moveSpeed;
     this.otherDirection = direction > 0;
 
-    if (this.debug && this.debugCounters.movementUpdates % 30 === 0) {
-      console.log("🐔👑 [DEBUG] Movement:", {
-        playerX: this.player.x,
-        bossX: this.x,
-        distance: distanceToPlayer,
-        direction,
-        speedX: this.speedX
-      });
-    }
-    this.debugCounters.movementUpdates++;
-
-    if (distanceToPlayer > 50) {
+    if (distanceToPlayer > 80) {
       this.setState("walk", 4);
     } else {
       this.setState("attack", 6);
@@ -97,69 +84,58 @@ export default class ChickenBoss extends MovableObject {
 
   /** Hauptupdate */
   update(deltaTime) {
-    this.debugCounters.updateCalls++;
+    if (!this.img || this.isDead) return;
 
-  
-
-    // Sprite Check
-    if (!this.img) return;
+    this.updateMovement();
 
     // Bewegung anwenden
-    if (this.speedX !== 0) {
-      this.x += this.speedX * deltaTime;
-      if (this.x < 0) this.x = 0;
-      if (this.x > 1200) this.x = 1200;
-    }
+    this.x += this.speedX * deltaTime;
+    this.x = Math.max(0, Math.min(1200, this.x));
 
     // Animation updaten
-    if (this.stateMachine) {
-      this.stateMachine.update(deltaTime);
-      this.img = this.stateMachine.getFrame();
-    }
+    this.stateMachine.update(deltaTime);
+    this.img = this.stateMachine.getFrame();
   }
 
-
+  /** Schaden erhalten */
   getDamage(source) {
-    console.log("🐔👑 [DEBUG] Boss taking damage from:", source.type);
     super.getDamage(source);
 
     if (!this.isDead) {
       this.setState("hurt", 8);
       this.isFlashing = true;
-      setTimeout(() => this.isFlashing = false, 500);
+      setTimeout(() => (this.isFlashing = false), 500);
     }
   }
 
+  /** Todesevent */
   die() {
-    console.log("🐔👑 [DEBUG] 💀 BOSS DYING!");
     super.die();
     this.setState("die", 2);
     this.speedX = 0;
     this.currentBehavior = "dead";
-  }
-
-  async loadSprites(sprites) {
-    try {
-      await AssetManager.loadAll(Object.values(sprites).flat());
-      this.img = this.stateMachine.getFrame();
-      console.log("🐔👑 [DEBUG] ✅ Sprites loaded successfully");
-    } catch (error) {
-      console.error("🐔👑 [DEBUG] ❌ Sprite loading failed:", error);
+    if (this.debug) {
+      console.log("🐔👑 [DEBUG] Boss gestorben");
     }
   }
 
+  /** State wechseln */
   setState(stateName, speed = 10) {
     if (this.stateMachine.currentState !== stateName) {
       if (this.debug) {
-        console.log(`🐔👑 [DEBUG] State: ${this.stateMachine.currentState} → ${stateName}`);
+        console.log(
+          `🐔👑 [DEBUG] State: ${this.stateMachine.currentState} → ${stateName}`
+        );
       }
       this.stateMachine.setState(stateName, speed);
-      this.debugCounters.behaviorChanges++;
     }
   }
 
+  /** Boss sauber entfernen */
   destroy() {
-    console.log("🐔👑 [DEBUG] 🧹 Destroying boss...");
-    IntervalHub.stopIntervalsByType("chickenBoss"); // ✅ nur eigene Intervalle killen
+    if (this.debug) {
+      console.log("🐔👑 [DEBUG] Boss zerstört");
+    }
+    IntervalHub.stopIntervalsByType("chickenBoss");
   }
 }

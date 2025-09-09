@@ -3,6 +3,105 @@ import Character from "./Character.js";
 import Cloud from "./Cloud.js";
 import ItemSpawner from "../services/ItemSpawner.js";
 
+// TODO:
+// Usage example:
+/*
+// In your World.js or main game file:
+
+import { StatusBarManager } from './StatusBar.js';
+
+class World {
+  constructor() {
+    this.statusBarManager = new StatusBarManager();
+    this.initializeStatusBars();
+  }
+
+  initializeStatusBars() {
+    // Assuming your sprites are organized like this in AssetManager:
+    const healthSprites = [
+      'assets/img/statusbars/health/health_0.png',   // 0%
+      'assets/img/statusbars/health/health_20.png',  // 20%
+      'assets/img/statusbars/health/health_40.png',  // 40%
+      'assets/img/statusbars/health/health_60.png',  // 60%
+      'assets/img/statusbars/health/health_80.png',  // 80%
+      'assets/img/statusbars/health/health_100.png'  // 100%
+    ];
+
+    const coinSprites = [
+      'assets/img/statusbars/coins/coins_0.png',
+      'assets/img/statusbars/coins/coins_20.png',
+      'assets/img/statusbars/coins/coins_40.png',
+      'assets/img/statusbars/coins/coins_60.png',
+      'assets/img/statusbars/coins/coins_80.png',
+      'assets/img/statusbars/coins/coins_100.png'
+    ];
+
+    const salsaSprites = [
+      'assets/img/statusbars/salsas/salsas_0.png',
+      'assets/img/statusbars/salsas/salsas_20.png',
+      'assets/img/statusbars/salsas/salsas_40.png',
+      'assets/img/statusbars/salsas/salsas_60.png',
+      'assets/img/statusbars/salsas/salsas_80.png',
+      'assets/img/statusbars/salsas/salsas_100.png'
+    ];
+
+    const bossSprites = [
+      'assets/img/statusbars/boss/boss_health_0.png',
+      'assets/img/statusbars/boss/boss_health_20.png',
+      'assets/img/statusbars/boss/boss_health_40.png',
+      'assets/img/statusbars/boss/boss_health_60.png',
+      'assets/img/statusbars/boss/boss_health_80.png',
+      'assets/img/statusbars/boss/boss_health_100.png'
+    ];
+
+    // Create character bars
+    this.statusBarManager.createCharacterBars({
+      healthSprites,
+      coinSprites,
+      salsaSprites,
+      healthIcon: 'assets/img/icons/health_icon.png',
+      coinIcon: 'assets/img/icons/coin_icon.png',
+      salsaIcon: 'assets/img/icons/salsa_icon.png'
+    });
+
+    // Create boss bar
+    this.statusBarManager.createBossBar({
+      bossSprites,
+      bossIcon: 'assets/img/icons/boss_icon.png',
+      maxHealth: 100,
+      canvasWidth: this.canvas.width
+    });
+  }
+
+  // Update character stats (call this when character stats change)
+  updateCharacterStats() {
+    this.statusBarManager.updateCharacterStats({
+      health: this.character.health,
+      gold: this.character.gold,
+      salsas: this.character.salsas
+    });
+  }
+
+  // When character is spotted by boss
+  onCharacterSpotted() {
+    this.statusBarManager.showBossBar();
+    this.statusBarManager.updateBossHealth(this.chickenBoss.health);
+  }
+
+  // When boss is defeated or character escapes
+  onBossDefeated() {
+    this.statusBarManager.hideBossBar();
+  }
+
+  draw() {
+    // ... other drawing code ...
+    
+    // Draw status bars
+    this.statusBarManager.draw(this.ctx);
+  }
+}
+*/
+
 export default class World {
   debug = true;
   camera_x = 0;

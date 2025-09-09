@@ -3,30 +3,178 @@ export default class AssetManager {
   static imageCache = new Map();
   static audioCache = new Map();
 
-// #region assets
+  // #region assets
 
   // #region bottle
 
-static STATUSBARS = {
-    spawn: [
-      "assets/img/salsaBottle/salsaBottle.png",
-      "assets/img/salsaBottle/salsaBottleOnGround.png",
-      "assets/img/salsaBottle/salsaBottleOnGroundTwo.png",
+  // assets/img/statusbars/
+  //   health/
+  //     health_0.png    (0%)
+  //     health_20.png   (20%)
+  //     health_40.png   (40%)
+  //     health_60.png   (60%)
+  //     health_80.png   (80%)
+  //     health_100.png  (100%)
+  //   coins/
+  //     coins_0.png ... coins_100.png
+  //   salsas/
+  //     salsas_0.png ... salsas_100.png
+  //   boss/
+  //     boss_health_0.png ... boss_health_100.png
+
+  static GAME_OVER = {
+    over: [
+      "assets/img/youWonYouLost/gameOver.png",
+      "assets/img/youWonYouLost/gameOverA.png",
     ],
 
-    spin: [
-      "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
-      "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",
-      "assets/img/salsaBottle/bottleRotation/bottleRotationThree.png",
-      "assets/img/salsaBottle/bottleRotation/bottleRotationFour.png",
+    win: [
+      "assets/img/youWonYouLost/youWinA.png",
+      "assets/img/youWonYouLost/youWinB.png",
     ],
-    hit: [
-      "assets/img/salsaBottle/bottleRotation/bottleSplashOne.png",
-      "assets/img/salsaBottle/bottleRotation/bottleSplashTwo.png",
-      "assets/img/salsaBottle/bottleRotation/bottleSplashThree.png",
-      "assets/img/salsaBottle/bottleRotation/bottleSplashFour.png",
-      "assets/img/salsaBottle/bottleRotation/bottleSplashFive.png",
-      "assets/img/salsaBottle/bottleRotation/bottleSplashSix.png",
+
+    won: [
+      "assets/img/youWonYouLost/youWonA.png",
+      "assets/img/youWonYouLost/youWonB.png",
+    ],
+
+    lost: [
+      "assets/img/youWonYouLost/youLost.png",
+      "assets/img/youWonYouLost/youLostA.png",
+    ],
+  };
+
+  static STATUSBARS_CHICKENBOSS = {
+    healthOrange: [
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeZero.png",
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeTwenty.png",
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeForty.png",
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeSixty.png",
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeEighty.png",
+      "assets/img/statusBars/statusBarEndBoss/orange/orangeHundred.png",
+    ],
+
+    healthBlue: [
+      "assets/img/statusBars/statusBarEndBoss/blue/blueZero.png",
+      "assets/img/statusBars/statusBarEndBoss/blue/blueTwenty.png",
+      "assets/img/statusBars/statusBarEndBoss/blue/blueForty.png",
+      "assets/img/statusBars/statusBarEndBoss/blue/blueSixty.png",
+      "assets/img/statusBars/statusBarEndBoss/blue/blueEighty.png",
+      "assets/img/statusBars/statusBarEndBoss/blue/blueHundred.png",
+    ],
+
+    healthGreen: [
+      "assets/img/statusBars/statusBarEndBoss/green/greenZero.png",
+      "assets/img/statusBars/statusBarEndBoss/green/greenTwenty.png",
+      "assets/img/statusBars/statusBarEndBoss/green/greenForty.png",
+      "assets/img/statusBars/statusBarEndBoss/green/greenSixty.png",
+      "assets/img/statusBars/statusBarEndBoss/green/greenEighty.png",
+      "assets/img/statusBars/statusBarEndBoss/green/greenHundred.png",
+    ],
+  };
+
+  static STATUSBARS_PEPE = {
+    healthOrange: [
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/zero.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/forty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/orange/hundred.png",
+    ],
+
+    coinBlue: [
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/zero.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/forty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/blue/hundred.png",
+    ],
+
+    coinGreen: [
+      "assets/img/statusBars/statusBar/statusBarHealth/green/zero.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/green/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/green/forty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/green/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/green/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarHealth/green/hundred.png",
+    ],
+
+    coinOrange: [
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/zero.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/forty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/orange/hundred.png",
+    ],
+
+    coinBlue: [
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/zero.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/forty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/blue/hundred.png",
+    ],
+
+    coinGreen: [
+      "assets/img/statusBars/statusBar/statusBarCoin/green/zero.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/green/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/green/forty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/green/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/green/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarCoin/green/hundred.png",
+    ],
+
+    bottleOrange: [
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/zero.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/forty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/orange/hundred.png",
+    ],
+
+    bottleBlue: [
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/zero.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/forty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/blue/hundred.png",
+    ],
+
+    bottleGreen: [
+      "assets/img/statusBars/statusBar/statusBarBottle/green/zero.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/green/twenty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/green/forty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/green/sixty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/green/eighty.png",
+      "assets/img/statusBars/statusBar/statusBarBottle/green/hundred.png",
+    ],
+
+    orange: [
+      "assets/img/statusBars/barElements/statusBarEmpty.png",
+      "assets/img/statusBars/barElements/statusBarOrange.png",
+    ],
+
+    blue: [
+      "assets/img/statusBars/barElements/statusBarEmpty.png",
+      "assets/img/statusBars/barElements/statusBarBlue.png",
+    ],
+
+    green: [
+      "assets/img/statusBars/barElements/statusBarEmpty.png",
+      "assets/img/statusBars/barElements/statusBarGreen.png",
+    ],
+
+    icons: [
+      "assets/img/statusBars/icons/iconCoin.png",
+      "assets/img/statusBars/icons/iconHealth.png",
+      "assets/img/statusBars/icons/iconHealthEndBoss.png",
+      "assets/img/statusBars/icons/iconSalsaBottle.png",
     ],
   };
 
@@ -54,7 +202,7 @@ static STATUSBARS = {
   };
   static SALSASOUNDS = {
     spawn: [""],
-    collect:["assets/sounds/collectibles/bottleCollectSound.wav"],
+    collect: ["assets/sounds/collectibles/bottleCollectSound.wav"],
     spin: [""],
     hit: [""],
   };
@@ -147,7 +295,7 @@ static STATUSBARS = {
     ],
   };
   static CHICKENBOSS_SOUNDS = {
-    approach:["assets/sounds/endboss/endbossApproach.wav"],
+    approach: ["assets/sounds/endboss/endbossApproach.wav"],
     alert: [""],
     attack: [""],
     walk: [""],
@@ -218,16 +366,16 @@ static STATUSBARS = {
     ],
   };
   static PEPE_SOUNDS = {
-    walk: ["assets/sounds/character/characterRun.mp3"],    
+    walk: ["assets/sounds/character/characterRun.mp3"],
     jump: ["assets/sounds/character/characterJump.wav"],
-    longIdle:["assets/sounds/character/characterSnoring.mp3"],
+    longIdle: ["assets/sounds/character/characterSnoring.mp3"],
     hurt: ["assets/sounds/character/characterDamage.mp3"],
     dead: ["assets/sounds/character/characterDead.wav"],
     throw: [""],
   };
   //#endregion pepe
 
-// #endregion assets
+  // #endregion assets
 
   static async preload() {
     const assetGroups = [

@@ -28,6 +28,25 @@ export default class Chicken extends MovableObject {
     this.loadSprites(sprites);
   }
 
+  checkStomp(character) {
+  const characterFeet = character.y + character.height;
+  const chickenHead = this.y + 10; // Default-Hitbox (großes Huhn)
+  const horizontalOverlap =
+    character.x + character.width >= this.x &&
+    character.x <= this.x + this.width;
+
+  if (
+    characterFeet >= this.y &&
+    characterFeet <= chickenHead &&
+    horizontalOverlap &&
+    character.speedY > 0
+  ) {
+    this.die();
+    character.speedY = -character.jumpPower * 1;
+    console.log(`[${this.type.toUpperCase()}] Stomped by Pepe!`);
+  }
+}
+
   update(deltaTime, character) {
     if (!this.isDead) {
       // Chicken moves left
@@ -35,22 +54,7 @@ export default class Chicken extends MovableObject {
 
       // Minimal: Pepe von oben drauf prüfen
       if (character && !character.isDead) {
-        const characterFeet = character.y + character.height;
-        const chickenHead = this.y + 10; // Kopfzone
-        const horizontalOverlap =
-          character.x + character.width >= this.x &&
-          character.x <= this.x + this.width;
-
-        if (
-          characterFeet >= this.y &&
-          characterFeet <= chickenHead &&
-          horizontalOverlap &&
-          character.speedY > 0
-        ) {
-          this.die();
-          character.speedY = -character.jumpPower * 1; // kräftiger Instant-Bounce
-          console.log("[CHICKEN] Stomped by Pepe!");
-        }
+       this.checkStomp(character);
       }
     }
     this.updateStateMachine(deltaTime);

@@ -6,6 +6,7 @@ import Background from "../models/Background.js";
 import ChickenBoss from "../models/ChickenBoss.js";
 
 const level1 = new Level({
+  startX: 300,
   enemies: [
     // Normale Chickens - verteilt über das Level
     new Chicken({ x: 800, y: 385 }), // erste normale Chicken
@@ -19,7 +20,7 @@ const level1 = new Level({
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
 
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 3000, y: 160 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({ x: 1000, y: 160 }), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre
