@@ -7,6 +7,29 @@ export default class AssetManager {
 
   // #region bottle
 
+static STATUSBARS = {
+    spawn: [
+      "assets/img/salsaBottle/salsaBottle.png",
+      "assets/img/salsaBottle/salsaBottleOnGround.png",
+      "assets/img/salsaBottle/salsaBottleOnGroundTwo.png",
+    ],
+
+    spin: [
+      "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationThree.png",
+      "assets/img/salsaBottle/bottleRotation/bottleRotationFour.png",
+    ],
+    hit: [
+      "assets/img/salsaBottle/bottleRotation/bottleSplashOne.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashTwo.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashThree.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashFour.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashFive.png",
+      "assets/img/salsaBottle/bottleRotation/bottleSplashSix.png",
+    ],
+  };
+
   static SALSABOTTLE = {
     spawn: [
       "assets/img/salsaBottle/salsaBottle.png",

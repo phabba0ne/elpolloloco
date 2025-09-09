@@ -10,7 +10,6 @@ export default class ItemSpawner {
     this.world = world;
     this.character = world.character;
     this.level = world.level;
-    this.debug = debug;
 
     this.coins = this.spawnCoins(coinCount);
     this.salsas = this.spawnSalsas(salsaCount);
@@ -25,7 +24,6 @@ export default class ItemSpawner {
         x,
         y,
         enabled: true,
-        debug: this.debug
       });
       coin.world = this.world;
       coins.push(coin);
@@ -42,7 +40,6 @@ export default class ItemSpawner {
         x,
         y,
         enabled: true,
-        debug: this.debug
       });
       salsa.world = this.world;
       salsas.push(salsa);

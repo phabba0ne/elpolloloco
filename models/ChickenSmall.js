@@ -5,7 +5,7 @@ import StateMachine from "../services/StateMachine.js";
 export default class ChickenSmall extends Chicken {
   width = 48;
   height = 48;
-  speedX = 40;
+  speedX = 48;
   strength = 5;
   y = 396;
 

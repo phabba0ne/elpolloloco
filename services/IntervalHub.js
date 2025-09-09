@@ -1,4 +1,4 @@
-// TODO #1: Step 01 - Enhanced IntervalHub with central loop and interval management
+// Enhanced IntervalHub optimized for canvas games
 export default class IntervalHub {
   static allIntervals = [];
   static intervalCounter = 0;
@@ -6,13 +6,15 @@ export default class IntervalHub {
   static gameLoopId = null;
   static deltaTime = 0;
   static lastTime = performance.now();
+  static targetFPS = 60;
 
-  // TODO #1: Central game loop - will replace World.js loop
-  static startCentralLoop({ onUpdate = null, onRender = null } = {}) {
+  // Central game loop - replaces World.js loop
+  static startCentralLoop({ onUpdate = null, onRender = null, targetFPS = 60 } = {}) {
     if (this.isRunning) return;
 
     this.isRunning = true;
     this.lastTime = performance.now();
+    this.targetFPS = targetFPS;
 
     const loop = (currentTime) => {
       if (!this.isRunning) return;
@@ -20,18 +22,18 @@ export default class IntervalHub {
       this.deltaTime = (currentTime - this.lastTime) / 1000;
       this.lastTime = currentTime;
 
-      // TODO #1: Call update callback (will handle game logic)
+      // Call update callback (game logic)
       if (onUpdate) {
         onUpdate(this.deltaTime);
       }
 
-      // TODO #1: Call render callback (will handle drawing)
+      // Process all registered intervals using deltaTime
+      this.processIntervals(this.deltaTime);
+
+      // Call render callback (drawing)
       if (onRender) {
         onRender(this.deltaTime);
       }
-
-      // TODO #1: Process all registered intervals
-      this.processIntervals(this.deltaTime);
 
       this.gameLoopId = requestAnimationFrame(loop);
     };
@@ -39,7 +41,7 @@ export default class IntervalHub {
     this.gameLoopId = requestAnimationFrame(loop);
   }
 
-  // TODO #1: Stop central game loop
+  // Stop central game loop
   static stopCentralLoop() {
     this.isRunning = false;
     if (this.gameLoopId) {
@@ -48,71 +50,63 @@ export default class IntervalHub {
     }
   }
 
-  // TODO #1: Enhanced interval registration with unique ID and metadata
-  static registerInterval({
-    id = null,
-    func = null,
-    timer = 16,
-    type = "generic",
-    target = null,
-    paused = false,
-  } = {}) {
-    if (!func) {
-      throw new Error("registerInterval requires { func }");
+  // Simplified API: startInterval(func, intervalMs, options)
+  static startInterval(func, intervalMs = 16, options = {}) {
+    const {
+      id = null,
+      type = "generic",
+      target = null,
+      paused = false,
+    } = options;
+
+    if (!func || typeof func !== 'function') {
+      throw new Error("startInterval requires a function as first parameter");
     }
 
     const intervalId = id || `interval_${++this.intervalCounter}`;
     const intervalData = {
       id: intervalId,
       func,
-      timer,
+      timer: intervalMs,
       type,
       target,
       paused,
-      lastExecution: 0,
-      nativeInterval: null,
+      accumulator: 0, // For deltaTime-based execution
     };
 
-    // TODO #1: For now, still use native setInterval (will be replaced with deltaTime-based system)
-    intervalData.nativeInterval = setInterval(() => {
-      if (!intervalData.paused) {
-        intervalData.func();
-      }
-    }, timer);
-
     this.allIntervals.push(intervalData);
-
-    // TODO #1: Notify StateMachine about interval changes
     this.notifyStateMachine();
 
     return intervalId;
   }
 
-  // TODO #1: Process intervals using deltaTime (future implementation)
+  // Process intervals using deltaTime (no more setInterval!)
   static processIntervals(deltaTime) {
-    // TODO #1: Replace setInterval with deltaTime-based execution
-    // This will be implemented in later steps
+    const deltaMs = deltaTime * 1000;
+
     this.allIntervals.forEach((interval) => {
-      if (!interval.paused) {
-        interval.lastExecution += deltaTime * 1000;
-        if (interval.lastExecution >= interval.timer) {
+      if (interval.paused) return;
+
+      interval.accumulator += deltaMs;
+
+      // Execute function when accumulated time exceeds timer
+      while (interval.accumulator >= interval.timer) {
+        try {
           interval.func();
-          interval.lastExecution = 0;
+        } catch (error) {
+          console.error(`Error in interval ${interval.id}:`, error);
         }
+        interval.accumulator -= interval.timer;
       }
     });
   }
 
-  // TODO #1: Stop interval by ID
+  // Stop interval by ID
   static stopInterval(intervalId) {
     const index = this.allIntervals.findIndex(
       (interval) => interval.id === intervalId
     );
     if (index !== -1) {
-      const interval = this.allIntervals[index];
-      if (interval.nativeInterval) {
-        clearInterval(interval.nativeInterval);
-      }
       this.allIntervals.splice(index, 1);
       this.notifyStateMachine();
       return true;
@@ -120,7 +114,7 @@ export default class IntervalHub {
     return false;
   }
 
-  // TODO #1: Pause interval by ID
+  // Pause interval by ID
   static pauseInterval(intervalId) {
     const interval = this.allIntervals.find(
       (interval) => interval.id === intervalId
@@ -132,7 +126,7 @@ export default class IntervalHub {
     return false;
   }
 
-  // TODO #1: Resume interval by ID
+  // Resume interval by ID
   static resumeInterval(intervalId) {
     const interval = this.allIntervals.find(
       (interval) => interval.id === intervalId
@@ -144,20 +138,13 @@ export default class IntervalHub {
     return false;
   }
 
-  // TODO #1: Stop intervals by type (using instanceof check)
+  // Stop intervals by type or class instance
   static stopIntervalsByType(type) {
     const toRemove = this.allIntervals.filter((interval) => {
       if (typeof type === "string") {
         return interval.type === type;
       } else {
-        // TODO #1: Check if target is instance of given class
         return interval.target && interval.target instanceof type;
-      }
-    });
-
-    toRemove.forEach((interval) => {
-      if (interval.nativeInterval) {
-        clearInterval(interval.nativeInterval);
       }
     });
 
@@ -169,7 +156,7 @@ export default class IntervalHub {
     return toRemove.length;
   }
 
-  // TODO #1: Pause intervals by type
+  // Pause intervals by type
   static pauseIntervalsByType(type) {
     let count = 0;
     this.allIntervals.forEach((interval) => {
@@ -188,7 +175,7 @@ export default class IntervalHub {
     return count;
   }
 
-  // TODO #1: Resume intervals by type
+  // Resume intervals by type
   static resumeIntervalsByType(type) {
     let count = 0;
     this.allIntervals.forEach((interval) => {
@@ -207,7 +194,7 @@ export default class IntervalHub {
     return count;
   }
 
-  // TODO #1: Get intervals by type for StateMachine
+  // Get intervals by type for StateMachine
   static getIntervalsByType(type) {
     return this.allIntervals.filter((interval) => {
       if (typeof type === "string") {
@@ -218,71 +205,79 @@ export default class IntervalHub {
     });
   }
   
-  // TODO #1: Enhanced stop all with async cleanup
+  // Enhanced stop all with async cleanup
   static async stopAllIntervals() {
     return new Promise((resolve) => {
-      this.allIntervals.forEach((interval) => {
-        if (interval.nativeInterval) {
-          clearInterval(interval.nativeInterval);
-        }
-      });
       this.allIntervals = [];
       this.notifyStateMachine();
       resolve();
     });
   }
 
-  // TODO #1: Notify StateMachine about interval changes (async)
+  // Notify StateMachine about interval changes
   static async notifyStateMachine() {
-    // TODO #1: Implement StateMachine notification
-    // This will trigger AssetManager prefetching and render job preparation
     try {
-      // TODO #1: StateMachine.onIntervalsChanged(this.allIntervals);
+      // TODO: StateMachine.onIntervalsChanged(this.allIntervals);
       console.log(`IntervalHub: ${this.allIntervals.length} intervals active`);
     } catch (error) {
       console.error("Failed to notify StateMachine:", error);
     }
   }
 
-  // TODO #1: Get current state for debugging
+  // Get current state for debugging
   static getState() {
     return {
       intervalCount: this.allIntervals.length,
       isRunning: this.isRunning,
       deltaTime: this.deltaTime,
+      targetFPS: this.targetFPS,
       intervals: this.allIntervals.map((interval) => ({
         id: interval.id,
         type: interval.type,
         timer: interval.timer,
         paused: interval.paused,
+        accumulator: interval.accumulator,
         target: interval.target?.constructor?.name || null,
       })),
     };
   }
+
+  // Utility: Convert FPS to milliseconds
+  static fpsToMs(fps) {
+    return 1000 / fps;
+  }
+
+  // Utility: Convert milliseconds to FPS
+  static msToFps(ms) {
+    return 1000 / ms;
+  }
 }
-// TODO #1: Global access for testing and debugging
-window.IntervalHub = IntervalHub;
 
-//REGISTER EVERYTHING ON INTERVAL HUB
+// Global access for testing and debugging
+if (typeof window !== 'undefined') {
+  window.IntervalHub = IntervalHub;
+}
 
-// TODO #1: Test and debug functionality
-// console.log('IntervalHub initialized:', IntervalHub.getState());
-// Test interval registration:
-// IntervalHub.registerInterval({
-//     id: 'test-interval',
-//     func: () => console.log('Test interval tick'),
-//     timer: 1000,
-//     type: 'test'
+// Usage Examples:
+// 
+// Start the central loop:
+// IntervalHub.startCentralLoop({
+//   onUpdate: (deltaTime) => { /* game logic */ },
+//   onRender: (deltaTime) => { /* drawing */ }
 // });
-
-//testing with IntervalHub.getState()
-
-//TODO: REGISTER (1 EVOL)
-// Instead of: setInterval(() => this.animate(), 100)
-// IntervalHub.registerInterval({ 
-//     id: `${this.constructor.name}_${this.instanceId}_animation`,
-//     func: () => this.animate(), 
-//     timer: 100,
-//     type: this.constructor.name,
-//     target: this
-// });
+//
+// Your desired usage pattern:
+// const intervalId = IntervalHub.startInterval(this.updateX, 1000/20);
+// 
+// With arrow function:
+// updateX = () => { this.x += 10; }
+//
+// With regular method (auto-bound if target is provided):
+// IntervalHub.startInterval(
+//   this.updateX.bind(this), 
+//   1000/20, 
+//   { target: this, type: this.constructor.name }
+// );
+//
+// Or using FPS utility:
+// IntervalHub.startInterval(this.updateX, IntervalHub.fpsToMs(20));
