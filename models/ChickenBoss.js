@@ -26,10 +26,10 @@ export default class ChickenBoss extends MovableObject {
       health,
       type,
       subtype,
-      hitboxOffsetX: 30,
-      hitboxOffsetY: 50,
-      hitboxWidth: 240,
-      hitboxHeight: 200,
+      hitboxOffsetX: 0,
+      hitboxOffsetY: 0,
+      hitboxWidth: 0,
+      hitboxHeight: 0,
       canBeInstakilled: false,
       canInstakillOthers: false,
     });
@@ -38,19 +38,21 @@ export default class ChickenBoss extends MovableObject {
     this.player = player;
     this.debug = debug;
 
-    this.moveSpeed = 40;
+    this.moveSpeed = 100;
     this.speedX = 0;
     this.speedY = 0;
 
     this.currentBehavior = "alert";
     this.lastAttackTime = 0;
-    this.attackCooldown = 3000; // ms
+    this.attackCooldown = 1000; // ms
 
     this.isFlashing = false;
+    this.hasTriggeredBossBar = false; // Track if boss bar was shown
 
     // StateMachine
-    this.stateMachine = new StateMachine(sprites, "alert", 3);
+    this.stateMachine = new StateMachine(sprites, "alert", 10);
 
+    // Initialize sprites loading
     this.loadSprites(sprites);
   }
 
@@ -60,11 +62,35 @@ export default class ChickenBoss extends MovableObject {
       await AssetManager.loadAll(Object.values(sprites).flat());
       this.img = this.stateMachine.getFrame();
       if (this.debug) {
-        console.log("🐔👑 [DEBUG] Sprites geladen");
+        console.log("🐔👑 [DEBUG] ChickenBoss sprites loaded");
       }
     } catch (err) {
-      console.error("🐔👑 [ERROR] Sprites konnten nicht geladen werden:", err);
+      console.error("🐔👑 [ERROR] ChickenBoss sprites failed to load:", err);
+      // Fallback: create a simple colored rectangle
+      this.createFallbackImage();
     }
+  }
+
+  /** Create fallback image if sprites fail to load */
+  createFallbackImage() {
+    const canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw a simple boss representation
+    ctx.fillStyle = '#8B0000'; // Dark red
+    ctx.fillRect(0, 0, this.width, this.height);
+    
+    ctx.fillStyle = '#FFD700'; // Gold crown
+    ctx.fillRect(this.width * 0.3, 0, this.width * 0.4, this.height * 0.2);
+    
+    ctx.fillStyle = '#FFFFFF'; // White text
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('BOSS', this.width / 2, this.height / 2);
+    
+    this.img = canvas;
   }
 
   /** Gibt die aktuelle Hitbox zurück */
@@ -77,10 +103,31 @@ export default class ChickenBoss extends MovableObject {
     };
   }
 
-  /** Verhalten & States */
+  /** Check if player is in detection range */
+  isPlayerInRange(detectionRange = 2000) {
+    if (!this.player) return false;
+    const distance = Math.abs(this.player.x - this.x);
+    return distance <= detectionRange;
+  }
 
+  /** Trigger boss bar when player is detected */
+  triggerBossEncounter() {
+    if (!this.hasTriggeredBossBar && this.world?.statusBarManager) {
+      this.world.statusBarManager.showBossBar();
+      this.world.statusBarManager.updateBossHealth(this.health);
+      this.hasTriggeredBossBar = true;
+      
+      if (this.debug) {
+        console.log("🐔👑 [DEBUG] Boss encounter triggered!");
+      }
+    }
+  }
+
+  /** Verhalten & States */
   updateBehavior() {
     if (this.isDead) return;
+    
+    // Get player reference if not set
     if (!this.player) {
       if (this.world?.character) {
         this.player = this.world.character;
@@ -91,9 +138,14 @@ export default class ChickenBoss extends MovableObject {
 
     const distance = Math.abs(this.player.x - this.x);
 
+    // Trigger boss bar if player is in detection range
+    if (this.isPlayerInRange(600)) {
+      this.triggerBossEncounter();
+    }
+
     // --- Dead ---
     if (this.health <= 0) {
-      this.setState("dead", 2);
+      this.setState("dead", 6);
       this.die();
       return;
     }
@@ -113,7 +165,7 @@ export default class ChickenBoss extends MovableObject {
 
     // --- Walk ---
     if (distance < 500) {
-      this.setState("walk", 4);
+      this.setState("walk", 6);
       const dir = Math.sign(this.player.x - this.x);
       this.speedX = dir * this.moveSpeed;
       this.otherDirection = dir > 0;
@@ -121,73 +173,133 @@ export default class ChickenBoss extends MovableObject {
     }
 
     // --- Alert (Idle) ---
-    this.setState("alert", 3);
+    this.setState("alert", 6);
     this.speedX = 0;
   }
 
   performAttack() {
-    if (this.debug) console.log("🐔👑 [ATTACK] Boss greift an!");
+    if (this.debug) console.log("🐔👑 [ATTACK] Boss attacks!");
 
-    // Animation immer neu starten
+    // Always restart attack animation
     this.setState("attack", 6, true);
 
-    // Optional: nach Attacke zurück zu alert
+    // Deal damage to player if in range
+    if (this.player && Math.abs(this.player.x - this.x) < 100) {
+      // Check if player has getDamage method
+      if (typeof this.player.getDamage === 'function') {
+        this.player.getDamage(this);
+      } else if (this.player.health !== undefined) {
+        // Fallback: directly reduce health
+        this.player.health = Math.max(0, this.player.health - this.strength);
+        if (this.debug) {
+          console.log(`🐔👑 [ATTACK] Player health: ${this.player.health}`);
+        }
+      }
+    }
+
+    // Return to alert after attack animation
+    const attackDuration = this.stateMachine.getAnimationDuration ? 
+      this.stateMachine.getAnimationDuration("attack") : 1000;
+    
     setTimeout(() => {
       if (!this.isDead) this.setState("alert", 3);
-    }, this.stateMachine.getAnimationDuration("attack"));
+    }, attackDuration);
   }
 
   /** Hauptupdate */
-  update(deltaTime) {
+  update(deltaTime, player = null) {
+    // Update player reference if provided
+    if (player) {
+      this.player = player;
+    }
+
     if (!this.img || this.isDead) return;
 
     this.updateBehavior();
 
-    // Bewegung anwenden
+    // Apply movement
     this.x += this.speedX * deltaTime;
-    this.x = Math.max(0, Math.min(4000, this.x)); // Level-Bounds
+    
+    // Level bounds - adjust these to match your level
+    const levelStartX = 0;
+    const levelEndX = this.world?.level?.endX || 4000;
+    this.x = Math.max(levelStartX, Math.min(levelEndX - this.width, this.x));
 
-    // Animation updaten
-    this.stateMachine.update(deltaTime);
-    this.img = this.stateMachine.getFrame();
+    // Update animation
+    if (this.stateMachine) {
+      this.stateMachine.update(deltaTime);
+      const newFrame = this.stateMachine.getFrame();
+      if (newFrame) {
+        this.img = newFrame;
+      }
+    }
+
+    // Update boss health bar if visible
+    if (this.hasTriggeredBossBar && this.world?.statusBarManager) {
+      this.world.statusBarManager.updateBossHealth(this.health);
+    }
   }
 
   /** Schaden erhalten */
   getDamage(source) {
+    if (this.isDead) return;
+
     super.getDamage(source);
 
     if (!this.isDead) {
       this.setState("hurt", 8);
       this.isFlashing = true;
 
-      // Boss-Bar updaten
+      // Update boss bar
       if (this.world?.statusBarManager) {
         this.world.statusBarManager.updateBossHealth(this.health);
       }
 
-      setTimeout(() => (this.isFlashing = false), 500);
+      setTimeout(() => {
+        this.isFlashing = false;
+        if (!this.isDead) {
+          this.setState("alert", 3); // Return to alert after hurt
+        }
+      }, 500);
+
+      if (this.debug) {
+        console.log(`🐔👑 [DAMAGE] Boss health: ${this.health}/${this.maxHealth || 500}`);
+      }
     }
   }
 
   /** Todesevent */
   die() {
+    if (this.isDead) return; // Prevent multiple death calls
+
     super.die();
     this.setState("dead", 2);
     this.speedX = 0;
     this.currentBehavior = "dead";
 
+    // Hide boss bar
     if (this.world?.statusBarManager) {
       this.world.statusBarManager.hideBossBar();
     }
 
+    // Clean up intervals
+    this.destroy();
+
     if (this.debug) {
-      console.log("🐔👑 [DEBUG] Boss gestorben");
+      console.log("🐔👑 [DEBUG] ChickenBoss defeated!");
+    }
+
+    // Optional: Trigger victory event
+    if (this.world && typeof this.world.onBossDefeated === 'function') {
+      this.world.onBossDefeated();
     }
   }
 
   /** State wechseln */
-  setState(stateName, speed = 10) {
-    if (this.stateMachine.currentState !== stateName) {
+  setState(stateName, speed = 10, forceRestart = false) {
+    if (!this.stateMachine) return;
+
+    if (this.stateMachine.currentState !== stateName || forceRestart) {
       if (this.debug) {
         console.log(
           `🐔👑 [DEBUG] State: ${this.stateMachine.currentState} → ${stateName}`
@@ -198,11 +310,41 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
+  /** Check if boss is alive */
+  isAlive() {
+    return !this.isDead && this.health > 0;
+  }
+
+  /** Get boss info for debugging */
+  getBossInfo() {
+    return {
+      health: this.health,
+      maxHealth: this.maxHealth || 500,
+      state: this.currentBehavior,
+      movementPattern: this.movementPattern,
+      position: { x: Math.round(this.x), y: Math.round(this.y) },
+      speed: { x: Math.round(this.speedX), y: Math.round(this.speedY) },
+      isAlive: this.isAlive(),
+      hasTriggeredEncounter: this.hasTriggeredBossBar,
+      playerDistance: this.player ? Math.round(Math.abs(this.player.x - this.x)) : null,
+      facingDirection: this.otherDirection ? "right" : "left",
+      isCharging: this.isCharging,
+      isRetreating: this.isRetreating,
+      attackCooldownRemaining: Math.max(0, this.attackCooldown - (performance.now() - this.lastAttackTime))
+    };
+  }
+
   /** Boss sauber entfernen */
   destroy() {
     if (this.debug) {
-      console.log("🐔👑 [DEBUG] Boss zerstört");
+      console.log("🐔👑 [DEBUG] ChickenBoss destroyed");
     }
+    
+    // Stop all intervals related to this boss
     IntervalHub.stopIntervalsByType("chickenBoss");
+    IntervalHub.stopIntervalsByType(this.constructor.name);
+    
+    // Clear any timeouts that might reference this object
+    this.isDestroyed = true;
   }
 }
