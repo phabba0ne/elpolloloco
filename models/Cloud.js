@@ -13,7 +13,7 @@ export default class Cloud extends MovableObject {
   constructor({
     x = 0,
     y = 0,
-    width = 400,
+    width = 480,
     height = 250,
     speed = 10,
     sprites = null,

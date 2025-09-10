@@ -9,14 +9,17 @@ const level1 = new Level({
   startX: 300,
   enemies: [
     // Normale Chickens - verteilt über das Level
-    new Chicken({ x: 800, y: 385 }), // erste normale Chicken
-    new Chicken({ x: 1200, y: 385 }), // zweite normale Chicken
-    new Chicken({ x: 1800, y: 385 }), // dritte normale Chicken
-    new Chicken({ x: 2400, y: 385 }), // vierte normale Chicken
+    new Chicken({ x: 805, y: 385 }), // erste normale Chicken
+    new Chicken({ x: 1208, y: 385 }), // zweite normale Chicken
+    new Chicken({ x: 1860, y: 385 }), // dritte normale Chicken
+    new Chicken({ x: 2260, y: 385 }), // vierte normale Chicken
 
     // Small Chickens - schnellere kleine Hühner
-    new ChickenSmall({ x: 1000, y: 385 }), // erste kleine Chicken
+    new ChickenSmall({ x: 2370, y: 385 }), // erste kleine Chicken
+    new ChickenSmall({ x: 1630, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 1406, y: 385 }), // zweite kleine Chicken
     new ChickenSmall({ x: 1600, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 1665, y: 385 }), // zweite kleine Chicken
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
 
     // Boss Chicken - am Ende des Levels
@@ -25,12 +28,12 @@ const level1 = new Level({
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre
   clouds: [
-    new Cloud({ x: 100, y: 50 }), // Wolke links
-    new Cloud({ x: 400, y: 80 }), // Wolke mitte-links
-    new Cloud({ x: 800, y: 60 }), // Wolke mitte
-    new Cloud({ x: 1200, y: 90 }), // Wolke mitte-rechts
-    new Cloud({ x: 1600, y: 40 }), // Wolke rechts
-    new Cloud({ x: 2000, y: 70 }), // Wolke weit rechts
+    new Cloud({ x: 1053, y: 50 }), // Wolke links
+    new Cloud({ x: 4750, y: 80 }), // Wolke mitte-links
+    new Cloud({ x: 2600, y: 60 }), // Wolke mitte
+    new Cloud({ x: 1203, y: 90 }), // Wolke mitte-rechts
+    new Cloud({ x: 260, y: 40 }), // Wolke rechts
+    new Cloud({ x: 4340, y: 70 }), // Wolke weit rechts
   ],
 
   // BACKGROUNDS - Parallax Scrolling Layer (bereits gut konfiguriert)
