@@ -52,8 +52,8 @@ export default class Character extends MovableObject {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
       }
-      this.speedY += this.gravity;
-      this.y += this.speedY;
+      this.speedY += this.gravity *0.075;
+       this.y += this.speedY;
 
       this.updateStateMachine(deltaTime);
       return;

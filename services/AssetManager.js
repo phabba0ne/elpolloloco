@@ -1,27 +1,8 @@
 export default class AssetManager {
-  // ---------- Caches ----------
+
   static imageCache = new Map();
   static audioCache = new Map();
-
-  // #region assets
-
-  // #region bottle
-
-  // assets/img/statusbars/
-  //   health/
-  //     health_0.png    (0%)
-  //     health_20.png   (20%)
-  //     health_40.png   (40%)
-  //     health_60.png   (60%)
-  //     health_80.png   (80%)
-  //     health_100.png  (100%)
-  //   coins/
-  //     coins_0.png ... coins_100.png
-  //   salsas/
-  //     salsas_0.png ... salsas_100.png
-  //   boss/
-  //     boss_health_0.png ... boss_health_100.png
-
+  
   static GAME_OVER = {
     over: [
       "assets/img/youWonYouLost/gameOver.png",
