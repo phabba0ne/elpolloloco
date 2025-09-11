@@ -359,24 +359,37 @@ export default class AssetManager {
   // #endregion assets
 
   static async preload() {
-    const assetGroups = [
-      this.SALSABOTTLE,
-      this.COIN_SPRITES,
-      this.CHICKEN_SPRITES,
-      this.CHICKENSMALL_SPRITES,
-      this.CHICKENBOSS_SPRITES,
-      this.PEPE_SPRITES,
-    ];
-    const allPaths = assetGroups
-      .map((group) => Object.values(group).flat())
-      .flat();
+  // Alle statischen Asset-Gruppen dynamisch zusammensuchen
+  const assetGroups = [
+    this.GAME_OVER,
+    this.STATUSBARS_CHICKENBOSS,
+    this.STATUSBARS_PEPE,
+    this.SALSABOTTLE,
+    this.SALSASOUNDS,
+    this.COIN_SPRITES,
+    this.COIN_SOUNDS,
+    this.CHICKEN_SPRITES,
+    this.CHICKEN_SOUNDS,
+    this.CHICKENSMALL_SPRITES,
+    this.CHICKENSMALL_SOUNDS,
+    this.CHICKENBOSS_SPRITES,
+    this.CHICKENBOSS_SOUNDS,
+    this.PEPE_SPRITES,
+    this.PEPE_SOUNDS
+  ];
 
-    console.log(`AssetManager: Preloading ${allPaths.length} assets...`);
+  // Alle Pfade extrahieren
+  const allPaths = assetGroups
+    .map(group => Object.values(group).flat())
+    .flat()
+    .filter(Boolean); // leere Strings raus
 
-    await this.loadAll(allPaths);
+  console.log(`AssetManager: Preloading ${allPaths.length} assets...`);
 
-    console.log("✅ AssetManager: Alle Assets geladen.");
-  }
+  await this.loadAll(allPaths);
+
+  console.log("✅ AssetManager: Alle Assets geladen.");
+}
 
   // ---------- Generic ----------
   static async loadAll(assets) {

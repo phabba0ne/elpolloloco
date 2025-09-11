@@ -50,7 +50,7 @@ export default class ChickenBoss extends MovableObject {
     this.hasTriggeredBossBar = false; // Track if boss bar was shown
 
     // StateMachine
-    this.stateMachine = new StateMachine(sprites, "alert", 10);
+    this.stateMachine = new StateMachine(sprites, "alert", 6);
 
     // Initialize sprites loading
     this.loadSprites(sprites);
@@ -112,9 +112,9 @@ export default class ChickenBoss extends MovableObject {
 
   /** Trigger boss bar when player is detected */
   triggerBossEncounter() {
-    if (!this.hasTriggeredBossBar && this.world?.statusBarManager) {
-      this.world.statusBarManager.showBossBar();
-      this.world.statusBarManager.updateBossHealth(this.health);
+    if (!this.hasTriggeredBossBar && this.world?.statusBar) {
+      this.world.statusBar.showBossBar();
+      this.world.statusBar.updateBossHealth(this.health);
       this.hasTriggeredBossBar = true;
       
       if (this.debug) {
@@ -124,58 +124,120 @@ export default class ChickenBoss extends MovableObject {
   }
 
   /** Verhalten & States */
-  updateBehavior() {
-    if (this.isDead) return;
-    
-    // Get player reference if not set
-    if (!this.player) {
-      if (this.world?.character) {
-        this.player = this.world.character;
-      } else {
-        return;
-      }
-    }
+/** Verhalten & States - Optimiert für flüssige Walk-Animation + Springen */
+updateBehavior(deltaTime) {
+  if (this.isDead) return;
 
-    const distance = Math.abs(this.player.x - this.x);
-
-    // Trigger boss bar if player is in detection range
-    if (this.isPlayerInRange(600)) {
-      this.triggerBossEncounter();
-    }
-
-    // --- Dead ---
-    if (this.health <= 0) {
-      this.setState("dead", 6);
-      this.die();
-      return;
-    }
-
-    // --- Attack ---
-    if (distance < 200) {
-      this.setState("attack", 6);
-      this.speedX = 0;
-
-      const now = performance.now();
-      if (now - this.lastAttackTime > this.attackCooldown) {
-        this.performAttack();
-        this.lastAttackTime = now;
-      }
-      return;
-    }
-
-    // --- Walk ---
-    if (distance < 500) {
-      this.setState("walk", 6);
-      const dir = Math.sign(this.player.x - this.x);
-      this.speedX = dir * this.moveSpeed;
-      this.otherDirection = dir > 0;
-      return;
-    }
-
-    // --- Alert (Idle) ---
-    this.setState("alert", 6);
-    this.speedX = 0;
+  // Spieler-Referenz sicherstellen
+  if (!this.player && this.world?.character) {
+    this.player = this.world.character;
   }
+  if (!this.player) return;
+
+  const playerDistanceX = this.player.x - this.x;
+  const playerDistanceY = this.player.y - this.y;
+  const distance = Math.abs(playerDistanceX);
+
+  // Boss Bar triggern
+  if (this.isPlayerInRange(600)) this.triggerBossEncounter();
+
+  // --- Dead ---
+  if (this.health <= 0) {
+    this.setState("dead", 2);
+    this.die();
+    return;
+  }
+
+  // --- Attack ---
+  if (distance < 200) {
+    this.setStateIfNot("attack", 6);
+    this.speedX = 0;
+
+    const now = performance.now();
+    if (now - this.lastAttackTime > this.attackCooldown) {
+      this.performAttack();
+      this.lastAttackTime = now;
+    }
+    return;
+  }
+
+  // --- Walk / Follow Player ---
+  if (distance < 500) {
+    const dir = Math.sign(playerDistanceX);
+    this.speedX = dir * this.moveSpeed;
+    this.otherDirection = dir > 0;
+
+    // Dynamische Walk-Animation basierend auf Geschwindigkeit
+    const baseSpeed = 100; // Pixel pro Sekunde Basis
+    const animSpeed = Math.max(1, Math.round((Math.abs(this.speedX) / baseSpeed) * 6));
+    this.setStateIfNot("walk", animSpeed);
+
+    // Springen, wenn Spieler höher liegt
+    if (playerDistanceY < -50 && this.isOnGround()) {
+      this.speedY = -Math.min(20, Math.abs(playerDistanceY));
+      this.setStateIfNot("jump", 6);
+    }
+
+    return;
+  }
+
+  // --- Alert / Idle ---
+  this.speedX = 0;
+  this.setStateIfNot("alert", 6);
+}
+
+/** Hilfsfunktion: nur wechseln, wenn nötig */
+setStateIfNot(stateName, speed = 6, forceRestart = false) {
+  if (!this.stateMachine) return;
+  if (this.stateMachine.currentState !== stateName || forceRestart) {
+    this.stateMachine.setState(stateName, speed);
+    this.currentBehavior = stateName;
+  }
+}
+
+/** Hauptupdate optimiert */
+update(deltaTime, player = null) {
+  if (player) this.player = player;
+  if (!this.img || this.isDead) return;
+
+  // Verhalten & Animation
+  this.updateBehavior(deltaTime);
+
+  // Physik
+  this.speedY += this.gravity;
+  this.y += this.speedY * deltaTime;
+  this.x += this.speedX * deltaTime;
+
+  // Boden-Kollision
+  const groundLevel = this.world?.groundLevel || 200;
+  if (this.y + this.height >= groundLevel) {
+    this.y = groundLevel - this.height;
+    this.speedY = 0;
+  }
+
+  // Level bounds
+  const levelStartX = 0;
+  const levelEndX = this.world?.level?.endX || 4000;
+  this.x = Math.max(levelStartX, Math.min(levelEndX - this.width, this.x));
+
+  // StateMachine animieren
+  if (this.stateMachine) {
+    this.stateMachine.update(deltaTime);
+    const newFrame = this.stateMachine.getFrame();
+    if (newFrame) this.img = newFrame;
+  }
+
+  // Bossbar updaten
+  if (this.hasTriggeredBossBar && this.world?.statusBar) {
+    this.world.statusBar.updateBossHealth(this.health);
+  }
+}
+
+/** Prüft, ob Boss auf dem Boden ist */
+isOnGround() {
+  const groundLevel = this.world?.groundLevel || 200;
+  return this.y + this.height >= groundLevel - 1;
+}
 
   performAttack() {
     if (this.debug) console.log("🐔👑 [ATTACK] Boss attacks!");
@@ -235,8 +297,8 @@ export default class ChickenBoss extends MovableObject {
     }
 
     // Update boss health bar if visible
-    if (this.hasTriggeredBossBar && this.world?.statusBarManager) {
-      this.world.statusBarManager.updateBossHealth(this.health);
+    if (this.hasTriggeredBossBar && this.world?.statusBar) {
+      this.world.statusBar.updateBossHealth(this.health);
     }
   }
 
@@ -251,8 +313,8 @@ export default class ChickenBoss extends MovableObject {
       this.isFlashing = true;
 
       // Update boss bar
-      if (this.world?.statusBarManager) {
-        this.world.statusBarManager.updateBossHealth(this.health);
+      if (this.world?.statusBar) {
+        this.world.statusBar.updateBossHealth(this.health);
       }
 
       setTimeout(() => {
@@ -278,8 +340,8 @@ export default class ChickenBoss extends MovableObject {
     this.currentBehavior = "dead";
 
     // Hide boss bar
-    if (this.world?.statusBarManager) {
-      this.world.statusBarManager.hideBossBar();
+    if (this.world?.statusBar) {
+      this.world.statusBar.hideBossBar();
     }
 
     // Clean up intervals

@@ -258,57 +258,40 @@ export default class Chicken extends MovableObject {
   /** Enhanced turning logic with behavioral consideration */
   shouldTurn(currentTime) {
     if (!this.isWandering || this.isDead) return false;
-    
+
     const timeSinceLastTurn = (currentTime - this.lastTurnTime) / 1000;
-    
+
     if (this.turnCooldown > 0) return false;
-    
-    // Behavioral modifications to turning
-    let modifiedTurnChance = this.turnChance;
-    
+
+    // Behavioral modifications
+    let modifiedTurnChance = 0.1; // viel niedriger als vorher
+
     switch (this.behaviorState) {
-      case 'curious':
-        // Face towards player more often
-        if (this.lastPlayerPosition) {
-          const shouldFacePlayer = (this.x > this.lastPlayerPosition.x && !this.movingLeft) ||
-                                  (this.x < this.lastPlayerPosition.x && this.movingLeft);
-          if (shouldFacePlayer) modifiedTurnChance = 0.7;
-        }
-        break;
-        
-      case 'fleeing':
-        // Face away from player more often
-        if (this.lastPlayerPosition) {
-          const shouldFleeFromPlayer = (this.x > this.lastPlayerPosition.x && this.movingLeft) ||
-                                      (this.x < this.lastPlayerPosition.x && !this.movingLeft);
-          if (shouldFleeFromPlayer) modifiedTurnChance = 0.8;
-        }
-        break;
-        
-      case 'panic':
-        modifiedTurnChance = 0.9; // Very erratic movement
-        break;
+        case 'curious':
+        case 'fleeing':
+            // Wenn Chicken Pepe verfolgt oder ausweicht, fast nie zufällig drehen
+            modifiedTurnChance = 0.02;
+            break;
+        case 'panic':
+            modifiedTurnChance = 0.5; // erratisch im Panik-Modus
+            break;
     }
-    
-    // Boundary checks (unchanged)
+
+    // Boundary check unverändert
     if (this.x <= this.worldBounds.left && this.movingLeft) return true;
     if (this.x >= this.worldBounds.right && !this.movingLeft) return true;
-    
-    // Distance from spawn check
+
+    // Abstand vom Spawn
     const distanceFromStart = Math.abs(this.x - this.initialX);
-    if (distanceFromStart > this.maxDistanceFromStart) {
-      const shouldReturnToStart = (this.x > this.initialX && !this.movingLeft) || 
-                                  (this.x < this.initialX && this.movingLeft);
-      if (shouldReturnToStart) return true;
-    }
-    
-    // Random turn with behavioral modification
+    if (distanceFromStart > this.maxDistanceFromStart) return true;
+
+    // Zufällige Drehung seltener
     if (timeSinceLastTurn >= this.nextTurnDelay) {
-      return Math.random() < modifiedTurnChance;
+        return Math.random() < modifiedTurnChance;
     }
-    
+
     return false;
-  }
+}
 
   executeTurn(currentTime) {
     if (this.turnCooldown > 0) return;
@@ -342,25 +325,36 @@ export default class Chicken extends MovableObject {
     }
   }
 
-  updateMovement(deltaTime) {
-    if (this.isDead || !this.isWandering) return;
-    
-    const speed = this.currentSpeedX || (this.baseSpeedX * this.speedMultiplier);
-    
+updateMovement(deltaTime, character) {
+    if (this.isDead) return;
+
+    let targetSpeed = this.baseSpeedX * this.speedMultiplier;
+
+    // Pepe in Sichtweite → folgen oder fliehen
+    if (this.isAwareOfPlayer && character) {
+        if (this.behaviorState === 'curious') {
+            this.movingLeft = this.x > character.x;
+        } else if (this.behaviorState === 'fleeing') {
+            this.movingLeft = this.x < character.x; // weglaufen
+        }
+    }
+
     if (this.movingLeft) {
-      this.x -= speed * deltaTime;
+        this.x -= targetSpeed * deltaTime;
     } else {
-      this.x += speed * deltaTime;
+        this.x += targetSpeed * deltaTime;
     }
-    
-    // Boundary enforcement with state consideration
-    const edgeBuffer = this.behaviorState === 'panic' ? 100 : 50;
-    if (this.x < this.worldBounds.left + edgeBuffer && this.movingLeft) {
-      this.x += speed * deltaTime * 0.5;
-    } else if (this.x > this.worldBounds.right - edgeBuffer && !this.movingLeft) {
-      this.x -= speed * deltaTime * 0.5;
+
+    // Gelegentliche Sprünge beim Folgen oder Fleeing
+    if (this.canJump && !this.isJumping && Math.random() < 0.01) {
+        this.attemptJump();
     }
-  }
+
+    // Begrenzung innerhalb WorldBounds
+    if (this.x < this.worldBounds.left) this.x = this.worldBounds.left;
+    if (this.x > this.worldBounds.right) this.x = this.worldBounds.right;
+}
+
 
   /** Enhanced stomp check with panic reaction */
   checkStomp(character) {

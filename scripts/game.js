@@ -9,8 +9,8 @@ let keyboard;
 let character;
 let level = level1;
 
-async function init() {
 
+async function init() {
   const canvas = document.getElementById("canvas");
   keyboard = new Keyboard();
   await AssetManager.preload();
@@ -23,8 +23,6 @@ async function init() {
     character,
     debug: true,
   });
-
-  world.start();
 }
 
 window.addEventListener("load", init);

@@ -251,8 +251,8 @@ export default class MovableObject extends DrawableObject {
   // Hooks – Subklassen können überschreiben
   onCollision(obj, deltaTime) {}
   onDamage(source, damage) {
-    if (this.type === "enemy" && this.world?.statusBarManager) {
-      this.world.statusBarManager.updateBossHealth(this.health);
+    if (this.type === "enemy" && this.world?.statusBar) {
+      this.world.statusBar.updateBossHealth(this.health);
     }
   }
   onDeath() {}

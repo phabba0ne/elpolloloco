@@ -1,116 +1,18 @@
 import IntervalHub from "../services/IntervalHub.js";
-import Character from "./Character.js";
-import Cloud from "./Cloud.js";
+import Character from "../models/Character.js";
+import Cloud from "../models/Cloud.js";
 import ItemSpawner from "../services/ItemSpawner.js";
-
-// TODO:
-// Usage example:
-/*
-// In your World.js or main game file:
-
-import { StatusBarManager } from './StatusBar.js';
-
-class World {
-  constructor() {
-    this.statusBarManager = new StatusBarManager();
-    this.initializeStatusBars();
-  }
-
-  initializeStatusBars() {
-    // Assuming your sprites are organized like this in AssetManager:
-    const healthSprites = [
-      'assets/img/statusbars/health/health_0.png',   // 0%
-      'assets/img/statusbars/health/health_20.png',  // 20%
-      'assets/img/statusbars/health/health_40.png',  // 40%
-      'assets/img/statusbars/health/health_60.png',  // 60%
-      'assets/img/statusbars/health/health_80.png',  // 80%
-      'assets/img/statusbars/health/health_100.png'  // 100%
-    ];
-
-    const coinSprites = [
-      'assets/img/statusbars/coins/coins_0.png',
-      'assets/img/statusbars/coins/coins_20.png',
-      'assets/img/statusbars/coins/coins_40.png',
-      'assets/img/statusbars/coins/coins_60.png',
-      'assets/img/statusbars/coins/coins_80.png',
-      'assets/img/statusbars/coins/coins_100.png'
-    ];
-
-    const salsaSprites = [
-      'assets/img/statusbars/salsas/salsas_0.png',
-      'assets/img/statusbars/salsas/salsas_20.png',
-      'assets/img/statusbars/salsas/salsas_40.png',
-      'assets/img/statusbars/salsas/salsas_60.png',
-      'assets/img/statusbars/salsas/salsas_80.png',
-      'assets/img/statusbars/salsas/salsas_100.png'
-    ];
-
-    const bossSprites = [
-      'assets/img/statusbars/boss/boss_health_0.png',
-      'assets/img/statusbars/boss/boss_health_20.png',
-      'assets/img/statusbars/boss/boss_health_40.png',
-      'assets/img/statusbars/boss/boss_health_60.png',
-      'assets/img/statusbars/boss/boss_health_80.png',
-      'assets/img/statusbars/boss/boss_health_100.png'
-    ];
-
-    // Create character bars
-    this.statusBarManager.createCharacterBars({
-      healthSprites,
-      coinSprites,
-      salsaSprites,
-      healthIcon: 'assets/img/icons/health_icon.png',
-      coinIcon: 'assets/img/icons/coin_icon.png',
-      salsaIcon: 'assets/img/icons/salsa_icon.png'
-    });
-
-    // Create boss bar
-    this.statusBarManager.createBossBar({
-      bossSprites,
-      bossIcon: 'assets/img/icons/boss_icon.png',
-      maxHealth: 100,
-      canvasWidth: this.canvas.width
-    });
-  }
-
-  // Update character stats (call this when character stats change)
-  updateCharacterStats() {
-    this.statusBarManager.updateCharacterStats({
-      health: this.character.health,
-      gold: this.character.gold,
-      salsas: this.character.salsas
-    });
-  }
-
-  // When character is spotted by boss
-  onCharacterSpotted() {
-    this.statusBarManager.showBossBar();
-    this.statusBarManager.updateBossHealth(this.chickenBoss.health);
-  }
-
-  // When boss is defeated or character escapes
-  onBossDefeated() {
-    this.statusBarManager.hideBossBar();
-  }
-
-  draw() {
-    // ... other drawing code ...
-    
-    // Draw status bars
-    this.statusBarManager.draw(this.ctx);
-  }
-}
-*/
+import AssetManager from "../services/AssetManager.js";
+import StatusBar from "../services/StatusBar.js";
 
 export default class World {
   debug = true;
   camera_x = 0;
 
   constructor({ canvas, keyboard, level, character, debug = true } = {}) {
-    if (!canvas || !keyboard || !level || !character) {
+    if (!canvas || !keyboard || !level || !character)
       throw new Error("World requires { canvas, keyboard, level, character }");
-    }
-    this.IntervalHub = new IntervalHub();
+
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
@@ -121,7 +23,6 @@ export default class World {
     this.character = character;
     this.debug = debug;
 
-    // Items
     this.items = new ItemSpawner({
       world: this,
       coinCount: 10,
@@ -129,69 +30,82 @@ export default class World {
       debug,
     });
 
-    this.lastTime = performance.now();
-    this.running = true;
-
-    // Character koppeln
     this.setWorld();
-
-    // Startausrichtung
     this.character.otherDirection = true;
-    this.character.type = "character"; // wichtig für Kollisionslogik
+    this.character.type = "character";
 
-    // Gegner initialisieren
     this.enemies.forEach((enemy) => {
       enemy.otherDirection = false;
-      enemy.type = "enemy"; // wichtig für Kollisionslogik
+      enemy.type = "enemy";
       enemy.world = this;
-      if (enemy.subtype=="chickenBoss") {
-        enemy.player = this.character;
-      }
+      if (enemy.subtype === "chickenBoss") enemy.player = this.character;
     });
 
-    this.start();
+    this.showBossBar = false;
+    this.statusBars = {};
+    this.initStatusBars();
+
+    // Starte Hauptloop
+    IntervalHub.startCentralLoop({
+      onUpdate: (dt) => this.update(dt),
+      onRender: () => this.draw(),
+      targetFPS: 60,
+    });
   }
 
   setWorld() {
     this.character.world = this;
   }
 
-  start() {
-    this._loop = this.loop.bind(this);
-    requestAnimationFrame(this._loop);
+  initStatusBars() {
+    const leftX = 20;
+    this.statusBars.health = new StatusBar({
+      x: leftX,
+      y: 20,
+      width: 200,
+      height: 60,
+      sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
+      icon: AssetManager.STATUSBARS_PEPE.icons[1],
+    });
+    this.statusBars.coins = new StatusBar({
+      x: leftX,
+      y: 90,
+      width: 200,
+      height: 60,
+      sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
+      icon: AssetManager.STATUSBARS_PEPE.icons[0],
+    });
+    this.statusBars.salsa = new StatusBar({
+      x: leftX,
+      y: 160,
+      width: 200,
+      height: 60,
+      sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
+      icon: AssetManager.STATUSBARS_PEPE.icons[3],
+    });
+    this.statusBars.boss = new StatusBar({
+      x: this.canvas.width / 2 - 150,
+      y: 20,
+      width: 300,
+      height: 60,
+      sprites: AssetManager.STATUSBARS_CHICKENBOSS,
+      icon: AssetManager.STATUSBARS_PEPE.icons[2],
+    });
   }
 
   getVisibleEnemies() {
-    const margin = 200; // etwas Puffer links/rechts
-    const leftBound = -this.camera_x - margin;
-    const rightBound = -this.camera_x + this.canvas.width + margin;
-
-    return this.enemies.filter(
-      (e) => e.x + e.width > leftBound && e.x < rightBound
-    );
+    const margin = 200;
+    const left = -this.camera_x - margin;
+    const right = -this.camera_x + this.canvas.width + margin;
+    return this.enemies.filter((e) => e.x + e.width > left && e.x < right);
   }
 
-  loop(currentTime = performance.now()) {
-    if (!this.running) return;
-
-    // Zeitdifferenz in Sekunden berechnen
-    const deltaTime = (currentTime - this.lastTime) / 1000;
-    this.lastTime = currentTime;
-
-    // 1. Nur Gegner im Viewport prüfen (Performance)
+  update(dt) {
     const visibleEnemies = this.getVisibleEnemies();
+    this.character.checkCollisions(visibleEnemies, dt);
 
-    // 2. Kollisionsprüfung (mit Rate-Limit, falls eingebaut)
-    const collided = this.character.checkCollisions(visibleEnemies, deltaTime);
-    if (collided && this.debug) {
-      console.log("Character collided with:", collided);
-    }
-
-    // 3. Input verarbeiten
-    let moving = false;
-    let moveDir = 0;
-    const jumpInput = this.keyboard.jump;
-
+    let moving = false,
+      moveDir = 0;
     if (this.keyboard.left && this.character.x > this.level.startX) {
       moving = true;
       moveDir = -1;
@@ -204,31 +118,46 @@ export default class World {
     }
     if (this.keyboard.debug) this.debug = !this.debug;
 
-    this.items.salsas.forEach((salsa) => {
-      salsa.tryCollect(this.character);
-    });
+    this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
-    // 4. Updates (deltaTime wichtig!)
-    this.character.update(deltaTime, moving, jumpInput, moveDir);
-    visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
-    this.items.update(deltaTime);
-    this.updateClouds(deltaTime);
-
-    // Kamera folgt Charakter
+    this.character.update(dt, moving, this.keyboard.jump, moveDir);
+    visibleEnemies.forEach((e) => e.update(dt, this.character));
+    this.items.update(dt);
+    this.updateClouds(dt);
+    this.updateCharacterStats();
     this.camera_x = -this.character.x + this.canvas.width / 6;
-
-    // Tastaturstatus refreshen
     this.keyboard.update();
-
-    // 5. Zeichnen
-    this.draw();
-
-    // Nächsten Frame anfordern
-    requestAnimationFrame((t) => this.loop(t));
   }
 
-  updateClouds() {
-    this.clouds.forEach((c) => c.moveLeft());
+  updateClouds(dt) {
+    this.clouds.forEach((c) => c.moveLeft(dt));
+  }
+  updateCharacterStats() {
+    if (!this.character) return;
+
+    const maxHealth = 100;
+    const maxCoins = 100;
+    const maxSalsas = 5;
+
+    this.statusBars.health?.setPercentage(
+      (this.character.health / maxHealth) * 100
+    );
+    this.statusBars.coins?.setPercentage(
+      (this.character.gold / maxCoins) * 100
+    );
+    this.statusBars.salsa?.setPercentage(
+      (this.character.salsas / maxSalsas) * 100
+    );
+  }
+
+  onCharacterSpotted(boss) {
+    this.showBossBar = true;
+    const percent = (boss.health / boss.maxHealth) * 100;
+    this.statusBars.boss?.setPercentage(percent);
+  }
+
+  onBossDefeated() {
+    this.showBossBar = false;
   }
 
   draw() {
@@ -236,11 +165,9 @@ export default class World {
 
     // Backgrounds
     this.backgrounds.forEach((bg) => {
-      if (!bg.img || !bg.img.complete) return;
-
-      const bgWidth = 1440;
-      let offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
-
+      if (!bg.img?.complete) return;
+      const bgWidth = bg.width || 1440;
+      const offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
       this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
       if (offset > 0)
         this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
@@ -248,18 +175,20 @@ export default class World {
         this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
-    // Alle Objekte in Kamera transformieren
+    // Transform camera
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
-
     this.addObjectsToMap(this.clouds);
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
-
-    // Coins & Salsas zeichnen
     this.items.draw(this.ctx);
-
     this.ctx.restore();
+
+    // HUD
+    Object.values(this.statusBars).forEach((bar) => {
+      if (bar && (bar !== this.statusBars.boss || this.showBossBar))
+        bar.draw(this.ctx);
+    });
   }
 
   addObjectsToMap(objects) {
@@ -268,12 +197,7 @@ export default class World {
 
   addToMap(mo) {
     if (!mo) return;
-
-    if (
-      mo.img instanceof Image &&
-      mo.img.complete &&
-      mo.img.naturalWidth !== 0
-    ) {
+    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);

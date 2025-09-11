@@ -1,7 +1,6 @@
 import Coin from "../models/Coin.js";
 import SalsaBottle from "../models/SalsaBottle.js";
-import StateMachine from "../services/StateMachine.js";
-import AssetManager from "../services/AssetManager.js";
+
 
 export default class ItemSpawner {
   constructor({ world, coinCount = 50, salsaCount = 10, debug = false } = {}) {
