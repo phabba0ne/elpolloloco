@@ -23,7 +23,7 @@ const level1 = new Level({
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
 
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 1200, y: 160 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({ x: 7200, y: 160 }), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre
@@ -33,7 +33,7 @@ const level1 = new Level({
     new Cloud({ x: 2600, y: 60 }), // Wolke mitte
     new Cloud({ x: 1203, y: 90 }), // Wolke mitte-rechts
     new Cloud({ x: 260, y: 40 }), // Wolke rechts
-    new Cloud({ x: 4340, y: 70 }), // Wolke weit rechts
+    new Cloud({ x: 3340, y: 70 }), // Wolke weit rechts
   ],
 
   // BACKGROUNDS - Parallax Scrolling Layer (bereits gut konfiguriert)

@@ -56,42 +56,51 @@ export default class World {
   setWorld() {
     this.character.world = this;
   }
+initStatusBars() {
+  const spacing = 10;     // Abstand zwischen Bars
+  const barWidth = 120;
+  const barHeight = 40;
+  const topY = 10;
 
-  initStatusBars() {
-    const leftX = 20;
-    this.statusBars.health = new StatusBar({
-      x: leftX,
-      y: 20,
-      width: 200,
-      height: 60,
-      sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
-      icon: AssetManager.STATUSBARS_PEPE.icons[1],
-    });
-    this.statusBars.coins = new StatusBar({
-      x: leftX,
-      y: 90,
-      width: 200,
-      height: 60,
-      sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
-      icon: AssetManager.STATUSBARS_PEPE.icons[0],
-    });
-    this.statusBars.salsa = new StatusBar({
-      x: leftX,
-      y: 160,
-      width: 200,
-      height: 60,
-      sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
-      icon: AssetManager.STATUSBARS_PEPE.icons[3],
-    });
-    this.statusBars.boss = new StatusBar({
-      x: this.canvas.width / 2 - 150,
-      y: 20,
-      width: 300,
-      height: 60,
-      sprites: AssetManager.STATUSBARS_CHICKENBOSS,
-      icon: AssetManager.STATUSBARS_PEPE.icons[2],
-    });
-  }
+  let currentX = spacing;
+
+  this.statusBars.health = new StatusBar({
+    x: currentX,
+    y: topY,
+    width: barWidth,
+    height: barHeight,
+    sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
+  });
+
+  currentX += barWidth + spacing;
+
+  this.statusBars.coins = new StatusBar({
+    x: currentX,
+    y: topY,
+    width: barWidth,
+    height: barHeight,
+    sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
+  });
+
+  currentX += barWidth + spacing;
+
+  this.statusBars.salsa = new StatusBar({
+    x: currentX,
+    y: topY,
+    width: barWidth,
+    height: barHeight,
+    sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
+  });
+
+  // Boss-Bar mittig oben, aber etwas größer
+  this.statusBars.boss = new StatusBar({
+    x: this.canvas.width / 2 - 150,
+    y: topY,
+    width: 300,
+    height: barHeight,
+    sprites: AssetManager.STATUSBARS_CHICKENBOSS,
+  });
+}
 
   getVisibleEnemies() {
     const margin = 200;

@@ -5,24 +5,19 @@ import StateMachine from "../services/StateMachine.js";
 export default class Coin extends MovableObject {
   width = 100;
   height = 100;
-  collected = true;
-  constructor({ x = 0, y = null, enabled = true, debug = false, character = null } = {}) {
+  collected = false;
+
+  constructor({ x = 0, y = 250, enabled = true, debug = false } = {}) {
     super();
     this.type = "coin";
     this.x = x;
+    this.y = y;
     this.enabled = enabled;
+    this.debug = debug;
 
-    // y nur einmalig beim Spawn bestimmen
-    if (y === null && character) {
-      const maxJumpHeight = character.groundY - (character.jumpPower ** 2) / (2 * character.gravity);
-      this.y = Math.random() * (character.groundY - maxJumpHeight) + maxJumpHeight;
-    } else {
-      this.y = y ?? 250;
-    }
-
-    // --- StateMachine für Animation ---
+    // Animation
     const sprites = { idle: AssetManager.COIN_SPRITES.idle };
-    this.stateMachine = new StateMachine(sprites, "idle", 10); // 10 Frames pro Sekunde
+    this.stateMachine = new StateMachine(sprites, "idle", 3);
     this.loadSprites(sprites);
   }
 
@@ -35,12 +30,12 @@ export default class Coin extends MovableObject {
   update(deltaTime, world) {
     if (!this.enabled || this.collected || !world?.character) return;
 
-    // Kollisionsprüfung
+    // Kollision mit Character prüfen
     if (this.checkCollisions([world.character], deltaTime)) {
       this.collect(world.character);
     }
 
-    // Animation aktualisieren
+    // Animation
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
@@ -53,6 +48,7 @@ export default class Coin extends MovableObject {
 
   draw(ctx) {
     if (!this.enabled || this.collected) return;
+
     if (this.img) {
       ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
     } else {
