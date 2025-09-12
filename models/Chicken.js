@@ -10,6 +10,7 @@ export default class Chicken extends MovableObject {
     height = 80,
     speedX = 70,
     sprites = AssetManager.CHICKEN_SPRITES,
+    sounds = AssetManager.CHICKEN_SOUNDS,
     type = "enemy",
   } = {}) {
     super({ x, y, width, height, speedX, type });

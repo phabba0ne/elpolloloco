@@ -1,7 +1,7 @@
 import AssetManager from "../services/AssetManager.js";
 
 export default class StateMachine {
-  constructor(states, initialState = "idle", frameRate = 10) {
+  constructor(states, initialState = "idle", frameRate =60) {
     this.states = states;
     this.currentState = initialState;
     this.currentFrame = 0;

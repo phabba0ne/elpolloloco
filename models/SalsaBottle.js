@@ -126,9 +126,7 @@ export default class SalsaBottle extends MovableObject {
     if (this.isCollidingWith(character)) {
       this.enabled = false;
       character.salsas = (character.salsas || 0) + 1;
-      if (AssetManager.SALSASOUNDS.collect[0]) {
-        new Audio(AssetManager.SALSASOUNDS.collect[0]).play();
-      }
+
       return true;
     }
     return false;

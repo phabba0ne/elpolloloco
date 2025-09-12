@@ -137,7 +137,7 @@ export default class Character extends MovableObject {
       x: this.x + 10,
       y: this.y + 10,
       width: this.width - 20,
-      height: this.height - 10,
+      height: this.height - 60,
     };
   }
 
