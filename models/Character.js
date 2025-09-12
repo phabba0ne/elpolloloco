@@ -15,7 +15,7 @@ export default class Character extends MovableObject {
     gravity = 0.44,
     groundY = 200,
     sprites = AssetManager.PEPE_SPRITES,
-    longIdleThreshold = 6,
+     longIdleThreshold = 6,
     invulnerableDuration = 2000,
     health = 100,
     gold = 0,
@@ -142,18 +142,26 @@ export default class Character extends MovableObject {
   }
 
   // CHARACTER DAMAGE OVERRIDE
-  onDamage(source) {
-    if (this.debug) console.log("[CHARACTER] Hurt by", source);
-    this.isHurt = true;
-    this.isInvulnerable = true;
-
-    setTimeout(() => {
-      this.isHurt = false;
-    }, 300);
-    setTimeout(() => {
-      this.isInvulnerable = false;
-    }, this.invulnerableDuration);
+async onDamage(source) {
+  if (this.debug) console.log("[CHARACTER] Hurt by", source);
+  // Play hurt sound
+  const hurtSound = await AssetManager.getAudio("assets/sounds/character/characterDamage.mp3");
+  if (hurtSound) {
+    // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
+    const soundClone = hurtSound.cloneNode();
+    await soundClone.play().catch(err => console.warn("Audio play failed:", err));
   }
+
+  this.isHurt = true;
+  this.isInvulnerable = true;
+
+  setTimeout(() => {
+    this.isHurt = false;
+  }, 300);
+  setTimeout(() => {
+    this.isInvulnerable = false;
+  }, this.invulnerableDuration);
+}
 
   getDamage(source) {
     if (this.isDead || this.isInvulnerable) {
@@ -162,4 +170,18 @@ export default class Character extends MovableObject {
     }
     super.getDamage(source);
   }
+
+    /** Boss sauber entfernen */
+    destroy() {
+      if (this.debug) {
+        console.log("[DEBUG] Character destroyed");
+      }
+      
+      // Stop all intervals related to this boss
+      IntervalHub.stopIntervalsByType("character");
+      IntervalHub.stopIntervalsByType(this.constructor.name);
+      
+      // Clear any timeouts that might reference this object
+      this.isDestroyed = true;
+    }
 }

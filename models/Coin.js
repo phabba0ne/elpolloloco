@@ -2,6 +2,24 @@ import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
+// TODO: AUDIOMANAGER
+    // this.GAME_OVER,
+    // this.STATUSBARS_CHICKENBOSS,
+    // this.STATUSBARS_PEPE,
+    // this.SALSABOTTLE,
+    // this.SALSASOUNDS,
+    // this.COIN_SPRITES,
+    // this.COIN_SOUNDS,
+    // this.CHICKEN_SPRITES,
+    // this.CHICKEN_SOUNDS,
+    // this.CHICKENSMALL_SPRITES,
+    // this.CHICKENSMALL_SOUNDS,
+    // this.CHICKENBOSS_SPRITES,
+    // this.CHICKENBOSS_SOUNDS,
+    // this.PEPE_SPRITES,
+    // this.PEPE_SOUNDS
+
+
 export default class Coin extends MovableObject {
   width = 100;
   height = 100;

@@ -1,5 +1,7 @@
 import AssetManager from "../services/AssetManager.js";
 
+//REFAC LET STATE MACHINE SET ALL STATES OF ALL MOs
+
 export default class StateMachine {
   constructor(states, initialState = "idle", frameRate =60) {
     this.states = states;

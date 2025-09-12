@@ -1,5 +1,7 @@
 import DrawableObject from "./DrawableObject.js";
 
+//TODO ZEROPATCH REFAC EVERYTHING TO STATEMACHINE
+
 export default class MovableObject extends DrawableObject {
   constructor(options = {}) {
     super(options);
