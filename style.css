@@ -11,11 +11,14 @@ body {
   font-family: 'Boogaloo', sans-serif;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  min-height: 100dvh;
   margin: 0;
   padding: 0;
-  background: #111; /* optional: gives contrast */
+  background-image: url("assets/img/background/desert.jpg");
   color: #fff;      /* ensures text is readable */
+  background-position: center;
 }
 
 h1 {
