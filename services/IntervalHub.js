@@ -82,7 +82,7 @@ export default class IntervalHub {
 
   // Process intervals using deltaTime (no more setInterval!)
   static processIntervals(deltaTime) {
-    const deltaMs = deltaTime * 1000;
+    const deltaMs = deltaTime * 1000/60;
 
     this.allIntervals.forEach((interval) => {
       if (interval.paused) return;

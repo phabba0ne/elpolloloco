@@ -8,10 +8,10 @@ export default class MovableObject extends DrawableObject {
     this.speedY = options.speedY || 0;
     this.gravity = options.gravity || 0;
     this.otherDirection = options.otherDirection || false;
-    this.health = options.health || 100;
+    this.health = options.health;
     this.maxHealth = options.maxHealth || this.health;
     this.isDead = false;
-    this.strength = options.strength || 10;
+    this.strength = options.strength;
 
     this.collisionInterval = options.collisionInterval || 1000;
     this.lastCollidedWith = null;

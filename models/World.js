@@ -25,8 +25,8 @@ export default class World {
 
     this.items = new ItemSpawner({
       world: this,
-      coinCount: 10,
-      salsaCount: 5,
+      coinCount: 100,
+      salsaCount: 10,
       debug,
     });
 
@@ -210,9 +210,11 @@ export default class World {
 
     // Coins HUD oben links
     if (this.character) {
-      const x = 300,
-        y = 20,
-        iconSize = 32;
+      // Position unter der Health-Bar
+      const bar = this.statusBars.health;
+      const x = bar ? bar.x : 20;
+      const y = bar ? bar.y + bar.height + 10 : 50;
+      const iconSize = 32;
 
       this.ctx.save();
       this.ctx.font = "32px 'Boogaloo'";
@@ -220,8 +222,10 @@ export default class World {
       this.ctx.textAlign = "left";
       this.ctx.textBaseline = "middle";
 
-      // Icon zeichnen
-      const coinImg = AssetManager.getImage(AssetManager.COIN_ICON);
+      // Icon aus AssetManager
+      const coinImg = AssetManager.getImage(
+        AssetManager.STATUSBARS_PEPE.icons[0]
+      );
       if (coinImg) this.ctx.drawImage(coinImg, x, y, iconSize, iconSize);
 
       // animierte Zahl

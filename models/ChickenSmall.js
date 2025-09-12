@@ -3,12 +3,12 @@ import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
 export default class ChickenSmall extends Chicken {
-  width = 48;
-  height = 48;
-  speedX = 48;
-  strength = 5;
+  width = 50;
+  height = 50;
+  speedX = 40;
+  strength = 20;
   y = 396;
-
+    type = "enemy";
   constructor(x = null) {
     super(x, 396);
 

@@ -9,10 +9,10 @@ const level1 = new Level({
   startX: 300,
   enemies: [
     // Normale Chickens - verteilt über das Level
-    new Chicken({ x: 805, y: 385 }), // erste normale Chicken
-    new Chicken({ x: 1208, y: 385 }), // zweite normale Chicken
-    new Chicken({ x: 1860, y: 385 }), // dritte normale Chicken
-    new Chicken({ x: 2260, y: 385 }), // vierte normale Chicken
+    new Chicken({ x: 805, y: 365 }), // erste normale Chicken
+    new Chicken({ x: 1208, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 1860, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 2260, y: 365 }), // vierte normale Chicken
 
     // Small Chickens - schnellere kleine Hühner
     new ChickenSmall({ x: 2370, y: 385 }), // erste kleine Chicken
@@ -23,7 +23,7 @@ const level1 = new Level({
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
 
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 7200, y: 160 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({ x: 5200, y: 160 }), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre

@@ -14,7 +14,7 @@ export default class Character extends MovableObject {
     groundY = 200,
     sprites = AssetManager.PEPE_SPRITES,
     longIdleThreshold = 6,
-    invulnerableDuration = 10,
+    invulnerableDuration = 2000,
     health = 100,
     gold = 0,
     salsas = 0,
@@ -43,8 +43,8 @@ export default class Character extends MovableObject {
     this.stateMachine = new StateMachine(sprites, "idle", 10);
     this.loadSprites(sprites);
     this.health = 100;
-    this.gold = 0; // echte Münzen
-    this.displayGold = 0; // für Animation
+    this.gold = 0;           // echte Münzen
+  this.displayGold = 0;    // für Animation
     this.salsas = 0;
   }
 
@@ -53,8 +53,8 @@ export default class Character extends MovableObject {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
       }
-      this.speedY += this.gravity * 0.075;
-      this.y += this.speedY;
+      this.speedY += this.gravity *0.075;
+       this.y += this.speedY;
 
       this.updateStateMachine(deltaTime);
       return;
