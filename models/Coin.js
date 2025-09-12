@@ -17,7 +17,7 @@ export default class Coin extends MovableObject {
 
     // Animation
     const sprites = { idle: AssetManager.COIN_SPRITES.idle };
-    this.stateMachine = new StateMachine(sprites, "idle", 3);
+    this.stateMachine = new StateMachine(sprites, "idle", 3); // 3 FPS
     this.loadSprites(sprites);
   }
 
@@ -27,23 +27,37 @@ export default class Coin extends MovableObject {
     this.img = this.stateMachine.getFrame();
   }
 
-  update(deltaTime, world) {
-    if (!this.enabled || this.collected || !world?.character) return;
+  /**
+   * Versucht, die Münze einzusammeln.
+   * Gibt true zurück, wenn erfolgreich.
+   */
+  tryCollect(character) {
+    if (!this.enabled || this.collected) return false;
 
-    // Kollision mit Character prüfen
-    if (this.checkCollisions([world.character], deltaTime)) {
-      this.collect(world.character);
+    if (this.checkCollisions([character])) {
+      this.collect(character);
+      return true;
     }
-
-    // Animation
-    this.stateMachine.update(deltaTime);
-    const frame = this.stateMachine.getFrame();
-    if (frame) this.img = frame;
+    return false;
   }
 
   collect(character) {
     this.collected = true;
     character.gold = (character.gold || 0) + 1;
+
+    // Event triggern, falls world und EventEmitter vorhanden
+    if (this.world?.events) {
+      this.world.events.emit("coin:collected", { character, coin: this });
+    }
+  }
+
+  update(deltaTime, world) {
+    if (!this.enabled || this.collected || !world?.character) return;
+
+    // Animation
+    this.stateMachine.update(deltaTime);
+    const frame = this.stateMachine.getFrame();
+    if (frame) this.img = frame;
   }
 
   draw(ctx) {

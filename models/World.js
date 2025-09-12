@@ -56,51 +56,41 @@ export default class World {
   setWorld() {
     this.character.world = this;
   }
-initStatusBars() {
-  const spacing = 10;     // Abstand zwischen Bars
-  const barWidth = 120;
-  const barHeight = 40;
-  const topY = 10;
+  initStatusBars() {
+    const spacing = 10; // Abstand zwischen Bars
+    const barWidth = 120;
+    const barHeight = 40;
+    const topY = 10;
 
-  let currentX = spacing;
+    let currentX = spacing;
 
-  this.statusBars.health = new StatusBar({
-    x: currentX,
-    y: topY,
-    width: barWidth,
-    height: barHeight,
-    sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
-  });
+    this.statusBars.health = new StatusBar({
+      x: currentX,
+      y: topY,
+      width: barWidth,
+      height: barHeight,
+      sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
+    });
 
-  currentX += barWidth + spacing;
+    currentX += barWidth + spacing;
 
-  this.statusBars.coins = new StatusBar({
-    x: currentX,
-    y: topY,
-    width: barWidth,
-    height: barHeight,
-    sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
-  });
+    this.statusBars.salsa = new StatusBar({
+      x: currentX,
+      y: topY,
+      width: barWidth,
+      height: barHeight,
+      sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
+    });
 
-  currentX += barWidth + spacing;
-
-  this.statusBars.salsa = new StatusBar({
-    x: currentX,
-    y: topY,
-    width: barWidth,
-    height: barHeight,
-    sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
-  });
-
-  // Boss-Bar mittig oben, aber etwas größer
-  this.statusBars.boss = new StatusBar({
-    x: this.canvas.width / 2 - 150,
-    y: topY,
-    width: 300,
-    height: barHeight,
-    sprites: AssetManager.STATUSBARS_CHICKENBOSS,
-  });
-}
+    // Boss-Bar mittig oben, aber etwas größer
+    this.statusBars.boss = new StatusBar({
+      x: this.canvas.width / 2 - 150,
+      y: topY,
+      width: 300,
+      height: barHeight,
+      sprites: AssetManager.STATUSBARS_CHICKENBOSS,
+    });
+  }
 
   getVisibleEnemies() {
     const margin = 200;
@@ -125,14 +115,21 @@ initStatusBars() {
       moveDir = 1;
       this.character.otherDirection = true;
     }
-    if (this.keyboard.debug) this.debug = !this.debug;
 
+    // Coins einsammeln
+    this.items.coins.forEach((coin) => coin.tryCollect(this.character));
+
+    // Salsas einsammeln (optional)
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
     this.character.update(dt, moving, this.keyboard.jump, moveDir);
     visibleEnemies.forEach((e) => e.update(dt, this.character));
     this.items.update(dt);
     this.updateClouds(dt);
+
+    // Gold-Animation
+    this.updateGoldDisplay(dt);
+
     this.updateCharacterStats();
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
@@ -157,6 +154,18 @@ initStatusBars() {
     this.statusBars.salsa?.setPercentage(
       (this.character.salsas / maxSalsas) * 100
     );
+  }
+
+  updateGoldDisplay(deltaTime) {
+    if (!this.character) return;
+
+    const speed = 100 * deltaTime; // Münzen pro Sekunde
+    if (this.character.displayGold < this.character.gold) {
+      this.character.displayGold += speed;
+      if (this.character.displayGold > this.character.gold) {
+        this.character.displayGold = this.character.gold;
+      }
+    }
   }
 
   onCharacterSpotted(boss) {
@@ -198,6 +207,34 @@ initStatusBars() {
       if (bar && (bar !== this.statusBars.boss || this.showBossBar))
         bar.draw(this.ctx);
     });
+
+    // Coins HUD oben links
+    if (this.character) {
+      const x = 300,
+        y = 20,
+        iconSize = 32;
+
+      this.ctx.save();
+      this.ctx.font = "32px 'Boogaloo'";
+      this.ctx.fillStyle = "yellow";
+      this.ctx.textAlign = "left";
+      this.ctx.textBaseline = "middle";
+
+      // Icon zeichnen
+      const coinImg = AssetManager.getImage(AssetManager.COIN_ICON);
+      if (coinImg) this.ctx.drawImage(coinImg, x, y, iconSize, iconSize);
+
+      // animierte Zahl
+      const textX = x + iconSize + 8;
+      const textY = y + iconSize / 2;
+      this.ctx.fillText(
+        `x ${Math.floor(this.character.displayGold)}`,
+        textX,
+        textY
+      );
+
+      this.ctx.restore();
+    }
   }
 
   addObjectsToMap(objects) {
