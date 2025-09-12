@@ -12,7 +12,7 @@ export default class MovableObject extends DrawableObject {
     this.maxHealth = options.maxHealth || this.health;
     this.isDead = false;
     this.strength = options.strength;
-
+    this.active = false;
     this.collisionInterval = options.collisionInterval || 1000;
     this.lastCollidedWith = null;
     this.stateMachine = null;

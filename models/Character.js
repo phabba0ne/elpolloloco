@@ -2,6 +2,8 @@ import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
+import SalsaBottle from "./SalsaBottle.js";
+
 export default class Character extends MovableObject {
   constructor({
     x = 120,
@@ -43,9 +45,27 @@ export default class Character extends MovableObject {
     this.stateMachine = new StateMachine(sprites, "idle", 10);
     this.loadSprites(sprites);
     this.health = 100;
-    this.gold = 0;           // echte Münzen
-  this.displayGold = 0;    // für Animation
+    this.gold = 0; // echte Münzen
+    this.displayGold = 0; // für Animation
     this.salsas = 0;
+  }
+  throwSalsa() {
+    if (this.salsas <= 0 || !this.world) return;
+
+    if (this.debug) console.log("[CHARACTER] Throw Salsa!");
+
+    this.salsas--;
+    this.world.updateCharacterStats();
+
+    const salsa = new SalsaBottle({
+      x: this.otherDirection ? this.x - 20 : this.x + this.width,
+      y: this.y + this.height / 2 - 20,
+      direction: this.otherDirection,
+      thrown: true,
+      collectable: false,
+    });
+
+    this.world.addMovableObject(salsa);
   }
 
   update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
@@ -53,8 +73,8 @@ export default class Character extends MovableObject {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
       }
-      this.speedY += this.gravity *0.075;
-       this.y += this.speedY;
+      this.speedY += this.gravity * 0.075;
+      this.y += this.speedY;
 
       this.updateStateMachine(deltaTime);
       return;
@@ -123,26 +143,21 @@ export default class Character extends MovableObject {
 
   // CHARACTER DAMAGE OVERRIDE
   onDamage(source) {
+    if (this.debug) console.log("[CHARACTER] Hurt by", source);
     this.isHurt = true;
     this.isInvulnerable = true;
 
-    // Hurt animation timer
     setTimeout(() => {
       this.isHurt = false;
     }, 300);
-
-    // Invulnerability timer
     setTimeout(() => {
       this.isInvulnerable = false;
     }, this.invulnerableDuration);
   }
 
-  // Override parent getDamage für Invulnerability
   getDamage(source) {
     if (this.isDead || this.isInvulnerable) {
-      console.log(
-        `[CHARACTER] Damage blocked - Dead: ${this.isDead}, Invulnerable: ${this.isInvulnerable}`
-      );
+      if (this.debug) console.log("[CHARACTER] Damage blocked!");
       return;
     }
     super.getDamage(source);

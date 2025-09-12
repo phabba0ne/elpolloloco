@@ -24,7 +24,7 @@ export default class ChickenSmall extends Chicken {
     this.isJumping = false;
     this.speedY = 0;
     this.gravity = 0.8; // Gravity strength
-    this.jumpPower = 8; // Jump strength
+    this.jumpPower = 10; // Jump strength
     
     // Random jump timing
     this.lastJumpTime = 0;

@@ -4,6 +4,7 @@ import Cloud from "../models/Cloud.js";
 import ItemSpawner from "../services/ItemSpawner.js";
 import AssetManager from "../services/AssetManager.js";
 import StatusBar from "../services/StatusBar.js";
+import MovableObject from "./MovableObject.js";
 
 export default class World {
   debug = true;
@@ -17,20 +18,23 @@ export default class World {
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
     this.level = level;
-    this.enemies = level.enemies;
-    this.clouds = level.clouds;
-    this.backgrounds = level.backgrounds;
     this.character = character;
     this.debug = debug;
 
-    this.items = new ItemSpawner({
-      world: this,
-      coinCount: 100,
-      salsaCount: 10,
-      debug,
-    });
+    this.enemies = level.enemies;
+    this.clouds = level.clouds;
+    this.backgrounds = level.backgrounds;
 
-    this.setWorld();
+    this.movableObjects = [];
+    this.stompCombo = 0;
+    this.stompTimer = 0;
+    this.stompDisplayDuration = 1;
+    this.stompX = 0;
+    this.stompY = 0;
+
+    this.items = new ItemSpawner({ world: this, coinCount: 100, salsaCount: 10, debug });
+
+    this.character.world = this;
     this.character.otherDirection = true;
     this.character.type = "character";
 
@@ -53,17 +57,13 @@ export default class World {
     });
   }
 
-  setWorld() {
-    this.character.world = this;
-  }
   initStatusBars() {
-    const spacing = 10; // Abstand zwischen Bars
+    const spacing = 10;
     const barWidth = 120;
     const barHeight = 40;
     const topY = 10;
 
     let currentX = spacing;
-
     this.statusBars.health = new StatusBar({
       x: currentX,
       y: topY,
@@ -73,7 +73,6 @@ export default class World {
     });
 
     currentX += barWidth + spacing;
-
     this.statusBars.salsa = new StatusBar({
       x: currentX,
       y: topY,
@@ -82,7 +81,6 @@ export default class World {
       sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
     });
 
-    // Boss-Bar mittig oben, aber etwas größer
     this.statusBars.boss = new StatusBar({
       x: this.canvas.width / 2 - 150,
       y: topY,
@@ -90,6 +88,11 @@ export default class World {
       height: barHeight,
       sprites: AssetManager.STATUSBARS_CHICKENBOSS,
     });
+  }
+
+  addMovableObject(obj) {
+    if (!this.movableObjects) this.movableObjects = [];
+    this.movableObjects.push(obj);
   }
 
   getVisibleEnemies() {
@@ -105,6 +108,7 @@ export default class World {
 
     let moving = false,
       moveDir = 0;
+
     if (this.keyboard.left && this.character.x > this.level.startX) {
       moving = true;
       moveDir = -1;
@@ -116,21 +120,62 @@ export default class World {
       this.character.otherDirection = true;
     }
 
-    // Coins einsammeln
-    this.items.coins.forEach((coin) => coin.tryCollect(this.character));
+    // Attacke (Salsa werfen)
+    if (this.keyboard.attack) this.character.throwSalsa();
 
-    // Salsas einsammeln (optional)
+    // MovableObjects updaten + Kollision
+    this.movableObjects = this.movableObjects.filter((obj) => {
+      obj.update(dt, this.enemies);
+
+      visibleEnemies.forEach((enemy) => {
+        const salsaHitbox = { x: obj.x, y: obj.y, width: obj.width, height: obj.height };
+        const enemyHitbox = enemy.getHitbox();
+
+        if (
+          salsaHitbox.x < enemyHitbox.x + enemyHitbox.width &&
+          salsaHitbox.x + salsaHitbox.width > enemyHitbox.x &&
+          salsaHitbox.y < enemyHitbox.y + enemyHitbox.height &&
+          salsaHitbox.y + salsaHitbox.height > enemyHitbox.y
+        ) {
+          if (enemy.subtype === "chickenBoss") {
+            enemy.health = Math.max(enemy.health - 20, 0);
+            this.statusBars.boss?.setPercentage((enemy.health / enemy.maxHealth) * 100);
+          } else {
+            enemy.isDead = true;
+          }
+
+          // Combo-Timer starten
+          this.stompCombo++;
+          this.stompTimer = this.stompDisplayDuration;
+          this.stompX = enemy.x + enemy.width / 2;
+          this.stompY = enemy.y;
+
+          obj.hasHitAnimationFinished = true;
+        }
+      });
+
+      return !obj.hasHitAnimationFinished;
+    });
+
+    // Combo zurücksetzen
+    if (this.stompTimer > 0) {
+      this.stompTimer -= dt;
+      if (this.stompTimer <= 0) this.stompCombo = 0;
+    }
+
+    // Items einsammeln
+    this.items.coins.forEach((coin) => coin.tryCollect(this.character));
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
+    // Updates
     this.character.update(dt, moving, this.keyboard.jump, moveDir);
     visibleEnemies.forEach((e) => e.update(dt, this.character));
     this.items.update(dt);
     this.updateClouds(dt);
-
-    // Gold-Animation
     this.updateGoldDisplay(dt);
-
     this.updateCharacterStats();
+
+    // Kamera
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
   }
@@ -138,40 +183,31 @@ export default class World {
   updateClouds(dt) {
     this.clouds.forEach((c) => c.moveLeft(dt));
   }
+
   updateCharacterStats() {
     if (!this.character) return;
+    const maxHealth = 100,
+      maxCoins = 100,
+      maxSalsas = 5;
 
-    const maxHealth = 100;
-    const maxCoins = 100;
-    const maxSalsas = 5;
-
-    this.statusBars.health?.setPercentage(
-      (this.character.health / maxHealth) * 100
-    );
-    this.statusBars.coins?.setPercentage(
-      (this.character.gold / maxCoins) * 100
-    );
-    this.statusBars.salsa?.setPercentage(
-      (this.character.salsas / maxSalsas) * 100
-    );
+    this.statusBars.health?.setPercentage((this.character.health / maxHealth) * 100);
+    this.statusBars.coins?.setPercentage((this.character.gold / maxCoins) * 100);
+    this.statusBars.salsa?.setPercentage((this.character.salsas / maxSalsas) * 100);
   }
 
-  updateGoldDisplay(deltaTime) {
+  updateGoldDisplay(dt) {
     if (!this.character) return;
-
-    const speed = 100 * deltaTime; // Münzen pro Sekunde
+    const speed = 100 * dt;
     if (this.character.displayGold < this.character.gold) {
       this.character.displayGold += speed;
-      if (this.character.displayGold > this.character.gold) {
+      if (this.character.displayGold > this.character.gold)
         this.character.displayGold = this.character.gold;
-      }
     }
   }
 
   onCharacterSpotted(boss) {
     this.showBossBar = true;
-    const percent = (boss.health / boss.maxHealth) * 100;
-    this.statusBars.boss?.setPercentage(percent);
+    this.statusBars.boss?.setPercentage((boss.health / boss.maxHealth) * 100);
   }
 
   onBossDefeated() {
@@ -181,36 +217,43 @@ export default class World {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Combo-Anzeige
+    if (this.stompCombo > 0) {
+      this.ctx.save();
+      this.ctx.font = "32px 'Boogaloo'";
+      this.ctx.fillStyle = "yellow";
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "bottom";
+      this.ctx.fillText(`x${this.stompCombo}`, this.stompX, this.stompY - 10);
+      this.ctx.restore();
+    }
+
     // Backgrounds
     this.backgrounds.forEach((bg) => {
       if (!bg.img?.complete) return;
       const bgWidth = bg.width || 1440;
       const offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
       this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-      if (offset > 0)
-        this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
-      if (offset < 0)
-        this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
+      if (offset > 0) this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+      if (offset < 0) this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
-    // Transform camera
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
     this.addObjectsToMap(this.clouds);
     this.addToMap(this.character);
     this.addObjectsToMap(this.enemies);
+    this.addObjectsToMap(this.movableObjects);
     this.items.draw(this.ctx);
     this.ctx.restore();
 
-    // HUD
+    // StatusBars
     Object.values(this.statusBars).forEach((bar) => {
-      if (bar && (bar !== this.statusBars.boss || this.showBossBar))
-        bar.draw(this.ctx);
+      if (bar && (bar !== this.statusBars.boss || this.showBossBar)) bar.draw(this.ctx);
     });
 
-    // Coins HUD oben links
+    // Coins-Anzeige
     if (this.character) {
-      // Position unter der Health-Bar
       const bar = this.statusBars.health;
       const x = bar ? bar.x : 20;
       const y = bar ? bar.y + bar.height + 10 : 50;
@@ -222,20 +265,12 @@ export default class World {
       this.ctx.textAlign = "left";
       this.ctx.textBaseline = "middle";
 
-      // Icon aus AssetManager
-      const coinImg = AssetManager.getImage(
-        AssetManager.STATUSBARS_PEPE.icons[0]
-      );
+      const coinImg = AssetManager.getImage(AssetManager.STATUSBARS_PEPE.icons[0]);
       if (coinImg) this.ctx.drawImage(coinImg, x, y, iconSize, iconSize);
 
-      // animierte Zahl
       const textX = x + iconSize + 8;
       const textY = y + iconSize / 2;
-      this.ctx.fillText(
-        `x ${Math.floor(this.character.displayGold)}`,
-        textX,
-        textY
-      );
+      this.ctx.fillText(`x ${Math.floor(this.character.displayGold)}`, textX, textY);
 
       this.ctx.restore();
     }

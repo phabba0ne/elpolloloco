@@ -10,27 +10,31 @@ export default class SalsaBottle extends MovableObject {
   rotationSpeed = 0.3;
   damage = 50;
 
-  constructor({ 
-    x = 0, 
-    y = 0, 
-    collectable = true,   // 👈 NEU: liegt rum, Pepe kann sammeln
-    direction = 1, 
-    debug = false, 
+  constructor({
+    x = 0,
+    y = 0,
+    collectable = true,
+    direction = 1,
+    debug = false,
+    thrown = false,
   } = {}) {
     super({ x, y });
     this.type = "salsa";
     this.collectable = collectable;
-    this.thrown = false;      // wird auf true gesetzt, wenn Pepe wirft
+    this.thrown = thrown;
     this.enabled = true;
-    this.speedX = 0;
-    this.speedY = 0;
+    this.speedX = thrown ? (direction ? 10 : -10) : 0;
+    this.speedY = thrown ? -4 : 0;
 
-    // StateMachine für Animations-Frames
-    this.stateMachine = new StateMachine({
-      spin: AssetManager.SALSABOTTLE.spin,
-      hit: AssetManager.SALSABOTTLE.hit,
-      spawn: AssetManager.SALSABOTTLE.spawn
-    }, "spawn", 0);
+    this.stateMachine = new StateMachine(
+      {
+        spawn: AssetManager.SALSABOTTLE.spawn,
+        spin: AssetManager.SALSABOTTLE.spin,
+        hit: AssetManager.SALSABOTTLE.hit,
+      },
+      thrown ? "spin" : "spawn",
+      6
+    );
 
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
@@ -39,7 +43,6 @@ export default class SalsaBottle extends MovableObject {
   update(deltaTime, objects = []) {
     if (!this.enabled) return;
 
-    // Wenn Flasche geworfen wurde → Physik + Kollisions-Check
     if (this.thrown) {
       this.x += this.speedX;
       this.speedY += this.gravity;
@@ -48,25 +51,54 @@ export default class SalsaBottle extends MovableObject {
 
       for (const obj of objects) {
         if (obj !== this && this.isCollidingWith(obj)) {
-          if (typeof obj.getDamage === "function") {
-            obj.getDamage(this); // Gegner Schaden zufügen
-          }
-          this.explode();
+          this.onHit(obj);
+          obj.getDamage();
           break;
         }
       }
     }
 
-    // Animations-Frame wechseln
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
+
+    // nach der Splash-Animation → löschen
+    if (this.stateMachine.currentState === "hit" && this.stateMachine.isFinished) {
+      this.enabled = false;
+      this.hasHitAnimationFinished = true;
+    }
+  }
+
+  /**
+   * Kollisionslogik bei Treffer
+   */
+  onHit(obj) {
+    if (!obj) return;
+
+    if (obj.constructor?.name === "ChickenBoss") {
+      // ChickenBoss-Spezialfall
+      if (typeof obj.getDamage === "function") {
+        obj.getDamage({ damage: 200 }); // fixer Schaden
+      }
+      obj.flash?.(300); // Boss kurz aufblinken lassen (wenn Methode vorhanden)
+    } else {
+      // Normale Gegner: Instant kill
+      if (typeof obj.getDamage === "function") {
+        obj.getDamage({ damage: obj.health || 9999 });
+      } else if (typeof obj.die === "function") {
+        obj.die();
+      }
+    }
+
+    this.explode();
   }
 
   explode() {
     this.thrown = false;
-    this.stateMachine.setState("hit");
+    this.stateMachine.setState("hit", true);
     this.stateMachine.currentFrame = 0;
+    this.speedX = 0;
+    this.speedY = 0;
   }
 
   draw(ctx) {
@@ -75,8 +107,7 @@ export default class SalsaBottle extends MovableObject {
     ctx.save();
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
 
-    // Nur geworfene Flaschen drehen sich
-    if (this.thrown) {
+    if (this.thrown && this.stateMachine.currentState === "spin") {
       ctx.rotate(this.rotation);
     }
 
@@ -90,26 +121,19 @@ export default class SalsaBottle extends MovableObject {
     ctx.restore();
   }
 
-  /**
-   * Wird von World/ItemSpawner aufgerufen.
-   * Falls Pepe die Flasche berührt und sie sammelbar ist → einsammeln.
-   */
   tryCollect(character) {
     if (!this.collectable || !this.enabled) return false;
-
     if (this.isCollidingWith(character)) {
       this.enabled = false;
-      if (!character.salsas) character.salsas = 0; // falls noch nicht existiert
-      character.salsas += 1;
-      console.log("Collected SalsaBottle! Total:", character.salsas);
+      character.salsas = (character.salsas || 0) + 1;
+      if (AssetManager.SALSASOUNDS.collect[0]) {
+        new Audio(AssetManager.SALSASOUNDS.collect[0]).play();
+      }
       return true;
     }
     return false;
   }
 
-  /**
-   * Standard Rechteck-Kollisionscheck
-   */
   isCollidingWith(obj) {
     return (
       this.x < obj.x + obj.width &&

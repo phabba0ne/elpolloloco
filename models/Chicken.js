@@ -63,6 +63,15 @@ export default class Chicken extends MovableObject {
     ) {
       this.die();
       character.speedY = -character.jumpPower;
+
+      // Stomp Combo aktualisieren
+      const world = this.world;
+      if (world) {
+        world.stompCombo++;
+        world.stompTimer = world.stompDisplayDuration;
+        world.stompX = this.x + this.width / 2;
+        world.stompY = this.y;
+      }
     }
   }
 
