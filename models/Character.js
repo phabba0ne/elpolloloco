@@ -147,9 +147,7 @@ async onDamage(source) {
   // Play hurt sound
   const hurtSound = await AssetManager.getAudio("assets/sounds/character/characterDamage.mp3");
   if (hurtSound) {
-    // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
-    const soundClone = hurtSound.cloneNode();
-    await soundClone.play().catch(err => console.warn("Audio play failed:", err));
+    hurtSound.play().catch(err => console.warn("Audio play failed:", err));
   }
 
   this.isHurt = true;
