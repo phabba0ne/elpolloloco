@@ -1,24 +1,24 @@
 export default class AssetManager {
-
   static imageCache = new Map();
   static audioCache = new Map();
-  
+  static loadQueue = [];
+  static isLoading = false;
+  static eventBus = null;
+
+  // Keep your existing asset definitions
   static GAME_OVER = {
     over: [
       "assets/img/youWonYouLost/gameOver.png",
       "assets/img/youWonYouLost/gameOverA.png",
     ],
-
     win: [
       "assets/img/youWonYouLost/youWinA.png",
       "assets/img/youWonYouLost/youWinB.png",
     ],
-
     won: [
       "assets/img/youWonYouLost/youWonA.png",
       "assets/img/youWonYouLost/youWonB.png",
     ],
-
     lost: [
       "assets/img/youWonYouLost/youLost.png",
       "assets/img/youWonYouLost/youLostA.png",
@@ -34,7 +34,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBarEndBoss/orange/orangeEighty.png",
       "assets/img/statusBars/statusBarEndBoss/orange/orangeHundred.png",
     ],
-
     healthBlue: [
       "assets/img/statusBars/statusBarEndBoss/blue/blueZero.png",
       "assets/img/statusBars/statusBarEndBoss/blue/blueTwenty.png",
@@ -43,7 +42,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBarEndBoss/blue/blueEighty.png",
       "assets/img/statusBars/statusBarEndBoss/blue/blueHundred.png",
     ],
-
     healthGreen: [
       "assets/img/statusBars/statusBarEndBoss/green/greenZero.png",
       "assets/img/statusBars/statusBarEndBoss/green/greenTwenty.png",
@@ -63,7 +61,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarHealth/orange/eighty.png",
       "assets/img/statusBars/statusBar/statusBarHealth/orange/hundred.png",
     ],
-
     coinBlue: [
       "assets/img/statusBars/statusBar/statusBarHealth/blue/zero.png",
       "assets/img/statusBars/statusBar/statusBarHealth/blue/twenty.png",
@@ -72,7 +69,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarHealth/blue/eighty.png",
       "assets/img/statusBars/statusBar/statusBarHealth/blue/hundred.png",
     ],
-
     coinGreen: [
       "assets/img/statusBars/statusBar/statusBarHealth/green/zero.png",
       "assets/img/statusBars/statusBar/statusBarHealth/green/twenty.png",
@@ -81,7 +77,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarHealth/green/eighty.png",
       "assets/img/statusBars/statusBar/statusBarHealth/green/hundred.png",
     ],
-
     coinOrange: [
       "assets/img/statusBars/statusBar/statusBarCoin/orange/zero.png",
       "assets/img/statusBars/statusBar/statusBarCoin/orange/twenty.png",
@@ -90,25 +85,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarCoin/orange/eighty.png",
       "assets/img/statusBars/statusBar/statusBarCoin/orange/hundred.png",
     ],
-
-    coinBlue: [
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/zero.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/twenty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/forty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/sixty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/eighty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/blue/hundred.png",
-    ],
-
-    coinGreen: [
-      "assets/img/statusBars/statusBar/statusBarCoin/green/zero.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/green/twenty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/green/forty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/green/sixty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/green/eighty.png",
-      "assets/img/statusBars/statusBar/statusBarCoin/green/hundred.png",
-    ],
-
     bottleOrange: [
       "assets/img/statusBars/statusBar/statusBarBottle/orange/zero.png",
       "assets/img/statusBars/statusBar/statusBarBottle/orange/twenty.png",
@@ -117,7 +93,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarBottle/orange/eighty.png",
       "assets/img/statusBars/statusBar/statusBarBottle/orange/hundred.png",
     ],
-
     bottleBlue: [
       "assets/img/statusBars/statusBar/statusBarBottle/blue/zero.png",
       "assets/img/statusBars/statusBar/statusBarBottle/blue/twenty.png",
@@ -126,7 +101,6 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarBottle/blue/eighty.png",
       "assets/img/statusBars/statusBar/statusBarBottle/blue/hundred.png",
     ],
-
     bottleGreen: [
       "assets/img/statusBars/statusBar/statusBarBottle/green/zero.png",
       "assets/img/statusBars/statusBar/statusBarBottle/green/twenty.png",
@@ -135,22 +109,18 @@ export default class AssetManager {
       "assets/img/statusBars/statusBar/statusBarBottle/green/eighty.png",
       "assets/img/statusBars/statusBar/statusBarBottle/green/hundred.png",
     ],
-
     orange: [
       "assets/img/statusBars/barElements/statusBarEmpty.png",
       "assets/img/statusBars/barElements/statusBarOrange.png",
     ],
-
     blue: [
       "assets/img/statusBars/barElements/statusBarEmpty.png",
       "assets/img/statusBars/barElements/statusBarBlue.png",
     ],
-
     green: [
       "assets/img/statusBars/barElements/statusBarEmpty.png",
       "assets/img/statusBars/barElements/statusBarGreen.png",
     ],
-
     icons: [
       "assets/img/statusBars/icons/iconCoin.png",
       "assets/img/statusBars/icons/iconHealth.png",
@@ -165,7 +135,6 @@ export default class AssetManager {
       "assets/img/salsaBottle/salsaBottleOnGround.png",
       "assets/img/salsaBottle/salsaBottleOnGroundTwo.png",
     ],
-
     spin: [
       "assets/img/salsaBottle/bottleRotation/bottleRotationOne.png",
       "assets/img/salsaBottle/bottleRotation/bottleRotationTwo.png",
@@ -181,6 +150,7 @@ export default class AssetManager {
       "assets/img/salsaBottle/bottleRotation/bottleSplashSix.png",
     ],
   };
+
   static SALSASOUNDS = {
     spawn: [""],
     collect: ["assets/sounds/collectibles/bottleCollectSound.wav"],
@@ -188,20 +158,13 @@ export default class AssetManager {
     hit: [""],
   };
 
-  // #endregion bottle
-
-  // #region coin
-
   static COIN_SPRITES = {
     idle: ["assets/img/coin/coinOne.png", "assets/img/coin/coinTwo.png"],
   };
+
   static COIN_SOUNDS = {
     collect: ["assets/sounds/collectibles/collectSound.wav"],
   };
-
-  // #endregion coin
-
-  // #region chickenNormal
 
   static CHICKEN_SPRITES = {
     walk: [
@@ -211,14 +174,12 @@ export default class AssetManager {
     ],
     dead: ["assets/img/enemiesChicken/chickenNormal/dead/dead.png"],
   };
+
   static CHICKEN_SOUNDS = {
     spawn: [""],
     walk: [""],
     dead: ["assets/sounds/chicken/chickenDead.mp3"],
   };
-  // #endregion chickenNormal
-
-  // #region chickenSmall
 
   static CHICKENSMALL_SPRITES = {
     walk: [
@@ -228,14 +189,12 @@ export default class AssetManager {
     ],
     dead: ["assets/img/enemiesChicken/chickenSmall/dead/dead.png"],
   };
+
   static CHICKENSMALL_SOUNDS = {
     spawn: [""],
     walk: [""],
     dead: ["assets/sounds/chicken/chickenDead2.mp3"],
   };
-  // #endregion chickenSmall
-
-  // #region chickenBoss
 
   static CHICKENBOSS_SPRITES = {
     alert: [
@@ -275,6 +234,7 @@ export default class AssetManager {
       "assets/img/enemyBossChicken/walk/gFour.png",
     ],
   };
+
   static CHICKENBOSS_SOUNDS = {
     approach: ["assets/sounds/endboss/endbossApproach.wav"],
     alert: [""],
@@ -283,9 +243,6 @@ export default class AssetManager {
     hurt: [""],
     dead: [""],
   };
-  // #endregion chickenBoss
-
-  //#region pepe
 
   static PEPE_SPRITES = {
     walk: [
@@ -346,6 +303,7 @@ export default class AssetManager {
       "assets/img/characterPepe/dead/dFiftySeven.png",
     ],
   };
+
   static PEPE_SOUNDS = {
     walk: ["assets/sounds/character/characterRun.mp3"],
     jump: ["assets/sounds/character/characterJump.wav"],
@@ -354,104 +312,183 @@ export default class AssetManager {
     dead: ["assets/sounds/character/characterDead.wav"],
     throw: [""],
   };
-  //#endregion pepe
 
-  // #endregion assets
+  // NEW: Set EventBus for notifications
+  static setEventBus(eventBus) {
+    this.eventBus = eventBus;
+  }
 
-  static async preload() {
-  // Alle statischen Asset-Gruppen dynamisch zusammensuchen
-  const assetGroups = [
-    this.GAME_OVER,
-    this.STATUSBARS_CHICKENBOSS,
-    this.STATUSBARS_PEPE,
-    this.SALSABOTTLE,
-    this.SALSASOUNDS,
-    this.COIN_SPRITES,
-    this.COIN_SOUNDS,
-    this.CHICKEN_SPRITES,
-    this.CHICKEN_SOUNDS,
-    this.CHICKENSMALL_SPRITES,
-    this.CHICKENSMALL_SOUNDS,
-    this.CHICKENBOSS_SPRITES,
-    this.CHICKENBOSS_SOUNDS,
-    this.PEPE_SPRITES,
-    this.PEPE_SOUNDS
-  ];
+  // IMPROVED: Preload with priority system
+  static async preload(priority = 'normal') {
+    const assetGroups = [
+      { group: this.GAME_OVER, priority: 'low' },
+      { group: this.STATUSBARS_CHICKENBOSS, priority: 'medium' },
+      { group: this.STATUSBARS_PEPE, priority: 'high' },
+      { group: this.SALSABOTTLE, priority: 'medium' },
+      { group: this.SALSASOUNDS, priority: 'medium' },
+      { group: this.COIN_SPRITES, priority: 'high' },
+      { group: this.COIN_SOUNDS, priority: 'medium' },
+      { group: this.CHICKEN_SPRITES, priority: 'high' },
+      { group: this.CHICKEN_SOUNDS, priority: 'medium' },
+      { group: this.CHICKENSMALL_SPRITES, priority: 'high' },
+      { group: this.CHICKENSMALL_SOUNDS, priority: 'medium' },
+      { group: this.CHICKENBOSS_SPRITES, priority: 'medium' },
+      { group: this.CHICKENBOSS_SOUNDS, priority: 'low' },
+      { group: this.PEPE_SPRITES, priority: 'high' },
+      { group: this.PEPE_SOUNDS, priority: 'high' }
+    ];
 
-  // Alle Pfade extrahieren
-  const allPaths = assetGroups
-    .map(group => Object.values(group).flat())
-    .flat()
-    .filter(Boolean); // leere Strings raus
+    // Sort by priority: high -> medium -> low
+    const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
+    assetGroups.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
-  console.log(`AssetManager: Preloading ${allPaths.length} assets...`);
+    let totalAssets = 0;
+    let loadedAssets = 0;
 
-  await this.loadAll(allPaths);
+    // Count total assets
+    assetGroups.forEach(({ group }) => {
+      Object.values(group).flat().filter(Boolean).forEach(() => totalAssets++);
+    });
 
-  console.log("✅ AssetManager: Alle Assets geladen.");
-}
+    console.log(`AssetManager: Preloading ${totalAssets} assets with priority: ${priority}...`);
 
-  // ---------- Generic ----------
-  static async loadAll(assets) {
+    // Load by priority
+    for (const { group, priority: groupPriority } of assetGroups) {
+      if (priority === 'high' && groupPriority !== 'high') continue;
+      if (priority === 'medium' && groupPriority === 'low') continue;
+      
+      const allPaths = Object.values(group).flat().filter(Boolean);
+      
+      await this.loadAll(allPaths, (loaded, total) => {
+        loadedAssets += loaded;
+        if (this.eventBus) {
+          this.eventBus.emit('asset-progress', {
+            loaded: loadedAssets,
+            total: totalAssets,
+            percentage: Math.round((loadedAssets / totalAssets) * 100)
+          });
+        }
+      });
+    }
+
+    console.log("✅ AssetManager: Alle Assets geladen.");
+    if (this.eventBus) {
+      this.eventBus.emit('assets-loaded');
+    }
+  }
+
+  // IMPROVED: Load with progress callback
+  static async loadAll(assets, progressCallback = null) {
     const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
     const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
 
+    let loadedCount = 0;
+    const totalCount = imagePaths.length + audioPaths.length;
+
+    const updateProgress = () => {
+      loadedCount++;
+      if (progressCallback) {
+        progressCallback(loadedCount, totalCount);
+      }
+    };
+
     await Promise.all([
-      this.loadImages(imagePaths),
-      this.loadAudios(audioPaths),
+      this.loadImages(imagePaths, updateProgress),
+      this.loadAudios(audioPaths, updateProgress),
     ]);
   }
 
+  // IMPROVED: Better error handling and progress tracking
   static getImageSafely(path) {
     const img = this.getImage(path);
     return img && img.complete && img.naturalWidth > 0 ? img : null;
   }
 
-  // ---------- Images ----------
-  static loadImage(path) {
-    if (this.imageCache.has(path))
+  static loadImage(path, onLoad = null) {
+    if (this.imageCache.has(path)) {
+      if (onLoad) onLoad();
       return Promise.resolve(this.imageCache.get(path));
+    }
 
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.src = path;
       img.onload = () => {
         this.imageCache.set(path, img);
+        if (onLoad) onLoad();
         resolve(img);
       };
-      img.onerror = () => reject(new Error(`Failed to load image: ${path}`));
+      img.onerror = () => {
+        console.error(`Failed to load image: ${path}`);
+        // Create placeholder image
+        const placeholder = new Image();
+        placeholder.width = 64;
+        placeholder.height = 64;
+        this.imageCache.set(path, placeholder);
+        if (onLoad) onLoad();
+        resolve(placeholder);
+      };
     });
   }
 
-  static async loadImages(paths) {
-    return Promise.all(paths.map((p) => this.loadImage(p)));
+  static async loadImages(paths, onEachLoad = null) {
+    return Promise.all(paths.map((p) => this.loadImage(p, onEachLoad)));
   }
 
   static getImage(path) {
     return this.imageCache.get(path);
   }
 
-  // ---------- Audio ----------
-  static loadAudio(path) {
-    if (this.audioCache.has(path))
+  static loadAudio(path, onLoad = null) {
+    if (this.audioCache.has(path)) {
+      if (onLoad) onLoad();
       return Promise.resolve(this.audioCache.get(path));
+    }
 
     return new Promise((resolve, reject) => {
       const audio = new Audio();
       audio.src = path;
       audio.oncanplaythrough = () => {
         this.audioCache.set(path, audio);
+        if (onLoad) onLoad();
         resolve(audio);
       };
-      audio.onerror = () => reject(new Error(`Failed to load audio: ${path}`));
+      audio.onerror = () => {
+        console.error(`Failed to load audio: ${path}`);
+        // Create silent placeholder
+        const placeholder = new Audio();
+        this.audioCache.set(path, placeholder);
+        if (onLoad) onLoad();
+        resolve(placeholder);
+      };
     });
   }
 
-  static async loadAudios(paths) {
-    return Promise.all(paths.map((p) => this.loadAudio(p)));
+  static async loadAudios(paths, onEachLoad = null) {
+    return Promise.all(paths.map((p) => this.loadAudio(p, onEachLoad)));
   }
 
   static getAudio(path) {
     return this.audioCache.get(path);
+  }
+
+  // NEW: Memory management
+  static clearCache(type = 'all') {
+    if (type === 'all' || type === 'images') {
+      this.imageCache.clear();
+    }
+    if (type === 'all' || type === 'audio') {
+      this.audioCache.clear();
+    }
+    console.log(`AssetManager: Cleared ${type} cache`);
+  }
+
+  // NEW: Get cache statistics
+  static getCacheStats() {
+    return {
+      images: this.imageCache.size,
+      audio: this.audioCache.size,
+      total: this.imageCache.size + this.audioCache.size
+    };
   }
 }
