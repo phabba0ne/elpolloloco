@@ -40,34 +40,33 @@ export default class SalsaBottle extends MovableObject {
     if (frame) this.img = frame;
   }
 
-  update(deltaTime, objects = []) {
-    if (!this.enabled) return;
+update(deltaTime, objects = []) {
+  if (!this.enabled) return;
 
-    if (this.thrown) {
-      this.x += this.speedX;
-      this.speedY += this.gravity;
-      this.y += this.speedY;
-      this.rotation += this.rotationSpeed;
+  if (this.thrown) {
+    this.x += this.speedX;
+    this.speedY += this.gravity;
+    this.y += this.speedY;
+    this.rotation += this.rotationSpeed;
 
-      for (const obj of objects) {
-        if (obj !== this && this.isCollidingWith(obj)) {
-          this.onHit(obj);
-          obj.getDamage();
-          break;
-        }
+    for (const obj of objects) {
+      if (obj !== this && this.isCollidingWith(obj)) {
+        this.onHit(obj);
+        break; // nur einmal treffen
       }
     }
-
-    this.stateMachine.update(deltaTime);
-    const frame = this.stateMachine.getFrame();
-    if (frame) this.img = frame;
-
-    // nach der Splash-Animation → löschen
-    if (this.stateMachine.currentState === "hit" && this.stateMachine.isFinished) {
-      this.enabled = false;
-      this.hasHitAnimationFinished = true;
-    }
   }
+
+  this.stateMachine.update(deltaTime);
+  const frame = this.stateMachine.getFrame();
+  if (frame) this.img = frame;
+
+  // Warten bis "hit"-Animation durchgelaufen ist
+  if (this.stateMachine.currentState === "hit" && this.stateMachine.isFinished) {
+    this.enabled = false; // erst jetzt löschen
+    this.hasHitAnimationFinished = true;
+  }
+}
 
   /**
    * Kollisionslogik bei Treffer
@@ -92,14 +91,13 @@ export default class SalsaBottle extends MovableObject {
 
     this.explode();
   }
-
-  explode() {
-    this.thrown = false;
-    this.stateMachine.setState("hit", true);
-    this.stateMachine.currentFrame = 0;
-    this.speedX = 0;
-    this.speedY = 0;
-  }
+explode() {
+  this.thrown = false;
+  this.stateMachine.setState("hit", false); // wichtig: nicht sofort als "finished" markieren
+  this.stateMachine.currentFrame = 0;
+  this.speedX = 0;
+  this.speedY = 0;
+}
 
   draw(ctx) {
     if (!this.enabled || !this.img) return;

@@ -10,7 +10,6 @@ export default class Chicken extends MovableObject {
     height = 80,
     speedX = 70,
     sprites = AssetManager.CHICKEN_SPRITES,
-    sounds = AssetManager.CHICKEN_SOUNDS,
     type = "enemy",
   } = {}) {
     super({ x, y, width, height, speedX, type });
@@ -42,37 +41,47 @@ export default class Chicken extends MovableObject {
     if (this.x < this.worldBounds.left) this.movingLeft = false;
     if (this.x > this.worldBounds.right) this.movingLeft = true;
 
-    // Stomp check
-    if (character) this.checkStomp(character);
+    // Kollisions-Logik
+    if (character) this.handleCollision(character);
 
     this.stateMachine.update(deltaTime);
     this.img = this.stateMachine.getFrame();
   }
 
-  checkStomp(character) {
+  handleCollision(character) {
     const feet = character.y + character.height;
-    const chickenHead = this.y + 10;
-    const overlap =
-      character.x + character.width >= this.x &&
-      character.x <= this.x + this.width;
+    const head = this.y; // Chicken Kopf
+    const overlapX =
+      character.x + character.width > this.x &&
+      character.x < this.x + this.width;
+    const overlapY =
+      character.y + character.height > this.y &&
+      character.y < this.y + this.height;
 
-    if (
-      feet >= this.y &&
-      feet <= chickenHead &&
-      overlap &&
-      character.speedY > 0
-    ) {
-      this.die();
-      character.speedY = -character.jumpPower;
+    if (overlapX && overlapY) {
+      // --- Prüfen ob von OBEN getroffen ---
+      const stompMargin = this.height * 0.25; // nur oberes Viertel zählt als "Stomp"
+      const isStomp =
+        feet <= head + stompMargin && character.speedY > 0;
 
-      // Stomp Combo aktualisieren
-      const world = this.world;
-      if (world) {
-        world.stompCombo++;
-        world.stompTimer = world.stompDisplayDuration;
-        world.stompX = this.x + this.width / 2;
-        world.stompY = this.y;
+      if (isStomp) {
+        this.stomp(character);
+      } else {
+        character.getDamage(this);
       }
+    }
+  }
+
+  stomp(character) {
+    this.die();
+    character.speedY = -character.jumpPower * 0.6; // kleiner Bounce, fühlt sich "weich" an
+
+    // Stomp Combo aktualisieren
+    if (this.world) {
+      this.world.stompCombo++;
+      this.world.stompTimer = this.world.stompDisplayDuration;
+      this.world.stompX = this.x + this.width / 2;
+      this.world.stompY = this.y;
     }
   }
 
