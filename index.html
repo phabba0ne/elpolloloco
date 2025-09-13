@@ -80,12 +80,13 @@
   <div id="overlay">
     <button id="createBtn">START GAME</button>
     <button id="restartBtn">RETRY LEVEL</button>
+    <button id="resumeBtn">RESUME GAME</button>
 
     <label>
       <input type="checkbox" id="hardModeToggle" />
       Toggle Hard Mode
     </label>
-        <label>
+    <label>
       <input type="checkbox" id="debugModeToggle" />
       Toggle Debug Mode
     </label>
@@ -94,36 +95,72 @@
   <script type="module" src="scripts/game.js" defer></script>
   <script type="module">
     const overlay = document.getElementById("overlay");
-
-    // Funktion zum Ein-/Ausblenden des Overlays
-    function toggleOverlay() {
-      overlay.style.visibility = overlay.style.visibility === "visible" ? "hidden" : "visible";
-    }
-
-    // Beispiel: Overlay beim Laden sichtbar machen
-    window.addEventListener("load", () => {
-      toggleOverlay();
-    });
-
-    // Zugriff auf Buttons
     const startBtn = document.getElementById("createBtn");
     const restartBtn = document.getElementById("restartBtn");
+    const resumeBtn = document.getElementById("resumeBtn");
     const hardModeToggle = document.getElementById("hardModeToggle");
     const debugModeToggle = document.getElementById("debugModeToggle");
 
-    // Hier können deine Event-Handler eingefügt werden
+    // Overlay initially hidden
+    overlay.style.visibility = "hidden";
+
+    function showOverlay() {
+      overlay.style.visibility = "visible";
+      window.isPaused = true; // flag to pause game loop
+    }
+
+    function hideOverlay() {
+      overlay.style.visibility = "hidden";
+      window.isPaused = false; // resume game loop
+    }
+
+    // Button events
     startBtn.addEventListener("click", () => {
       console.log("START GAME clicked");
+      hideOverlay();
     });
+
     restartBtn.addEventListener("click", () => {
-      console.log("START GAME clicked");
+      console.log("RETRY LEVEL clicked");
+      hideOverlay();
     });
+
+    resumeBtn.addEventListener("click", () => {
+      console.log("RESUME GAME clicked");
+      hideOverlay();
+    });
+
     hardModeToggle.addEventListener("change", (e) => {
       console.log("HARD Mode toggled:", e.target.checked);
     });
-        debugModeToggle.addEventListener("change", (e) => {
+
+    debugModeToggle.addEventListener("change", (e) => {
       console.log("DEBUG Mode toggled:", e.target.checked);
     });
+
+    // Toggle overlay with P key
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyP") {
+        overlay.style.visibility = overlay.style.visibility === "visible" ? "hidden" : "visible";
+        window.isPaused = overlay.style.visibility === "visible";
+      }
+    });
+
+    // Example game loop respecting pause
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function gameLoop() {
+      if (!window.isPaused) {
+        // Your game update/draw code here
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Example placeholder
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(50, 50, 50, 50);
+      }
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
   </script>
 </body>
 
