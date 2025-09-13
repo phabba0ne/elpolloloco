@@ -113,17 +113,6 @@ export default class Character extends MovableObject {
       this.x += moveDir * this.moveSpeed;
       if (!this.isJumping && this.stateMachine.currentState !== "walk") {
         this.stateMachine.setState("walk");
-
-        this.walkSound = await AssetManager.getAudio(
-          "assets/sounds/character/characterRun.mp3"
-        );
-        if (walkSound) {
-          // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
-          const soundClone = walkSound.cloneNode();
-          await soundClone
-            .play()
-            .catch((err) => console.warn("Audio play failed:", err));
-        }
       }
       this.idleTimer = 0;
     } else if (!this.isJumping) {

@@ -109,7 +109,7 @@ export default class World {
     return this.enemies.filter((e) => e.x + e.width > left && e.x < right);
   }
 
-  update(dt) {
+update(dt) {
     const visibleEnemies = this.getVisibleEnemies();
     this.character.checkCollisions(visibleEnemies, dt);
 
