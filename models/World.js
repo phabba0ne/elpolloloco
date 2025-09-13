@@ -142,7 +142,7 @@ export default class World {
 
     // MovableObjects updaten + Kollision
     this.movableObjects = this.movableObjects.filter((obj) => {
-      obj.update(dt, this.enemies);
+      obj.update(deltaTime, this.enemies);
 
       visibleEnemies.forEach((enemy) => {
         const salsaHitbox = {
