@@ -49,3 +49,43 @@ canvas {
 button {
   cursor: pointer;
 }
+
+#onscreen-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left down right";
+  gap: 10px;
+  z-index: 200;
+}
+
+#onscreen-controls button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  backdrop-filter: blur(5px);
+}
+
+.btn-left { grid-area: left; }
+.btn-right { grid-area: right; }
+.btn-up { grid-area: up; }
+.btn-down { grid-area: down; }
+
+.btn-jump, .btn-attack {
+  position: fixed;
+  bottom: 40px;
+  right: 20px;
+  width: 70px;
+  height: 70px;
+  margin-left: 10px;
+}
+
+.btn-jump { right: 110px; }

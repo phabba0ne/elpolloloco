@@ -12,7 +12,21 @@ const level1 = new Level({
     new Chicken({ x: 805, y: 365 }), // erste normale Chicken
     new Chicken({ x: 1208, y: 365 }), // zweite normale Chicken
     new Chicken({ x: 1860, y: 365 }), // dritte normale Chicken
-    new Chicken({ x: 2260, y: 365 }), // vierte normale Chicken
+    new Chicken({ x: 2160, y: 365 }), // vierte normale Chicken
+    new Chicken({ x: 3358, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 3850, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 3250, y: 365 }), // vierte normale Chicken  new Chicken({ x: 1208, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 4860, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 4260, y: 365 }), // vierte normale Chicken
+     new Chicken({ x: 705, y: 365 }), // erste normale Chicken
+    new Chicken({ x: 5208, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 5860, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 5360, y: 365 }), // vierte normale Chicken
+    new Chicken({ x: 5458, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 7550, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 7650, y: 365 }), // vierte normale Chicken  new Chicken({ x: 1208, y: 365 }), // zweite normale Chicken
+    new Chicken({ x: 7860, y: 365 }), // dritte normale Chicken
+    new Chicken({ x: 7960, y: 365 }), // vierte normale Chicken
 
     // Small Chickens - schnellere kleine Hühner
     new ChickenSmall({ x: 2370, y: 385 }), // erste kleine Chicken
@@ -21,9 +35,19 @@ const level1 = new Level({
     new ChickenSmall({ x: 1600, y: 385 }), // zweite kleine Chicken
     new ChickenSmall({ x: 1665, y: 385 }), // zweite kleine Chicken
     new ChickenSmall({ x: 2200, y: 385 }), // dritte kleine Chicken
+    new ChickenSmall({ x: 3536, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 3630, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 3735, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 4200, y: 385 }), // dritte kleine Chicken
+    new ChickenSmall({ x: 5400, y: 385 }), // dritte kleine Chicken
+    new ChickenSmall({ x: 5536, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 5630, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 6635, y: 385 }), // zweite kleine Chicken
+    new ChickenSmall({ x: 6200, y: 385 }), // dritte kleine Chicken
+
 
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 1200, y: 160 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({ x: 7000, y: 160 }), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre

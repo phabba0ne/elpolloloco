@@ -4,7 +4,7 @@ import Cloud from "../models/Cloud.js";
 import ItemSpawner from "../services/ItemSpawner.js";
 import AssetManager from "../services/AssetManager.js";
 import StatusBar from "../services/StatusBar.js";
-import MovableObject from "./MovableObject.js";
+import StompPopup from "../services/StompPopup.js";
 
 export default class World {
   debug = true;
@@ -27,10 +27,9 @@ export default class World {
 
     this.movableObjects = [];
     this.stompCombo = 0;
-    this.stompTimer = 0;
-    this.stompDisplayDuration = 1;
-    this.stompX = 0;
-    this.stompY = 0;
+    this.stompTimer = 100;
+    this.stompDisplayDuration = 1200; // ms
+    this.stompPopups = [];
 
     this.items = new ItemSpawner({
       world: this,
@@ -56,7 +55,7 @@ export default class World {
 
     // Starte Hauptloop
     IntervalHub.startCentralLoop({
-      onUpdate: (dt) => this.update(dt),
+      onUpdate: (deltaTime) => this.update(deltaTime),
       onRender: () => this.draw(),
       targetFPS: 60,
     });
@@ -109,9 +108,20 @@ export default class World {
     return this.enemies.filter((e) => e.x + e.width > left && e.x < right);
   }
 
-update(dt) {
+  update(deltaTime) {
+    // Combo-Timer
+    if (this.stompTimer > 0) {
+      this.stompTimer -= deltaTime * 1000;
+      if (this.stompTimer <= 0) {
+        this.stompCombo = 0;
+      }
+    }
+
+    // Popups updaten
+    this.stompPopups.forEach((p) => p.update(delta));
+    this.stompPopups = this.stompPopups.filter((p) => !p.isExpired);
     const visibleEnemies = this.getVisibleEnemies();
-    this.character.checkCollisions(visibleEnemies, dt);
+    this.character.checkCollisions(visibleEnemies, deltaTime);
 
     let moving = false,
       moveDir = 0;
@@ -170,7 +180,7 @@ update(dt) {
 
     // Combo zurücksetzen
     if (this.stompTimer > 0) {
-      this.stompTimer -= dt;
+      this.stompTimer -= deltaTime;
       if (this.stompTimer <= 0) this.stompCombo = 0;
     }
 
@@ -179,11 +189,11 @@ update(dt) {
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
     // Updates
-    this.character.update(dt, moving, this.keyboard.jump, moveDir);
-    visibleEnemies.forEach((e) => e.update(dt, this.character));
-    this.items.update(dt);
-    this.updateClouds(dt);
-    this.updateGoldDisplay(dt);
+    this.character.update(deltaTime, moving, this.keyboard.jump, moveDir);
+    visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
+    this.items.update(deltaTime);
+    this.updateClouds(deltaTime);
+    this.updateGoldDisplay(deltaTime);
     this.updateCharacterStats();
 
     // Kamera
@@ -191,8 +201,8 @@ update(dt) {
     this.keyboard.update();
   }
 
-  updateClouds(dt) {
-    this.clouds.forEach((c) => c.moveLeft(dt));
+  updateClouds(deltaTime) {
+    this.clouds.forEach((c) => c.moveLeft(deltaTime));
   }
 
   updateCharacterStats() {
@@ -212,9 +222,9 @@ update(dt) {
     );
   }
 
-  updateGoldDisplay(dt) {
+  updateGoldDisplay(deltaTime) {
     if (!this.character) return;
-    const speed = 100 * dt;
+    const speed = 100 * deltaTime;
     if (this.character.displayGold < this.character.gold) {
       this.character.displayGold += speed;
       if (this.character.displayGold > this.character.gold)
@@ -297,7 +307,7 @@ update(dt) {
         textX,
         textY
       );
-
+      this.stompPopups.forEach((p) => p.draw(ctx));
       this.ctx.restore();
     }
   }
