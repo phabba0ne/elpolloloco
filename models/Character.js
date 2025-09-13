@@ -15,11 +15,12 @@ export default class Character extends MovableObject {
     gravity = 0.44,
     groundY = 200,
     sprites = AssetManager.PEPE_SPRITES,
-     longIdleThreshold = 6,
+    longIdleThreshold = 6,
     invulnerableDuration = 2000,
     health = 100,
     gold = 0,
     salsas = 0,
+    walkSound,
   } = {}) {
     super({
       x,
@@ -31,6 +32,7 @@ export default class Character extends MovableObject {
       gold,
       salsas,
       type: "character",
+      walkSound,
     });
 
     this.moveSpeed = moveSpeed;
@@ -68,7 +70,7 @@ export default class Character extends MovableObject {
     this.world.addMovableObject(salsa);
   }
 
-  update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
+  async update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
@@ -111,6 +113,17 @@ export default class Character extends MovableObject {
       this.x += moveDir * this.moveSpeed;
       if (!this.isJumping && this.stateMachine.currentState !== "walk") {
         this.stateMachine.setState("walk");
+
+        this.walkSound = await AssetManager.getAudio(
+          "assets/sounds/character/characterRun.mp3"
+        );
+        if (walkSound) {
+          // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
+          const soundClone = walkSound.cloneNode();
+          await soundClone
+            .play()
+            .catch((err) => console.warn("Audio play failed:", err));
+        }
       }
       this.idleTimer = 0;
     } else if (!this.isJumping) {
@@ -122,6 +135,7 @@ export default class Character extends MovableObject {
         }
       } else if (this.stateMachine.currentState !== "idle") {
         this.stateMachine.setState("idle");
+       
       }
     }
 
@@ -142,24 +156,30 @@ export default class Character extends MovableObject {
   }
 
   // CHARACTER DAMAGE OVERRIDE
-async onDamage(source) {
-  if (this.debug) console.log("[CHARACTER] Hurt by", source);
-  // Play hurt sound
-  const hurtSound = await AssetManager.getAudio("assets/sounds/character/characterDamage.mp3");
-  if (hurtSound) {
-    hurtSound.play().catch(err => console.warn("Audio play failed:", err));
+  async onDamage(source) {
+    if (this.debug) console.log("[CHARACTER] Hurt by", source);
+    // Play hurt sound
+    const hurtSound = await AssetManager.getAudio(
+      "assets/sounds/character/characterDamage.mp3"
+    );
+    if (hurtSound) {
+      // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
+      const soundClone = hurtSound.cloneNode();
+      await soundClone
+        .play()
+        .catch((err) => console.warn("Audio play failed:", err));
+    }
+
+    this.isHurt = true;
+    this.isInvulnerable = true;
+
+    setTimeout(() => {
+      this.isHurt = false;
+    }, 300);
+    setTimeout(() => {
+      this.isInvulnerable = false;
+    }, this.invulnerableDuration);
   }
-
-  this.isHurt = true;
-  this.isInvulnerable = true;
-
-  setTimeout(() => {
-    this.isHurt = false;
-  }, 300);
-  setTimeout(() => {
-    this.isInvulnerable = false;
-  }, this.invulnerableDuration);
-}
 
   getDamage(source) {
     if (this.isDead || this.isInvulnerable) {
@@ -169,17 +189,17 @@ async onDamage(source) {
     super.getDamage(source);
   }
 
-    /** Boss sauber entfernen */
-    destroy() {
-      if (this.debug) {
-        console.log("[DEBUG] Character destroyed");
-      }
-      
-      // Stop all intervals related to this boss
-      IntervalHub.stopIntervalsByType("character");
-      IntervalHub.stopIntervalsByType(this.constructor.name);
-      
-      // Clear any timeouts that might reference this object
-      this.isDestroyed = true;
+  /** Boss sauber entfernen */
+  destroy() {
+    if (this.debug) {
+      console.log("[DEBUG] Character destroyed");
     }
+
+    // Stop all intervals related to this boss
+    IntervalHub.stopIntervalsByType("character");
+    IntervalHub.stopIntervalsByType(this.constructor.name);
+
+    // Clear any timeouts that might reference this object
+    this.isDestroyed = true;
+  }
 }

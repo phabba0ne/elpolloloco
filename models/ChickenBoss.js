@@ -111,17 +111,17 @@ export default class ChickenBoss extends MovableObject {
   }
 
   /** Trigger boss bar when player is detected */
-  triggerBossEncounter() {
-    if (!this.hasTriggeredBossBar && this.world?.statusBar) {
-      this.world.statusBar.showBossBar();
-      this.world.statusBar.updateBossHealth(this.health);
-      this.hasTriggeredBossBar = true;
-      
-      if (this.debug) {
-        console.log("🐔👑 [DEBUG] Boss encounter triggered!");
-      }
+triggerBossEncounter() {
+  if (!this.hasTriggeredBossBar && this.world) {
+    this.world.showBossBar = true; // <-- Richtiger Flag in World setzen
+    this.world.statusBars.boss?.setPercentage((this.health / (this.maxHealth || 500)) * 100);
+    this.hasTriggeredBossBar = true;
+    
+    if (this.debug) {
+      console.log("🐔👑 [DEBUG] Boss encounter triggered!");
     }
   }
+}
 
   /** Verhalten & States */
 /** Verhalten & States - Optimiert für flüssige Walk-Animation + Springen */
@@ -303,32 +303,33 @@ isOnGround() {
   }
 
   /** Schaden erhalten */
-  getDamage(source) {
-    if (this.isDead) return;
+getDamage(source) {
+  if (this.isDead) return;
 
-    super.getDamage(source);
+  super.getDamage(source);
 
-    if (!this.isDead) {
-      this.setState("hurt", 8);
-      this.isFlashing = true;
+  if (!this.isDead) {
+    this.setState("hurt", 8);
+    this.isFlashing = true;
 
-      // Update boss bar
-      if (this.world?.statusBar) {
-        this.world.statusBar.updateBossHealth(this.health);
+    // Boss-Bar korrekt updaten
+    if (this.world?.statusBars?.boss) {
+      const percentage = (this.health / (this.maxHealth || 500)) * 100;
+      this.world.statusBars.boss.setPercentage(percentage);
+    }
+
+    setTimeout(() => {
+      this.isFlashing = false;
+      if (!this.isDead) {
+        this.setState("alert", 3); // Return to alert after hurt
       }
+    }, 500);
 
-      setTimeout(() => {
-        this.isFlashing = false;
-        if (!this.isDead) {
-          this.setState("alert", 3); // Return to alert after hurt
-        }
-      }, 500);
-
-      if (this.debug) {
-        console.log(`🐔👑 [DAMAGE] Boss health: ${this.health}/${this.maxHealth || 500}`);
-      }
+    if (this.debug) {
+      console.log(`🐔👑 [DAMAGE] Boss health: ${this.health}/${this.maxHealth || 500}`);
     }
   }
+}
 
   /** Todesevent */
   die() {

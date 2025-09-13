@@ -32,7 +32,12 @@ export default class World {
     this.stompX = 0;
     this.stompY = 0;
 
-    this.items = new ItemSpawner({ world: this, coinCount: 100, salsaCount: 10, debug });
+    this.items = new ItemSpawner({
+      world: this,
+      coinCount: 100,
+      salsaCount: 10,
+      debug,
+    });
 
     this.character.world = this;
     this.character.otherDirection = true;
@@ -81,11 +86,13 @@ export default class World {
       sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
     });
 
+    const bossBarWidth = 300;
+    const bossBarHeight = 70;
     this.statusBars.boss = new StatusBar({
-      x: this.canvas.width / 2 - 150,
-      y: topY,
-      width: 300,
-      height: barHeight,
+      x: this.canvas.width / 2,
+      y: topY, // etwas Abstand nach unten
+      width: bossBarWidth,
+      height: bossBarHeight,
       sprites: AssetManager.STATUSBARS_CHICKENBOSS,
     });
   }
@@ -128,7 +135,12 @@ export default class World {
       obj.update(dt, this.enemies);
 
       visibleEnemies.forEach((enemy) => {
-        const salsaHitbox = { x: obj.x, y: obj.y, width: obj.width, height: obj.height };
+        const salsaHitbox = {
+          x: obj.x,
+          y: obj.y,
+          width: obj.width,
+          height: obj.height,
+        };
         const enemyHitbox = enemy.getHitbox();
 
         if (
@@ -138,8 +150,7 @@ export default class World {
           salsaHitbox.y + salsaHitbox.height > enemyHitbox.y
         ) {
           if (enemy.subtype === "chickenBoss") {
-            enemy.health = Math.max(enemy.health - 20, 0);
-            this.statusBars.boss?.setPercentage((enemy.health / enemy.maxHealth) * 100);
+            enemy.getDamage({ strength: 20 }); // nutzt die Boss-Logik inkl. Bar-Update
           } else {
             enemy.isDead = true;
           }
@@ -190,9 +201,15 @@ export default class World {
       maxCoins = 100,
       maxSalsas = 5;
 
-    this.statusBars.health?.setPercentage((this.character.health / maxHealth) * 100);
-    this.statusBars.coins?.setPercentage((this.character.gold / maxCoins) * 100);
-    this.statusBars.salsa?.setPercentage((this.character.salsas / maxSalsas) * 100);
+    this.statusBars.health?.setPercentage(
+      (this.character.health / maxHealth) * 100
+    );
+    this.statusBars.coins?.setPercentage(
+      (this.character.gold / maxCoins) * 100
+    );
+    this.statusBars.salsa?.setPercentage(
+      (this.character.salsas / maxSalsas) * 100
+    );
   }
 
   updateGoldDisplay(dt) {
@@ -234,8 +251,10 @@ export default class World {
       const bgWidth = bg.width || 1440;
       const offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
       this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-      if (offset > 0) this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
-      if (offset < 0) this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
+      if (offset > 0)
+        this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
+      if (offset < 0)
+        this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
     this.ctx.save();
@@ -249,7 +268,8 @@ export default class World {
 
     // StatusBars
     Object.values(this.statusBars).forEach((bar) => {
-      if (bar && (bar !== this.statusBars.boss || this.showBossBar)) bar.draw(this.ctx);
+      if (bar && (bar !== this.statusBars.boss || this.showBossBar))
+        bar.draw(this.ctx);
     });
 
     // Coins-Anzeige
@@ -265,12 +285,18 @@ export default class World {
       this.ctx.textAlign = "left";
       this.ctx.textBaseline = "middle";
 
-      const coinImg = AssetManager.getImage(AssetManager.STATUSBARS_PEPE.icons[0]);
+      const coinImg = AssetManager.getImage(
+        AssetManager.STATUSBARS_PEPE.icons[0]
+      );
       if (coinImg) this.ctx.drawImage(coinImg, x, y, iconSize, iconSize);
 
       const textX = x + iconSize + 8;
       const textY = y + iconSize / 2;
-      this.ctx.fillText(`x ${Math.floor(this.character.displayGold)}`, textX, textY);
+      this.ctx.fillText(
+        `x ${Math.floor(this.character.displayGold)}`,
+        textX,
+        textY
+      );
 
       this.ctx.restore();
     }
