@@ -1,14 +1,14 @@
 /* Register the global Boogaloo font */
 @font-face {
-  font-family: 'Boogaloo';
-  src: url('assets/fonts/boogalooRegular.ttf') format('truetype');
+  font-family: "Boogaloo";
+  src: url("assets/fonts/boogalooRegular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 /* Apply globally */
 body {
-  font-family: 'Boogaloo', sans-serif;
+  font-family: "Boogaloo", sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -17,7 +17,7 @@ body {
   margin: 0;
   padding: 0;
   background-image: url("assets/img/background/desert.jpg");
-  color: #fff;      /* ensures text is readable */
+  color: #fff; /* ensures text is readable */
   background-position: center;
 }
 
@@ -27,12 +27,22 @@ h1 {
 }
 
 canvas {
-  max-width: 1920px;
   background-color: black;
-  border: 2px solid #444;
-  border-radius: 8px;
+  display: block;
 }
 
-button{
-  cursor:pointer;
+@media only screen and (max-width: 720px) {
+  canvas {
+    width: 100%;
+  }
+}
+
+@media only screen and (max-height: 480px) {
+    canvas {
+    height: 100dvh;
+  }
+}
+
+button {
+  cursor: pointer;
 }
