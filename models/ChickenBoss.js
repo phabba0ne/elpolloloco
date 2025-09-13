@@ -10,7 +10,7 @@ export default class ChickenBoss extends MovableObject {
     width = 300,
     height = 300,
     strength = 50,
-    health = 500,
+    health = 50,
     sprites = AssetManager.CHICKENBOSS_SPRITES,
     type = "enemy",
     subtype = "chickenBoss",
