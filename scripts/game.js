@@ -71,8 +71,8 @@ function drawStartScreen() {
   } else {
     // Fallback desert gradient background
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#FFB347");
-    gradient.addColorStop(0.5, "#DEB887");
+    gradient.addColorStop(0, "#eeb668ff");
+    gradient.addColorStop(0.5, "#d98f2dff");
     gradient.addColorStop(1, "#8B4513");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -162,7 +162,7 @@ function drawStartScreen() {
   ctx.fillText(
     "📱 Turn your device to landscape mode for better experience!",
     canvas.width / 2,
-    canvas.height - 140
+    canvas.height - 20
   );
 
   // Start instruction with pulsing effect
