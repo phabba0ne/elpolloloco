@@ -4,9 +4,10 @@ import StateMachine from "../services/StateMachine.js";
 import IntervalHub from "../services/IntervalHub.js";
 
 export default class ChickenBoss extends MovableObject {
+
   constructor({
     x = 1200,
-    y = 155,
+    y,
     width = 300,
     height = 300,
     strength = 50,
@@ -19,7 +20,7 @@ export default class ChickenBoss extends MovableObject {
   } = {}) {
     super({
       x,
-      y,
+      y: y ?? groundLevel - height,
       width,
       height,
       strength,

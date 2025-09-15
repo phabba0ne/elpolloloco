@@ -18,6 +18,7 @@ export default class World {
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
     this.level = level;
+    this.groundLevel = this.canvas.height-80;
     this.character = character;
     this.debug = debug;
 

@@ -1,11 +1,10 @@
 import DrawableObject from "./DrawableObject.js";
-
+import AudioHub from "../services/AudioHub.js";
 //TODO ZEROPATCH REFAC EVERYTHING TO STATEMACHINE
 
 export default class MovableObject extends DrawableObject {
   constructor(options = {}) {
     super(options);
-
     this.speedX = options.speedX || 0;
     this.speedY = options.speedY || 0;
     this.gravity = options.gravity || 0;
@@ -18,6 +17,7 @@ export default class MovableObject extends DrawableObject {
     this.collisionInterval = options.collisionInterval || 1000;
     this.lastCollidedWith = null;
     this.stateMachine = null;
+    this.AudioHub=AudioHub;
     this.world = options.world || null;
     this.type = options.type || "movable";
     this.id =
@@ -188,6 +188,7 @@ export default class MovableObject extends DrawableObject {
 
     if (this.stateMachine?.sprites?.dead) {
       this.stateMachine.setState("dead");
+      this.AudioHub.stopAll();
     }
 
     if (this.world?.debug) {

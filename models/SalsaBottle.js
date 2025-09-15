@@ -40,33 +40,36 @@ export default class SalsaBottle extends MovableObject {
     if (frame) this.img = frame;
   }
 
-update(deltaTime, objects = []) {
-  if (!this.enabled) return;
+  update(deltaTime, objects = []) {
+    if (!this.enabled) return;
 
-  if (this.thrown) {
-    this.x += this.speedX;
-    this.speedY += this.gravity;
-    this.y += this.speedY;
-    this.rotation += this.rotationSpeed;
+    if (this.thrown) {
+      this.x += this.speedX;
+      this.speedY += this.gravity;
+      this.y += this.speedY;
+      this.rotation += this.rotationSpeed;
 
-    for (const obj of objects) {
-      if (obj !== this && this.isCollidingWith(obj)) {
-        this.onHit(obj);
-        break; // nur einmal treffen
+      for (const obj of objects) {
+        if (obj !== this && this.isCollidingWith(obj)) {
+          this.onHit(obj);
+          break; // nur einmal treffen
+        }
       }
     }
-  }
 
-  this.stateMachine.update(deltaTime);
-  const frame = this.stateMachine.getFrame();
-  if (frame) this.img = frame;
+    this.stateMachine.update(deltaTime);
+    const frame = this.stateMachine.getFrame();
+    if (frame) this.img = frame;
 
-  // Warten bis "hit"-Animation durchgelaufen ist
-  if (this.stateMachine.currentState === "hit" && this.stateMachine.isFinished) {
-    this.enabled = false; // erst jetzt löschen
-    this.hasHitAnimationFinished = true;
+    // Warten bis "hit"-Animation durchgelaufen ist
+    if (
+      this.stateMachine.currentState === "hit" &&
+      this.stateMachine.isFinished
+    ) {
+      this.enabled = false; // erst jetzt löschen
+      this.hasHitAnimationFinished = true;
+    }
   }
-}
 
   /**
    * Kollisionslogik bei Treffer
@@ -86,18 +89,19 @@ update(deltaTime, objects = []) {
         obj.getDamage({ damage: obj.health || 9999 });
       } else if (typeof obj.die === "function") {
         obj.die();
+        this.AudioHub.playOne("SALSASOUNDS", "hit");
       }
     }
 
     this.explode();
   }
-explode() {
-  this.thrown = false;
-  this.stateMachine.setState("hit", false); // wichtig: nicht sofort als "finished" markieren
-  this.stateMachine.currentFrame = 0;
-  this.speedX = 0;
-  this.speedY = 0;
-}
+  explode() {
+    this.thrown = false;
+    this.stateMachine.setState("hit", false); // wichtig: nicht sofort als "finished" markieren
+    this.stateMachine.currentFrame = 0;
+    this.speedX = 0;
+    this.speedY = 0;
+  }
 
   draw(ctx) {
     if (!this.enabled || !this.img) return;

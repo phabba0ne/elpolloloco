@@ -18,7 +18,7 @@ const level1 = new Level({
     new Chicken({ x: 3250, y: 365 }), // vierte normale Chicken  new Chicken({ x: 1208, y: 365 }), // zweite normale Chicken
     new Chicken({ x: 4860, y: 365 }), // dritte normale Chicken
     new Chicken({ x: 4260, y: 365 }), // vierte normale Chicken
-     new Chicken({ x: 705, y: 365 }), // erste normale Chicken
+    new Chicken({ x: 705, y: 365 }), // erste normale Chicken
     new Chicken({ x: 5208, y: 365 }), // zweite normale Chicken
     new Chicken({ x: 5860, y: 365 }), // dritte normale Chicken
     new Chicken({ x: 5360, y: 365 }), // vierte normale Chicken
@@ -45,9 +45,8 @@ const level1 = new Level({
     new ChickenSmall({ x: 6635, y: 385 }), // zweite kleine Chicken
     new ChickenSmall({ x: 6200, y: 385 }), // dritte kleine Chicken
 
-
     // Boss Chicken - am Ende des Levels
-    new ChickenBoss({ x: 7000, y: 385 }), // Boss Chicken (großer Endgegner)
+    new ChickenBoss({x:400,y:0}), // Boss Chicken (großer Endgegner)
   ],
 
   // CLOUDS - Mehr Wolken fü}r bessere Atmosphäre

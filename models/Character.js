@@ -1,7 +1,7 @@
 import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
-
+import AudioHub from "../services/AudioHub.js";
 import SalsaBottle from "./SalsaBottle.js";
 
 export default class Character extends MovableObject {
@@ -34,7 +34,6 @@ export default class Character extends MovableObject {
       type: "character",
       walkSound,
     });
-
     this.moveSpeed = moveSpeed;
     this.jumpPower = jumpPower;
     this.groundY = groundY;
@@ -74,6 +73,8 @@ export default class Character extends MovableObject {
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
+        this.AudioHub.stopOne("PEPE_SOUNDS", "walk")
+        this.AudioHub.playOne("PEPE_SOUNDS", "dead");
       }
       this.speedY += this.gravity * 0.075;
       this.y += this.speedY;
@@ -85,6 +86,7 @@ export default class Character extends MovableObject {
     if (this.isHurt) {
       if (this.stateMachine.currentState !== "hurt") {
         this.stateMachine.setState("hurt", true);
+        this.AudioHub.playOne("PEPE_SOUNDS", "hurt");
       }
       this.updateStateMachine(deltaTime);
       return;
@@ -94,6 +96,7 @@ export default class Character extends MovableObject {
       this.speedY = -this.jumpPower;
       this.isJumping = true;
       this.stateMachine.setState("jump");
+      this.AudioHub.playOne("PEPE_SOUNDS", "jump");
     }
 
     this.speedY += this.gravity;
@@ -113,18 +116,21 @@ export default class Character extends MovableObject {
       this.x += moveDir * this.moveSpeed;
       if (!this.isJumping && this.stateMachine.currentState !== "walk") {
         this.stateMachine.setState("walk");
+        this.AudioHub.playOne("PEPE_SOUNDS", "walk");
       }
       this.idleTimer = 0;
     } else if (!this.isJumping) {
+      //stop walkSound
+      this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
       // Idle system - CHARACTER-SPEZIFISCH
       this.idleTimer += deltaTime;
       if (this.idleTimer >= this.longIdleThreshold) {
         if (this.stateMachine.currentState !== "longIdle") {
           this.stateMachine.setState("longIdle");
+          this.AudioHub.playOne("PEPE_SOUNDS", "longIdle");
         }
       } else if (this.stateMachine.currentState !== "idle") {
         this.stateMachine.setState("idle");
-       
       }
     }
 
@@ -148,16 +154,7 @@ export default class Character extends MovableObject {
   async onDamage(source) {
     if (this.debug) console.log("[CHARACTER] Hurt by", source);
     // Play hurt sound
-    const hurtSound = await AssetManager.getAudio(
-      "assets/sounds/character/characterDamage.mp3"
-    );
-    if (hurtSound) {
-      // Kopie erstellen, falls der Sound mehrfach gleichzeitig gespielt werden soll
-      const soundClone = hurtSound.cloneNode();
-      await soundClone
-        .play()
-        .catch((err) => console.warn("Audio play failed:", err));
-    }
+    this.AudioHub.playOne("PEPE_SOUNDS", "hurt");
 
     this.isHurt = true;
     this.isInvulnerable = true;
@@ -178,13 +175,13 @@ export default class Character extends MovableObject {
     super.getDamage(source);
   }
 
-  /** Boss sauber entfernen */
+  /** Character sauber entfernen */
   destroy() {
     if (this.debug) {
       console.log("[DEBUG] Character destroyed");
     }
 
-    // Stop all intervals related to this boss
+    // Stop all intervals related to this character
     IntervalHub.stopIntervalsByType("character");
     IntervalHub.stopIntervalsByType(this.constructor.name);
 

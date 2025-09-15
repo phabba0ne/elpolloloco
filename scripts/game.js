@@ -14,7 +14,7 @@ let ctx;
 
 // Start screen configuration
 const startScreen = {
-  backgroundImage: null, // Will hold the background image
+  backgroundImage: null, 
   isVisible: true,
 };
 
@@ -38,7 +38,7 @@ async function init() {
 
 function setupStartScreen() {
   // Listen for any key press to start the game
-  const startGameHandler = (event) => {
+  const startGameHandler = () => {
     if (!gameStarted && startScreen.isVisible) {
       startGame();
       document.removeEventListener("keydown", startGameHandler);
@@ -71,9 +71,9 @@ function drawStartScreen() {
   } else {
     // Fallback desert gradient background
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#eeb668ff");
-    gradient.addColorStop(0.5, "#d98f2dff");
-    gradient.addColorStop(1, "#8B4513");
+    gradient.addColorStop(0, "#eeb668bb");
+    gradient.addColorStop(0.5, "#d98e2da9");
+    gradient.addColorStop(1, "#8b4513a3");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
@@ -142,9 +142,10 @@ function drawStartScreen() {
   const lineHeight = 30;
 
   const controls = [
-    "← / → Arrow Keys: Walk Left/Right",
-    "F Button: Throw Bottle",
-    "P Button: Enter Pause Menu",
+    "WALK: ← / →",
+    "JUMP: SPACE",
+    "THROW: F",
+    "PAUSE: P",
   ];
 
   controls.forEach((control, index) => {
@@ -157,10 +158,10 @@ function drawStartScreen() {
 
   // Mobile landscape reminder
   ctx.fillStyle = "#FF6B6B";
-  ctx.font = "18px Boogaloo, sans-serif";
+  ctx.font = "24px Boogaloo, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(
-    "📱 Turn your device to landscape mode for better experience!",
+    "📱 MOBILE: Turn your device to landscape mode for best experience!",
     canvas.width / 2,
     canvas.height - 20
   );
@@ -207,6 +208,7 @@ function drawDecorations() {
     ctx.arc(x, y, 2, 0, Math.PI * 2);
     ctx.fill();
   }
+
 
   // Corner decorations
   ctx.fillStyle = "rgba(255, 215, 0, 0.3)";

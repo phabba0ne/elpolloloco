@@ -54,6 +54,7 @@ export default class Coin extends MovableObject {
 
     if (this.checkCollisions([character])) {
       this.collect(character);
+      this.AudioHub.playOne("COIN_SOUNDS", "collect");
       return true;
     }
     return false;

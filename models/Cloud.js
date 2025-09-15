@@ -14,7 +14,7 @@ export default class Cloud extends MovableObject {
     x = 0,
     y = 0,
     width = 480,
-    height = 250,
+    height = 350,
     speed = 10,
     sprites = null,
   } = {}) {
@@ -42,7 +42,7 @@ export default class Cloud extends MovableObject {
   moveLeft() {
     this.x -= this.speed / 10; // optional: skalieren mit speed
     if (this.x + this.width < 0) {
-      this.x = 800; // reset rechts
+      this.x = 1200; // reset rechts
       this.setRandomSprite(); // optional: neue Wolke auswählen
     }
   }
