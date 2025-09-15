@@ -289,7 +289,7 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  die() {
+die() {
     if (this.isDead) return;
 
     super.die();
@@ -299,17 +299,22 @@ export default class ChickenBoss extends MovableObject {
     this.currentBehavior = "dead";
 
     if (this.world?.statusBar) {
-      this.world.statusBar.hideBossBar();
+        this.world.statusBar.hideBossBar();
     }
 
     this.destroy();
 
     if (this.debug) console.log("🐔👑 [DEBUG] ChickenBoss defeated!");
 
-    if (this.world && typeof this.world.onBossDefeated === "function") {
-      this.world.onBossDefeated();
+    // 🚨 Victory Screen
+    if (window.showVictory) {
+        window.showVictory();
     }
-  }
+
+    if (this.world && typeof this.world.onBossDefeated === "function") {
+        this.world.onBossDefeated();
+    }
+}
 
   setState(stateName, speed = 10, forceRestart = false) {
     if (!this.stateMachine) return;

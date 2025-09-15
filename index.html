@@ -1,167 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>El pollo loco</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #222;
-      color: white;
-    }
-
-    canvas {
-      border: 2px solid #fff;
-      background: #444;
-    }
-
-    /* Overlay */
-    #overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
-      padding: 30px 50px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-      text-align: center;
-      z-index: 100;
-      color: #fff;
-      font-size: 16px;
-      visibility: hidden; /* initially hidden */
-    }
-
-    #overlay button {
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      background: #ffcc00;
-      color: #000;
-      transition: 0.2s;
-    }
-
-    #overlay button:hover {
-      background: #ffd633;
-    }
-
-    #overlay label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-  </style>
-</head>
-
-<body>
-  <h1>El pollo loco</h1>
-
-  <canvas width="720px" height="480px" id="canvas"></canvas>
-
-  <!-- Overlay with buttons -->
-  <div id="overlay">
-    <button id="createBtn">START GAME</button>
-    <button id="restartBtn">RETRY LEVEL</button>
-    <button id="resumeBtn">RESUME GAME</button>
-
-    <label>
-      <input type="checkbox" id="hardModeToggle" />
-      Toggle Hard Mode
-    </label>
-    <label>
-      <input type="checkbox" id="debugModeToggle" />
-      Toggle Debug Mode
-    </label>
-  </div>
-
-  <script type="module" src="scripts/game.js" defer></script>
-  <script type="module">
-    const overlay = document.getElementById("overlay");
-    const startBtn = document.getElementById("createBtn");
-    const restartBtn = document.getElementById("restartBtn");
-    const resumeBtn = document.getElementById("resumeBtn");
-    const hardModeToggle = document.getElementById("hardModeToggle");
-    const debugModeToggle = document.getElementById("debugModeToggle");
-
-    // Overlay initially hidden
-    overlay.style.visibility = "hidden";
-
-    function showOverlay() {
-      overlay.style.visibility = "visible";
-      window.isPaused = true; // flag to pause game loop
-    }
-
-    function hideOverlay() {
-      overlay.style.visibility = "hidden";
-      window.isPaused = false; // resume game loop
-    }
-
-    // Button events
-    startBtn.addEventListener("click", () => {
-      console.log("START GAME clicked");
-      hideOverlay();
-    });
-
-    restartBtn.addEventListener("click", () => {
-      console.log("RETRY LEVEL clicked");
-      hideOverlay();
-    });
-
-    resumeBtn.addEventListener("click", () => {
-      console.log("RESUME GAME clicked");
-      hideOverlay();
-    });
-
-    hardModeToggle.addEventListener("change", (e) => {
-      console.log("HARD Mode toggled:", e.target.checked);
-    });
-
-    debugModeToggle.addEventListener("change", (e) => {
-      console.log("DEBUG Mode toggled:", e.target.checked);
-    });
-
-    // Toggle overlay with P key
-    window.addEventListener("keydown", (e) => {
-      if (e.code === "KeyP") {
-        overlay.style.visibility = overlay.style.visibility === "visible" ? "hidden" : "visible";
-        window.isPaused = overlay.style.visibility === "visible";
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>El pollo loco</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="shortcut icon"
+      href="assets/icons/favicon.ico"
+      type="image/x-icon"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #222;
+        color: white;
       }
-    });
 
-    // Example game loop respecting pause
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-
-    function gameLoop() {
-      if (!window.isPaused) {
-        // Your game update/draw code here
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Example placeholder
-        ctx.fillStyle = "yellow";
-        ctx.fillRect(50, 50, 50, 50);
+      canvas {
+        border: 2px solid #fff;
+        background: #444;
       }
-      requestAnimationFrame(gameLoop);
-    }
-    gameLoop();
-  </script>
-</body>
 
+      /* Overlay */
+      #overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.85);
+        padding: 30px 50px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        text-align: center;
+        z-index: 100;
+        color: #fff;
+        font-size: 16px;
+        visibility: hidden; /* initially hidden */
+      }
+
+      #overlay button {
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        background: #ffcc00;
+        color: #000;
+        transition: 0.2s;
+      }
+
+      #overlay button:hover {
+        background: #ffd633;
+      }
+
+      #overlay label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>El pollo loco</h1>
+
+    <canvas width="720px" height="480px" id="canvas"></canvas>
+
+    <!-- Overlay with buttons -->
+    <div id="overlay">
+
+      <!-- Game Over Screen -->
+      <div id="gameOverScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
+        <h2>GAME OVER</h2>
+        <button id="retryBtn">Retry Level</button>
+        <button id="mainMenuBtn">Main Menu</button>
+      </div>
+
+      <!-- Victory Screen -->
+      <div id="victoryScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
+        <h2>VICTORY!</h2>
+        <button id="nextLevelBtn">Next Level</button>
+        <button id="mainMenuBtnVictory">Main Menu</button>
+      </div>
+
+      <!-- Original buttons -->
+      <button id="createBtn">START GAME</button>
+      <button id="restartBtn">RETRY LEVEL</button>
+      <button id="resumeBtn">RESUME GAME</button>
+
+      <label>
+        <input type="checkbox" id="hardModeToggle" />
+        Toggle Hard Mode
+      </label>
+      <label>
+        <input type="checkbox" id="debugModeToggle" />
+        Toggle Debug Mode
+      </label>
+    </div>
+
+    <script type="module" src="scripts/game.js" defer></script>
+    <script type="module">
+      const overlay = document.getElementById("overlay");
+
+      // Game Over
+      const gameOverScreen = document.getElementById("gameOverScreen");
+      const retryBtn = document.getElementById("retryBtn");
+      const mainMenuBtn = document.getElementById("mainMenuBtn");
+
+      function showGameOver() {
+        overlay.style.visibility = "visible";
+        gameOverScreen.style.display = "flex";
+        victoryScreen.style.display = "none";
+        window.isPaused = true;
+      }
+
+      function hideGameOver() {
+        overlay.style.visibility = "hidden";
+        gameOverScreen.style.display = "none";
+        window.isPaused = false;
+      }
+
+      retryBtn.addEventListener("click", () => {
+        hideGameOver();
+        if (window.restartLevel) window.restartLevel();
+      });
+
+      mainMenuBtn.addEventListener("click", () => {
+        hideGameOver();
+      });
+
+      // Victory
+      const victoryScreen = document.getElementById("victoryScreen");
+      const nextLevelBtn = document.getElementById("nextLevelBtn");
+      const mainMenuBtnVictory = document.getElementById("mainMenuBtnVictory");
+
+      function showVictory() {
+        overlay.style.visibility = "visible";
+        victoryScreen.style.display = "flex";
+        gameOverScreen.style.display = "none";
+        window.isPaused = true;
+      }
+
+      function hideVictory() {
+        overlay.style.visibility = "hidden";
+        victoryScreen.style.display = "none";
+        window.isPaused = false;
+      }
+
+      nextLevelBtn.addEventListener("click", () => {
+        hideVictory();
+        if (window.nextLevel) window.nextLevel();
+      });
+
+      mainMenuBtnVictory.addEventListener("click", () => {
+        hideVictory();
+      });
+
+      // Original buttons
+      const startBtn = document.getElementById("createBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const resumeBtn = document.getElementById("resumeBtn");
+      const hardModeToggle = document.getElementById("hardModeToggle");
+      const debugModeToggle = document.getElementById("debugModeToggle");
+
+      function showOverlay() {
+        overlay.style.visibility = "visible";
+        window.isPaused = true;
+      }
+
+      function hideOverlay() {
+        overlay.style.visibility = "hidden";
+        window.isPaused = false;
+      }
+
+      startBtn.addEventListener("click", hideOverlay);
+      restartBtn.addEventListener("click", hideOverlay);
+      resumeBtn.addEventListener("click", hideOverlay);
+
+      hardModeToggle.addEventListener("change", (e) => console.log("HARD Mode toggled:", e.target.checked));
+      debugModeToggle.addEventListener("change", (e) => console.log("DEBUG Mode toggled:", e.target.checked));
+
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "KeyP") {
+          overlay.style.visibility = overlay.style.visibility === "visible" ? "hidden" : "visible";
+          window.isPaused = overlay.style.visibility === "visible";
+        }
+      });
+
+      // Example game loop
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      function gameLoop() {
+        if (!window.isPaused) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(50, 50, 50, 50);
+        }
+        requestAnimationFrame(gameLoop);
+      }
+      gameLoop();
+
+      // Optional: expose for Character/Boss hooks
+      window.showGameOver = showGameOver;
+      window.showVictory = showVictory;
+    </script>
+  </body>
 </html>

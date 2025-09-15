@@ -71,16 +71,21 @@ export default class Character extends MovableObject {
 
   async update(deltaTime, moving = false, jumpInput = false, moveDir = 0) {
     if (this.isDead) {
-      if (this.stateMachine.currentState !== "dead") {
-        this.stateMachine.setState("dead");
-        this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
-        this.AudioHub.playOne("PEPE_SOUNDS", "dead");
-      }
-      this.speedY += this.gravity * 0.075;
-      this.y += this.speedY;
+        if (this.stateMachine.currentState !== "dead") {
+            this.stateMachine.setState("dead");
+            this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
+            this.AudioHub.playOne("PEPE_SOUNDS", "dead");
 
-      this.updateStateMachine(deltaTime);
-      return;
+            // 🚨 Game Over
+            if (window.showGameOver) {
+                window.showGameOver();
+            }
+        }
+        this.speedY += this.gravity * 0.075;
+        this.y += this.speedY;
+
+        this.updateStateMachine(deltaTime);
+        return;
     }
 
     if (this.isHurt) {
