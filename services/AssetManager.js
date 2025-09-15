@@ -166,7 +166,7 @@ export default class AssetManager {
     spawn: [""],
     collect: ["assets/sounds/collectibles/bottleCollectSound.wav"],
     spin: [""],
-    hit: [""],
+    hit: ["assets/sounds/throwable/bottleBreak.mp3"],
   };
 
   static COIN_SPRITES = {

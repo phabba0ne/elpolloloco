@@ -38,14 +38,13 @@ AudioHub.playOne("AMBIENT","titleSong");
   drawStartScreen();
 }
 
-function setupStartScreen() {
+async function setupStartScreen() {
   const startGameHandler = async () => {
     if (!gameStarted && startScreen.isVisible) {
       // Play title song only once on first interaction
-      AudioHub.playOne("AMBIENT", "titleSong");
+      this.AudioHub.playOne("AMBIENT", "titleSong");
       
       startGame();
-      AudioHub.playOne("AMBIENT","");
       document.removeEventListener("keydown", startGameHandler);
     }
   };

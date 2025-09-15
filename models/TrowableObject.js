@@ -43,6 +43,7 @@ export default class ThrowableObject extends MovableObject {
 
         // Hit-Animation einmal abspielen
         this.stateMachine.setState("hit", true); // einmalige Animation
+        this.AudioHub.playOne("SALSASOUNDS", "hit");
         this.hasHitAnimationFinished = true;
       }
     }
