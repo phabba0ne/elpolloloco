@@ -15,7 +15,7 @@ let ctx;
 
 // Start screen configuration
 const startScreen = {
-  backgroundImage: null, 
+  backgroundImage: null,
   isVisible: true,
 };
 
@@ -25,7 +25,7 @@ async function init() {
   keyboard = new Keyboard();
 
   await AssetManager.preload();
-AudioHub.playOne("AMBIENT","titleSong");
+  AudioHub.playOne("AMBIENT", "titleSong");
 
   // Load start screen background image (adjust path as needed)
   startScreen.backgroundImage = new Image();
@@ -38,22 +38,19 @@ AudioHub.playOne("AMBIENT","titleSong");
   drawStartScreen();
 }
 
-async function setupStartScreen() {
+function setupStartScreen() {
   const startGameHandler = async () => {
     if (!gameStarted && startScreen.isVisible) {
-      // Play title song only once on first interaction
-      this.AudioHub.playOne("AMBIENT", "titleSong");
-      
+        AudioHub.stopOne("AMBIENT", "titleSong");
+      // User hat interagiert → jetzt dürfen wir Sound abspielen
+      AudioHub.playOne("AMBIENT", "levelOneSong");
       startGame();
       document.removeEventListener("keydown", startGameHandler);
     }
   };
 
   document.addEventListener("keydown", startGameHandler);
-  document.addEventListener("click", startGameHandler);
-
-  // Optional: touchstart für mobile Geräte
-  document.addEventListener("touchstart", startGameHandler, { once: true });
+  canvas.addEventListener("click", startGameHandler);
 }
 
 function drawStartScreen() {
@@ -142,12 +139,7 @@ function drawStartScreen() {
   const controlsStartY = 240;
   const lineHeight = 30;
 
-  const controls = [
-    "WALK: ← / →",
-    "JUMP: SPACE",
-    "THROW: F",
-    "PAUSE: P",
-  ];
+  const controls = ["WALK: ← / →", "JUMP: SPACE", "THROW: F", "PAUSE: P"];
 
   controls.forEach((control, index) => {
     // Add bullet points
@@ -209,7 +201,6 @@ function drawDecorations() {
     ctx.arc(x, y, 2, 0, Math.PI * 2);
     ctx.fill();
   }
-
 
   // Corner decorations
   ctx.fillStyle = "rgba(255, 215, 0, 0.3)";
