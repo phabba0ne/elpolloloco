@@ -7,7 +7,6 @@ export default class DrawableObject {
     y = 0,
     width = 100,
     height = 100,
-    debug = false,
     type = null,
     imgPath = null,
   } = {}) {
@@ -19,7 +18,6 @@ export default class DrawableObject {
 
     // Rendering - GEMEINSAM für alle
     this.img = null;
-    this.debug = debug;
     this.type = type;
 
     // Image-Cache für alle Klassen verfügbar
@@ -77,15 +75,6 @@ export default class DrawableObject {
       } else {
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
       }
-    }
-
-    // Debug-Box - ALLE verwenden das gleiche
-    if (this.debug) {
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
-      ctx.restore();
     }
   }
 

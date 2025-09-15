@@ -52,8 +52,6 @@ export default class Character extends MovableObject {
   }
   throwSalsa() {
     if (this.salsas <= 0 || !this.world) return;
-
-    if (this.debug) console.log("[CHARACTER] Throw Salsa!");
     this.AudioHub.playOne("AMBIENT", "throwItem");
     this.salsas--;
     this.world.updateCharacterStats();
@@ -164,10 +162,8 @@ export default class Character extends MovableObject {
     };
   }
 
-  // CHARACTER DAMAGE OVERRIDE
-  async onDamage(source) {
-    if (this.debug) console.log("[CHARACTER] Hurt by", source);
-    // Play hurt sound
+  async onDamage() {
+
     this.AudioHub.playOne("PEPE_SOUNDS", "hurt");
 
     this.isHurt = true;
@@ -183,7 +179,6 @@ export default class Character extends MovableObject {
 
   getDamage(source) {
     if (this.isDead || this.isInvulnerable) {
-      if (this.debug) console.log("[CHARACTER] Damage blocked!");
       return;
     }
     super.getDamage(source);
@@ -191,10 +186,6 @@ export default class Character extends MovableObject {
 
   /** Character sauber entfernen */
   destroy() {
-    if (this.debug) {
-      console.log("[DEBUG] Character destroyed");
-    }
-
     // Stop all intervals related to this character
     IntervalHub.stopIntervalsByType("character");
     IntervalHub.stopIntervalsByType(this.constructor.name);

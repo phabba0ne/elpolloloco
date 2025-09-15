@@ -15,7 +15,6 @@ export default class SalsaBottle extends MovableObject {
     y = 0,
     collectable = true,
     direction = 1,
-    debug = false,
     thrown = false,
   } = {}) {
     super({ x, y });

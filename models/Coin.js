@@ -25,13 +25,12 @@ export default class Coin extends MovableObject {
   height = 100;
   collected = false;
 
-  constructor({ x = 0, y = 250, enabled = true, debug = false } = {}) {
+  constructor({ x = 0, y = 250, enabled = true, } = {}) {
     super();
     this.type = "coin";
     this.x = x;
     this.y = y;
     this.enabled = enabled;
-    this.debug = debug;
 
     // Animation
     const sprites = { idle: AssetManager.COIN_SPRITES.idle };
@@ -87,14 +86,6 @@ export default class Coin extends MovableObject {
     } else {
       ctx.fillStyle = "yellow";
       ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-
-    if (this.debug) {
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(this.x, this.y, this.width, this.height);
-      ctx.restore();
     }
   }
 }

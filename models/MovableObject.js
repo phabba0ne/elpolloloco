@@ -17,7 +17,7 @@ export default class MovableObject extends DrawableObject {
     this.collisionInterval = options.collisionInterval || 1000;
     this.lastCollidedWith = null;
     this.stateMachine = null;
-    this.AudioHub=AudioHub;
+    this.AudioHub = AudioHub;
     this.world = options.world || null;
     this.type = options.type || "movable";
     this.id =
@@ -71,15 +71,9 @@ export default class MovableObject extends DrawableObject {
   updateStateMachine(deltaTime) {
     if (!this.stateMachine) return;
 
-    try {
-      this.stateMachine.update(deltaTime);
-      const frame = this.stateMachine.getFrame();
-      if (frame) this.img = frame;
-    } catch (error) {
-      if (this.world?.debug) {
-        console.error(`StateMachine error for ${this.id}:`, error);
-      }
-    }
+    this.stateMachine.update(deltaTime);
+    const frame = this.stateMachine.getFrame();
+    if (frame) this.img = frame;
   }
 
   getHitbox() {
@@ -139,15 +133,8 @@ export default class MovableObject extends DrawableObject {
     if (!source || this.isDead) return;
 
     const damage = amount !== null ? amount : source.strength || 10;
-    const oldHealth = this.health;
 
     this.health = Math.max(0, this.health - damage);
-
-    if (this.world?.debug) {
-      console.log(
-        `${this.id} took ${damage} damage (${oldHealth} -> ${this.health})`
-      );
-    }
 
     if (this.health <= 0) {
       this.die();
@@ -170,12 +157,6 @@ export default class MovableObject extends DrawableObject {
     const oldHealth = this.health;
     this.health = Math.min(this.maxHealth, this.health + amount);
 
-    if (this.world?.debug) {
-      console.log(
-        `${this.id} healed ${amount} (${oldHealth} -> ${this.health})`
-      );
-    }
-
     this.onHeal?.(amount);
   }
 
@@ -189,10 +170,6 @@ export default class MovableObject extends DrawableObject {
     if (this.stateMachine?.sprites?.dead) {
       this.stateMachine.setState("dead");
       this.AudioHub.stopAll();
-    }
-
-    if (this.world?.debug) {
-      console.log(`${this.id} died`);
     }
 
     this.onDeath();
@@ -209,11 +186,6 @@ export default class MovableObject extends DrawableObject {
     if (this.stateMachine?.sprites?.idle) {
       this.stateMachine.setState("idle");
     }
-
-    if (this.world?.debug) {
-      console.log(`${this.id} revived with ${this.health} health`);
-    }
-
     this.onRevive?.();
   }
 

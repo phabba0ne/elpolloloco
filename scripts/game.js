@@ -224,7 +224,6 @@ function startGame() {
     keyboard,
     level,
     character,
-    debug: true,
   });
 
   console.log("Game started!");

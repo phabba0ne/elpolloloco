@@ -4,7 +4,6 @@ import StateMachine from "../services/StateMachine.js";
 import IntervalHub from "../services/IntervalHub.js";
 
 export default class ChickenBoss extends MovableObject {
-
   constructor({
     x = 1200,
     y,
@@ -16,7 +15,6 @@ export default class ChickenBoss extends MovableObject {
     type = "enemy",
     subtype = "chickenBoss",
     player = null,
-    debug = true,
   } = {}) {
     super({
       x,
@@ -37,14 +35,13 @@ export default class ChickenBoss extends MovableObject {
 
     // BOSS PROPERTIES
     this.player = player;
-    this.debug = debug;
 
     this.moveSpeed = 100;
     this.speedX = 0;
     this.speedY = 0;
 
     this.currentBehavior = "alert";
-    this.AudioHub.playOne("AMBIENT","chickenAlarmCall");
+    this.AudioHub.playOne("AMBIENT", "chickenAlarmCall");
     this.lastAttackTime = 0;
     this.attackCooldown = 1000; // ms
 
@@ -63,7 +60,6 @@ export default class ChickenBoss extends MovableObject {
     try {
       await AssetManager.loadAll(Object.values(sprites).flat());
       this.img = this.stateMachine.getFrame();
-      if (this.debug) console.log("🐔👑 [DEBUG] ChickenBoss sprites loaded");
     } catch (err) {
       console.error("🐔👑 [ERROR] ChickenBoss sprites failed to load:", err);
       this.createFallbackImage();
@@ -113,8 +109,6 @@ export default class ChickenBoss extends MovableObject {
         (this.health / (this.maxHealth || 500)) * 100
       );
       this.hasTriggeredBossBar = true;
-
-      if (this.debug) console.log("🐔👑 [DEBUG] Boss encounter triggered!");
     }
   }
 
@@ -241,7 +235,6 @@ export default class ChickenBoss extends MovableObject {
   }
 
   performAttack() {
-    if (this.debug) console.log("🐔👑 [ATTACK] Boss attacks!");
     this.setState("attack", 6, true);
 
     if (this.player && Math.abs(this.player.x - this.x) < 100) {
@@ -249,8 +242,6 @@ export default class ChickenBoss extends MovableObject {
         this.player.getDamage(this);
       } else if (this.player.health !== undefined) {
         this.player.health = Math.max(0, this.player.health - this.strength);
-        if (this.debug)
-          console.log(`🐔👑 [ATTACK] Player health: ${this.player.health}`);
       }
     }
 
@@ -281,15 +272,10 @@ export default class ChickenBoss extends MovableObject {
         this.isFlashing = false;
         if (!this.isDead) this.setState("alert", 3);
       }, 500);
-
-      if (this.debug)
-        console.log(
-          `🐔👑 [DAMAGE] Boss health: ${this.health}/${this.maxHealth || 500}`
-        );
     }
   }
 
-die() {
+  die() {
     if (this.isDead) return;
 
     super.die();
@@ -299,30 +285,23 @@ die() {
     this.currentBehavior = "dead";
 
     if (this.world?.statusBar) {
-        this.world.statusBar.hideBossBar();
+      this.world.statusBar.hideBossBar();
     }
 
     this.destroy();
 
-    if (this.debug) console.log("🐔👑 [DEBUG] ChickenBoss defeated!");
-
-    // 🚨 Victory Screen
     if (window.showVictory) {
-        window.showVictory();
+      window.showVictory();
     }
 
     if (this.world && typeof this.world.onBossDefeated === "function") {
-        this.world.onBossDefeated();
+      this.world.onBossDefeated();
     }
-}
+  }
 
   setState(stateName, speed = 10, forceRestart = false) {
     if (!this.stateMachine) return;
     if (this.stateMachine.currentState !== stateName || forceRestart) {
-      if (this.debug)
-        console.log(
-          `🐔👑 [DEBUG] State: ${this.stateMachine.currentState} → ${stateName}`
-        );
       this.stateMachine.setState(stateName, speed);
       this.currentBehavior = stateName;
     }
@@ -353,7 +332,6 @@ die() {
   }
 
   destroy() {
-    if (this.debug) console.log("🐔👑 [DEBUG] ChickenBoss destroyed");
     IntervalHub.stopIntervalsByType("chickenBoss");
     IntervalHub.stopIntervalsByType(this.constructor.name);
     this.isDestroyed = true;

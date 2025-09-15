@@ -224,24 +224,6 @@ export default class IntervalHub {
     }
   }
 
-  // Get current state for debugging
-  static getState() {
-    return {
-      intervalCount: this.allIntervals.length,
-      isRunning: this.isRunning,
-      deltaTime: this.deltaTime,
-      targetFPS: this.targetFPS,
-      intervals: this.allIntervals.map((interval) => ({
-        id: interval.id,
-        type: interval.type,
-        timer: interval.timer,
-        paused: interval.paused,
-        accumulator: interval.accumulator,
-        target: interval.target?.constructor?.name || null,
-      })),
-    };
-  }
-
   // Utility: Convert FPS to milliseconds
   static fpsToMs(fps) {
     return 1000 / fps;
@@ -251,11 +233,6 @@ export default class IntervalHub {
   static msToFps(ms) {
     return 1000 / ms;
   }
-}
-
-// Global access for testing and debugging
-if (typeof window !== 'undefined') {
-  window.IntervalHub = IntervalHub;
 }
 
 // Usage Examples:

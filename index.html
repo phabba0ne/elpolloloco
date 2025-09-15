@@ -29,7 +29,6 @@
         background: #444;
       }
 
-      /* Overlay */
       #overlay {
         position: absolute;
         top: 50%;
@@ -46,7 +45,7 @@
         z-index: 100;
         color: #fff;
         font-size: 16px;
-        visibility: hidden; /* initially hidden */
+        visibility: hidden;
       }
 
       #overlay button {
@@ -79,24 +78,19 @@
 
     <canvas width="720px" height="480px" id="canvas"></canvas>
 
-    <!-- Overlay with buttons -->
     <div id="overlay">
-
-      <!-- Game Over Screen -->
       <div id="gameOverScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
         <h2>GAME OVER</h2>
         <button id="retryBtn">Retry Level</button>
         <button id="mainMenuBtn">Main Menu</button>
       </div>
 
-      <!-- Victory Screen -->
       <div id="victoryScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
         <h2>VICTORY!</h2>
         <button id="nextLevelBtn">Next Level</button>
         <button id="mainMenuBtnVictory">Main Menu</button>
       </div>
 
-      <!-- Original buttons -->
       <button id="createBtn">START GAME</button>
       <button id="restartBtn">RETRY LEVEL</button>
       <button id="resumeBtn">RESUME GAME</button>
@@ -105,17 +99,13 @@
         <input type="checkbox" id="hardModeToggle" />
         Toggle Hard Mode
       </label>
-      <label>
-        <input type="checkbox" id="debugModeToggle" />
-        Toggle Debug Mode
-      </label>
+
     </div>
 
     <script type="module" src="scripts/game.js" defer></script>
     <script type="module">
       const overlay = document.getElementById("overlay");
 
-      // Game Over
       const gameOverScreen = document.getElementById("gameOverScreen");
       const retryBtn = document.getElementById("retryBtn");
       const mainMenuBtn = document.getElementById("mainMenuBtn");
@@ -142,7 +132,6 @@
         hideGameOver();
       });
 
-      // Victory
       const victoryScreen = document.getElementById("victoryScreen");
       const nextLevelBtn = document.getElementById("nextLevelBtn");
       const mainMenuBtnVictory = document.getElementById("mainMenuBtnVictory");
@@ -169,12 +158,10 @@
         hideVictory();
       });
 
-      // Original buttons
       const startBtn = document.getElementById("createBtn");
       const restartBtn = document.getElementById("restartBtn");
       const resumeBtn = document.getElementById("resumeBtn");
       const hardModeToggle = document.getElementById("hardModeToggle");
-      const debugModeToggle = document.getElementById("debugModeToggle");
 
       function showOverlay() {
         overlay.style.visibility = "visible";
@@ -191,7 +178,6 @@
       resumeBtn.addEventListener("click", hideOverlay);
 
       hardModeToggle.addEventListener("change", (e) => console.log("HARD Mode toggled:", e.target.checked));
-      debugModeToggle.addEventListener("change", (e) => console.log("DEBUG Mode toggled:", e.target.checked));
 
       window.addEventListener("keydown", (e) => {
         if (e.code === "KeyP") {
@@ -200,7 +186,6 @@
         }
       });
 
-      // Example game loop
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
 
@@ -214,7 +199,6 @@
       }
       gameLoop();
 
-      // Optional: expose for Character/Boss hooks
       window.showGameOver = showGameOver;
       window.showVictory = showVictory;
     </script>

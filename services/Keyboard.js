@@ -102,7 +102,6 @@ export default class Keyboard {
     const buttons = [
       { key: 'Space', label: 'JUMP', style: 'bottom: 60px; right: 0; width: 70px; height: 50px;' },
       { key: 'KeyF', label: 'ATTACK', style: 'bottom: 0; right: 0; width: 70px; height: 50px;' },
-      { key: 'KeyD', label: 'DEBUG', style: 'bottom: 0; right: 80px; width: 60px; height: 40px; font-size: 12px;' }
     ];
 
     buttons.forEach(btn => {
@@ -220,10 +219,6 @@ export default class Keyboard {
 
   get attack() {
     return this.justPressed("KeyF");
-  }
-
-  get debug() {
-    return this.justPressed("KeyD");
   }
 
   /**
