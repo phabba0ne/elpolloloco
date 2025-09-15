@@ -44,6 +44,8 @@ function setupStartScreen() {
         AudioHub.stopOne("AMBIENT", "titleSong");
       // User hat interagiert → jetzt dürfen wir Sound abspielen
       AudioHub.playOne("AMBIENT", "levelOneSong");
+      AudioHub.playOne("AMBIENT", "wind");
+
       startGame();
       document.removeEventListener("keydown", startGameHandler);
     }
