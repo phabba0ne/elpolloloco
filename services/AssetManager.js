@@ -5,7 +5,18 @@ export default class AssetManager {
   static isLoading = false;
   static eventBus = null;
 
-  // Keep your existing asset definitions
+  static AMBIENT = {
+    bossLanded: ["assets/sounds/ambient/bossLanded.mp3Í"],
+    bottleClink: ["assets/sounds/ambient/bottleClink.mp3"],
+    cartoonJump: ["assets/sounds/ambient/cartoonJump.mp3"],
+    chickenAlarmCall: ["assets/sounds/ambient/chickenAlarmCall.mp3"],
+    levelOneSong: ["assets/sounds/ambient/levelOneSong.mp3"],
+    throwItem: ["assets/sounds/ambient/throwItem.mp3"],
+    titleSong: ["assets/sounds/ambient/titleSong.mp3"],
+    wind: ["assets/sounds/ambient/wind.mp3"],
+    wind2: ["assets/sounds/ambient/wind2.mp3"],
+  };
+
   static GAME_OVER = {
     over: [
       "assets/img/youWonYouLost/gameOver.png",
@@ -319,63 +330,64 @@ export default class AssetManager {
   }
 
   // IMPROVED: Preload with priority system
-  static async preload(priority = 'normal') {
-    const assetGroups = [
-      { group: this.GAME_OVER, priority: 'low' },
-      { group: this.STATUSBARS_CHICKENBOSS, priority: 'medium' },
-      { group: this.STATUSBARS_PEPE, priority: 'high' },
-      { group: this.SALSABOTTLE, priority: 'medium' },
-      { group: this.SALSASOUNDS, priority: 'medium' },
-      { group: this.COIN_SPRITES, priority: 'high' },
-      { group: this.COIN_SOUNDS, priority: 'medium' },
-      { group: this.CHICKEN_SPRITES, priority: 'high' },
-      { group: this.CHICKEN_SOUNDS, priority: 'medium' },
-      { group: this.CHICKENSMALL_SPRITES, priority: 'high' },
-      { group: this.CHICKENSMALL_SOUNDS, priority: 'medium' },
-      { group: this.CHICKENBOSS_SPRITES, priority: 'medium' },
-      { group: this.CHICKENBOSS_SOUNDS, priority: 'low' },
-      { group: this.PEPE_SPRITES, priority: 'high' },
-      { group: this.PEPE_SOUNDS, priority: 'high' }
-    ];
+static async preload(priority = "normal") {
+  // Alle Asset-Gruppen automatisch sammeln
+  const assetGroups = [
+    { group: this.GAME_OVER, priority: "low" },
+    { group: this.STATUSBARS_CHICKENBOSS, priority: "medium" },
+    { group: this.STATUSBARS_PEPE, priority: "high" },
+    { group: this.SALSABOTTLE, priority: "high" },
+    { group: this.SALSASOUNDS, priority: "high" },
+    { group: this.COIN_SPRITES, priority: "high" },
+    { group: this.COIN_SOUNDS, priority: "high" },
+    { group: this.CHICKEN_SPRITES, priority: "high" },
+    { group: this.CHICKEN_SOUNDS, priority: "high" },
+    { group: this.CHICKENSMALL_SPRITES, priority: "high" },
+    { group: this.CHICKENSMALL_SOUNDS, priority: "medium" },
+    { group: this.CHICKENBOSS_SPRITES, priority: "medium" },
+    { group: this.CHICKENBOSS_SOUNDS, priority: "low" },
+    { group: this.PEPE_SPRITES, priority: "high" },
+    { group: this.PEPE_SOUNDS, priority: "high" },
+    { group: this.AMBIENT, priority: "high" },
+  ];
 
-    // Sort by priority: high -> medium -> low
-    const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
-    assetGroups.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  assetGroups.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
-    let totalAssets = 0;
-    let loadedAssets = 0;
+  // Alle Pfade automatisch sammeln
+  let totalAssets = 0;
+  let loadedAssets = 0;
+  const allAssetPaths = [];
 
-    // Count total assets
-    assetGroups.forEach(({ group }) => {
-      Object.values(group).flat().filter(Boolean).forEach(() => totalAssets++);
+  for (const { group, priority: groupPriority } of assetGroups) {
+    // Filter nach gewünschter Preload-Priorität
+    if (priority === "high" && groupPriority !== "high") continue;
+    if (priority === "medium" && groupPriority === "low") continue;
+
+    // Alle Keys dynamisch flatten
+    Object.values(group).forEach(value => {
+      if (Array.isArray(value)) {
+        value.filter(Boolean).forEach(path => allAssetPaths.push(path));
+      }
     });
-
-    console.log(`AssetManager: Preloading ${totalAssets} assets with priority: ${priority}...`);
-
-    // Load by priority
-    for (const { group, priority: groupPriority } of assetGroups) {
-      if (priority === 'high' && groupPriority !== 'high') continue;
-      if (priority === 'medium' && groupPriority === 'low') continue;
-      
-      const allPaths = Object.values(group).flat().filter(Boolean);
-      
-      await this.loadAll(allPaths, (loaded, total) => {
-        loadedAssets += loaded;
-        if (this.eventBus) {
-          this.eventBus.emit('asset-progress', {
-            loaded: loadedAssets,
-            total: totalAssets,
-            percentage: Math.round((loadedAssets / totalAssets) * 100)
-          });
-        }
-      });
-    }
-
-    console.log("✅ AssetManager: Alle Assets geladen.");
-    if (this.eventBus) {
-      this.eventBus.emit('assets-loaded');
-    }
   }
+
+  totalAssets = allAssetPaths.length;
+  console.log(`[AssetManager] Preloading ${totalAssets} assets (minPriority=${priority})`);
+
+  // Lade alle Assets mit Fortschritts-Callback
+  await this.loadAll(allAssetPaths, (loaded, total) => {
+    loadedAssets += loaded;
+    if (this.eventBus) this.eventBus.emit("asset-progress", {
+      loaded: loadedAssets,
+      total: totalAssets,
+      percentage: Math.round((loadedAssets / totalAssets) * 100),
+    });
+  });
+
+  console.log("✅ AssetManager: Alle Assets geladen.");
+  if (this.eventBus) this.eventBus.emit("assets-loaded");
+}
 
   // IMPROVED: Load with progress callback
   static async loadAll(assets, progressCallback = null) {
@@ -473,11 +485,11 @@ export default class AssetManager {
   }
 
   // NEW: Memory management
-  static clearCache(type = 'all') {
-    if (type === 'all' || type === 'images') {
+  static clearCache(type = "all") {
+    if (type === "all" || type === "images") {
       this.imageCache.clear();
     }
-    if (type === 'all' || type === 'audio') {
+    if (type === "all" || type === "audio") {
       this.audioCache.clear();
     }
     console.log(`AssetManager: Cleared ${type} cache`);
@@ -488,7 +500,7 @@ export default class AssetManager {
     return {
       images: this.imageCache.size,
       audio: this.audioCache.size,
-      total: this.imageCache.size + this.audioCache.size
+      total: this.imageCache.size + this.audioCache.size,
     };
   }
 }

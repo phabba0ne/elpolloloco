@@ -44,6 +44,7 @@ export default class ChickenBoss extends MovableObject {
     this.speedY = 0;
 
     this.currentBehavior = "alert";
+    this.AudioHub.playOne("AMBIENT","chickenAlarmCall");
     this.lastAttackTime = 0;
     this.attackCooldown = 1000; // ms
 

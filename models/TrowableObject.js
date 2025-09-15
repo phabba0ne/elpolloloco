@@ -25,7 +25,7 @@ export default class ThrowableObject extends MovableObject {
     this.isThrown = true;
     this.speedX = direction * throwSpeed;
     this.speedY = throwUp;
-    this.stateMachine.setState("spin"); // Spin-Animation starten
+    this.stateMachine.setState("spin",false,true); // Spin-Animation starten
   }
 
   update(deltaTime) {

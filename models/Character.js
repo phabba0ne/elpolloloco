@@ -54,7 +54,7 @@ export default class Character extends MovableObject {
     if (this.salsas <= 0 || !this.world) return;
 
     if (this.debug) console.log("[CHARACTER] Throw Salsa!");
-
+    this.AudioHub.playOne("AMBIENT", "throwItem");
     this.salsas--;
     this.world.updateCharacterStats();
 
@@ -73,7 +73,7 @@ export default class Character extends MovableObject {
     if (this.isDead) {
       if (this.stateMachine.currentState !== "dead") {
         this.stateMachine.setState("dead");
-        this.AudioHub.stopOne("PEPE_SOUNDS", "walk")
+        this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
         this.AudioHub.playOne("PEPE_SOUNDS", "dead");
       }
       this.speedY += this.gravity * 0.075;
@@ -96,7 +96,7 @@ export default class Character extends MovableObject {
       this.speedY = -this.jumpPower;
       this.isJumping = true;
       this.stateMachine.setState("jump");
-      this.AudioHub.playOne("PEPE_SOUNDS", "jump");
+      this.AudioHub.playOne("AMBIENT", "cartoonJump");
     }
 
     this.speedY += this.gravity;
@@ -111,27 +111,36 @@ export default class Character extends MovableObject {
       }
     }
 
-    // Horizontal movement
     if (moving) {
       this.x += moveDir * this.moveSpeed;
-      if (!this.isJumping && this.stateMachine.currentState !== "walk") {
-        this.stateMachine.setState("walk");
-        this.AudioHub.playOne("PEPE_SOUNDS", "walk");
+
+      // Walk-Sound nur wenn nicht springen
+      if (!this.isJumping) {
+        if (this.stateMachine.currentState !== "walk") {
+          this.stateMachine.setState("walk");
+          AudioHub.playOne("PEPE_SOUNDS", "walk");
+        }
+      } else {
+        // Stoppe Walk-Sound beim Springen
+        AudioHub.stopOne("PEPE_SOUNDS", "walk");
       }
+
       this.idleTimer = 0;
     } else if (!this.isJumping) {
-      //stop walkSound
-      this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
-      // Idle system - CHARACTER-SPEZIFISCH
+      // Spieler steht still
+      AudioHub.stopOne("PEPE_SOUNDS", "walk");
       this.idleTimer += deltaTime;
       if (this.idleTimer >= this.longIdleThreshold) {
         if (this.stateMachine.currentState !== "longIdle") {
           this.stateMachine.setState("longIdle");
-          this.AudioHub.playOne("PEPE_SOUNDS", "longIdle");
+          AudioHub.playOne("PEPE_SOUNDS", "longIdle");
         }
       } else if (this.stateMachine.currentState !== "idle") {
         this.stateMachine.setState("idle");
       }
+    } else {
+      // Wenn springen, unabhängig von moveDir Walk-Sound stoppen
+      AudioHub.stopOne("PEPE_SOUNDS", "walk");
     }
 
     this.updateStateMachine(deltaTime);

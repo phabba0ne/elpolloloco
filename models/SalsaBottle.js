@@ -127,6 +127,7 @@ export default class SalsaBottle extends MovableObject {
     if (!this.collectable || !this.enabled) return false;
     if (this.isCollidingWith(character)) {
       this.enabled = false;
+      this.AudioHub.playOne("AMBIENT", "bottleClink.mp3");
       character.salsas = (character.salsas || 0) + 1;
 
       return true;

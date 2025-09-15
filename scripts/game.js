@@ -3,6 +3,7 @@ import Keyboard from "../services/Keyboard.js";
 import level1 from "../levels/level1.js";
 import Character from "../models/Character.js";
 import AssetManager from "../services/AssetManager.js";
+import AudioHub from "../services/AudioHub.js";
 
 let world;
 let keyboard;
@@ -24,6 +25,7 @@ async function init() {
   keyboard = new Keyboard();
 
   await AssetManager.preload();
+AudioHub.playOne("AMBIENT","titleSong");
 
   // Load start screen background image (adjust path as needed)
   startScreen.backgroundImage = new Image();
@@ -37,22 +39,22 @@ async function init() {
 }
 
 function setupStartScreen() {
-  // Listen for any key press to start the game
-  const startGameHandler = () => {
+  const startGameHandler = async () => {
     if (!gameStarted && startScreen.isVisible) {
+      // Play title song only once on first interaction
+      AudioHub.playOne("AMBIENT", "titleSong");
+      
       startGame();
+      AudioHub.playOne("AMBIENT","");
       document.removeEventListener("keydown", startGameHandler);
     }
   };
 
   document.addEventListener("keydown", startGameHandler);
+  document.addEventListener("click", startGameHandler);
 
-  // Optional: Click to start
-  canvas.addEventListener("click", () => {
-    if (!gameStarted && startScreen.isVisible) {
-      startGame();
-    }
-  });
+  // Optional: touchstart für mobile Geräte
+  document.addEventListener("touchstart", startGameHandler, { once: true });
 }
 
 function drawStartScreen() {
