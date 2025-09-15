@@ -85,11 +85,19 @@ export default class Chicken extends MovableObject {
     }
   }
 
-  die() {
-    if (this.isDead) return;
-    this.isDead = true;
-    this.stateMachine.setState("dead", 6);
-  }
+die() {
+  if (this.isDead) return;
+
+  this.isDead = true;
+
+  // Setze State auf "dead" – Animation läuft genau einmal
+  this.stateMachine.setState("dead", 6); // 6 Frames oder beliebig
+
+  // Audio abspielen
+  import("../services/AudioHub.js").then(({ default: AudioHub }) => {
+    AudioHub.playOne("CHICKEN_SOUNDS", "dead");
+  });
+}
 
   draw(ctx) {
     if (!this.img) {
