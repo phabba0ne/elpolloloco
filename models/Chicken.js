@@ -33,15 +33,12 @@ export default class Chicken extends MovableObject {
   update(deltaTime, character) {
     if (this.isDead) return;
 
-    // Bewegung
     const moveDir = this.movingLeft ? -1 : 1;
     this.x += moveDir * this.speedX * deltaTime;
 
-    // Grenzen
     if (this.x < this.worldBounds.left) this.movingLeft = false;
     if (this.x > this.worldBounds.right) this.movingLeft = true;
 
-    // Kollisions-Logik
     if (character) this.handleCollision(character);
 
     this.stateMachine.update(deltaTime);
@@ -50,7 +47,7 @@ export default class Chicken extends MovableObject {
 
   handleCollision(character) {
     const feet = character.y + character.height;
-    const head = this.y; // Chicken Kopf
+    const head = this.y;
     const overlapX =
       character.x + character.width > this.x &&
       character.x < this.x + this.width;
@@ -59,8 +56,8 @@ export default class Chicken extends MovableObject {
       character.y < this.y + this.height;
 
     if (overlapX && overlapY) {
-      // --- Prüfen ob von OBEN getroffen ---
-      const stompMargin = this.height * 0.25; // nur oberes Viertel zählt als "Stomp"
+  
+      const stompMargin = this.height * 0.25;
       const isStomp =
         feet <= head + stompMargin && character.speedY > 0;
 
@@ -74,9 +71,8 @@ export default class Chicken extends MovableObject {
 
   stomp(character) {
     this.die();
-    character.speedY = -character.jumpPower * 0.6; // kleiner Bounce, fühlt sich "weich" an
+    character.speedY = -character.jumpPower * 0.6;
 
-    // Stomp Combo aktualisieren
     if (this.world) {
       this.world.stompCombo++;
       this.world.stompTimer = this.world.stompDisplayDuration;
@@ -90,10 +86,8 @@ die() {
 
   this.isDead = true;
 
-  // Setze State auf "dead" – Animation läuft genau einmal
-  this.stateMachine.setState("dead", 6); // 6 Frames oder beliebig
 
-  // Audio abspielen
+  this.stateMachine.setState("dead", 6);
   import("../services/AudioHub.js").then(({ default: AudioHub }) => {
     AudioHub.playOne("CHICKEN_SOUNDS", "dead");
   });
@@ -108,7 +102,6 @@ die() {
 
     ctx.save();
 
-    // Wenn nach rechts schauen, spiegeln
     if (!this.movingLeft) {
       ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
       ctx.scale(-1, 1);

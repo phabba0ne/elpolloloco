@@ -226,7 +226,6 @@ function startGame() {
     character,
   });
 
-  console.log("Game started!");
 }
 
 // Animation loop for start screen

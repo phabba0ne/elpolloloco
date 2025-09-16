@@ -9,7 +9,7 @@ export default class ThrowableObject extends MovableObject {
     width = 50,
     height = 50,
     gravity = 0.44,
-    sprites = AssetManager.BOTTLE_SPRITES, // { idle: [...], spin: [...], hit: [...] }
+    sprites = AssetManager.BOTTLE_SPRITES,
   } = {}) {
     super({ x, y, width, height, gravity, type: "throwable" });
 
@@ -18,37 +18,32 @@ export default class ThrowableObject extends MovableObject {
 
     this.isThrown = false;
     this.hasHitAnimationFinished = false;
-    this.groundY = 200; // Bodenhöhe (kann dynamisch gesetzt werden)
+    this.groundY = 200;
   }
 
   throw(direction = 1, throwSpeed = 7, throwUp = -10) {
     this.isThrown = true;
     this.speedX = direction * throwSpeed;
     this.speedY = throwUp;
-    this.stateMachine.setState("spin",false,true); // Spin-Animation starten
+    this.stateMachine.setState("spin", false, true);
   }
 
   update(deltaTime) {
     if (this.isThrown && !this.hasHitAnimationFinished) {
-      // Physik
       this.speedY += this.gravity;
       this.x += this.speedX;
       this.y += this.speedY;
 
-      // Hit-Detection
       if (this.y >= this.groundY) {
         this.y = this.groundY;
         this.speedX = 0;
         this.speedY = 0;
 
-        // Hit-Animation einmal abspielen
-        this.stateMachine.setState("hit", true); // einmalige Animation
         this.AudioHub.playOne("SALSASOUNDS", "hit");
+        this.stateMachine.setState("hit", true);
         this.hasHitAnimationFinished = true;
       }
     }
-
-    // StateMachine aktualisieren
     this.stateMachine.update(deltaTime);
   }
 
@@ -59,7 +54,8 @@ export default class ThrowableObject extends MovableObject {
   }
 
   isActive() {
-    // Objekt ist aktiv, solange Spin oder Hit läuft
-    return !this.hasHitAnimationFinished || this.stateMachine.currentState === "hit";
+    return (
+      !this.hasHitAnimationFinished || this.stateMachine.currentState === "hit"
+    );
   }
 }

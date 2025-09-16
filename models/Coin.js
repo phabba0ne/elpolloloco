@@ -2,24 +2,6 @@ import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
-// TODO: AUDIOMANAGER
-    // this.GAME_OVER,
-    // this.STATUSBARS_CHICKENBOSS,
-    // this.STATUSBARS_PEPE,
-    // this.SALSABOTTLE,
-    // this.SALSASOUNDS,
-    // this.COIN_SPRITES,
-    // this.COIN_SOUNDS,
-    // this.CHICKEN_SPRITES,
-    // this.CHICKEN_SOUNDS,
-    // this.CHICKENSMALL_SPRITES,
-    // this.CHICKENSMALL_SOUNDS,
-    // this.CHICKENBOSS_SPRITES,
-    // this.CHICKENBOSS_SOUNDS,
-    // this.PEPE_SPRITES,
-    // this.PEPE_SOUNDS
-
-
 export default class Coin extends MovableObject {
   width = 100;
   height = 100;
@@ -32,9 +14,8 @@ export default class Coin extends MovableObject {
     this.y = y;
     this.enabled = enabled;
 
-    // Animation
     const sprites = { idle: AssetManager.COIN_SPRITES.idle };
-    this.stateMachine = new StateMachine(sprites, "idle", 3); // 3 FPS
+    this.stateMachine = new StateMachine(sprites, "idle", 3);
     this.loadSprites(sprites);
   }
 
@@ -44,10 +25,6 @@ export default class Coin extends MovableObject {
     this.img = this.stateMachine.getFrame();
   }
 
-  /**
-   * Versucht, die Münze einzusammeln.
-   * Gibt true zurück, wenn erfolgreich.
-   */
   tryCollect(character) {
     if (!this.enabled || this.collected) return false;
 
@@ -63,7 +40,6 @@ export default class Coin extends MovableObject {
     this.collected = true;
     character.gold = (character.gold || 0) + 1;
 
-    // Event triggern, falls world und EventEmitter vorhanden
     if (this.world?.events) {
       this.world.events.emit("coin:collected", { character, coin: this });
     }
@@ -72,7 +48,6 @@ export default class Coin extends MovableObject {
   update(deltaTime, world) {
     if (!this.enabled || this.collected || !world?.character) return;
 
-    // Animation
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;

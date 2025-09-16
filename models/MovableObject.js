@@ -1,6 +1,5 @@
 import DrawableObject from "./DrawableObject.js";
 import AudioHub from "../services/AudioHub.js";
-//TODO ZEROPATCH REFAC EVERYTHING TO STATEMACHINE
 
 export default class MovableObject extends DrawableObject {
   constructor(options = {}) {
@@ -29,7 +28,7 @@ export default class MovableObject extends DrawableObject {
 
   updatePhysics(deltaTime) {
     if (this.isDead && this.stateMachine?.currentState === "dead") {
-      return; // Dead objects don't move unless death animation needs physics
+      return;
     }
     if (this.gravity > 0) {
       this.speedY = Math.min(
@@ -165,7 +164,7 @@ export default class MovableObject extends DrawableObject {
 
     this.isDead = true;
     this.health = 0;
-    this.speedX = 0; // Stop movement when dead
+    this.speedX = 0;
 
     if (this.stateMachine?.sprites?.dead) {
       this.stateMachine.setState("dead");
@@ -223,14 +222,13 @@ export default class MovableObject extends DrawableObject {
     this.onUpdate?.(deltaTime);
   }
 
-  // Hooks – Subklassen können überschreiben
-  onCollision(obj, deltaTime) {}
-  onDamage(source, damage) {
+  onCollision() {}
+  onDamage() {
     if (this.type === "enemy" && this.world?.statusBar) {
       this.world.statusBar.updateBossHealth(this.health);
     }
   }
   onDeath() {}
   onGroundHit() {}
-  onUpdate(deltaTime) {}
+
 }

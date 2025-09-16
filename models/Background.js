@@ -1,4 +1,3 @@
-// Nur Background-spezifisch
 import MovableObject from "./MovableObject.js";
 
 export default class Background extends MovableObject {

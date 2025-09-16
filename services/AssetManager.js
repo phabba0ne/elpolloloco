@@ -248,7 +248,7 @@ export default class AssetManager {
 
   static CHICKENBOSS_SOUNDS = {
     approach: ["assets/sounds/endboss/endbossApproach.wav"],
-    alert: [""],
+    alert: ["assets/sounds/ambient/chickenAlarmCall.mp3"],
     attack: [""],
     walk: [""],
     hurt: [""],
@@ -324,72 +324,61 @@ export default class AssetManager {
     throw: [""],
   };
 
-  // NEW: Set EventBus for notifications
-  static setEventBus(eventBus) {
-    this.eventBus = eventBus;
+  static async preload(priority = "normal") {
+    const assetGroups = [
+      { group: this.GAME_OVER, priority: "low" },
+      { group: this.STATUSBARS_CHICKENBOSS, priority: "medium" },
+      { group: this.STATUSBARS_PEPE, priority: "high" },
+      { group: this.SALSABOTTLE, priority: "high" },
+      { group: this.SALSASOUNDS, priority: "high" },
+      { group: this.COIN_SPRITES, priority: "high" },
+      { group: this.COIN_SOUNDS, priority: "high" },
+      { group: this.CHICKEN_SPRITES, priority: "high" },
+      { group: this.CHICKEN_SOUNDS, priority: "high" },
+      { group: this.CHICKENSMALL_SPRITES, priority: "high" },
+      { group: this.CHICKENSMALL_SOUNDS, priority: "medium" },
+      { group: this.CHICKENBOSS_SPRITES, priority: "medium" },
+      { group: this.CHICKENBOSS_SOUNDS, priority: "low" },
+      { group: this.PEPE_SPRITES, priority: "high" },
+      { group: this.PEPE_SOUNDS, priority: "high" },
+      { group: this.AMBIENT, priority: "high" },
+    ];
+
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    assetGroups.sort(
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+    );
+
+    let totalAssets = 0;
+    let loadedAssets = 0;
+    const allAssetPaths = [];
+
+    for (const { group, priority: groupPriority } of assetGroups) {
+      if (priority === "high" && groupPriority !== "high") continue;
+      if (priority === "medium" && groupPriority === "low") continue;
+
+      Object.values(group).forEach((value) => {
+        if (Array.isArray(value)) {
+          value.filter(Boolean).forEach((path) => allAssetPaths.push(path));
+        }
+      });
+    }
+
+    totalAssets = allAssetPaths.length;
+
+    await this.loadAll(allAssetPaths, (loaded, total) => {
+      loadedAssets += loaded;
+      if (this.eventBus)
+        this.eventBus.emit("asset-progress", {
+          loaded: loadedAssets,
+          total: totalAssets,
+          percentage: Math.round((loadedAssets / totalAssets) * 100),
+        });
+    });
+
+    if (this.eventBus) this.eventBus.emit("assets-loaded");
   }
 
-  // IMPROVED: Preload with priority system
-static async preload(priority = "normal") {
-  // Alle Asset-Gruppen automatisch sammeln
-  const assetGroups = [
-    { group: this.GAME_OVER, priority: "low" },
-    { group: this.STATUSBARS_CHICKENBOSS, priority: "medium" },
-    { group: this.STATUSBARS_PEPE, priority: "high" },
-    { group: this.SALSABOTTLE, priority: "high" },
-    { group: this.SALSASOUNDS, priority: "high" },
-    { group: this.COIN_SPRITES, priority: "high" },
-    { group: this.COIN_SOUNDS, priority: "high" },
-    { group: this.CHICKEN_SPRITES, priority: "high" },
-    { group: this.CHICKEN_SOUNDS, priority: "high" },
-    { group: this.CHICKENSMALL_SPRITES, priority: "high" },
-    { group: this.CHICKENSMALL_SOUNDS, priority: "medium" },
-    { group: this.CHICKENBOSS_SPRITES, priority: "medium" },
-    { group: this.CHICKENBOSS_SOUNDS, priority: "low" },
-    { group: this.PEPE_SPRITES, priority: "high" },
-    { group: this.PEPE_SOUNDS, priority: "high" },
-    { group: this.AMBIENT, priority: "high" },
-  ];
-
-  const priorityOrder = { high: 0, medium: 1, low: 2 };
-  assetGroups.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
-  // Alle Pfade automatisch sammeln
-  let totalAssets = 0;
-  let loadedAssets = 0;
-  const allAssetPaths = [];
-
-  for (const { group, priority: groupPriority } of assetGroups) {
-    // Filter nach gewünschter Preload-Priorität
-    if (priority === "high" && groupPriority !== "high") continue;
-    if (priority === "medium" && groupPriority === "low") continue;
-
-    // Alle Keys dynamisch flatten
-    Object.values(group).forEach(value => {
-      if (Array.isArray(value)) {
-        value.filter(Boolean).forEach(path => allAssetPaths.push(path));
-      }
-    });
-  }
-
-  totalAssets = allAssetPaths.length;
-  console.log(`[AssetManager] Preloading ${totalAssets} assets (minPriority=${priority})`);
-
-  // Lade alle Assets mit Fortschritts-Callback
-  await this.loadAll(allAssetPaths, (loaded, total) => {
-    loadedAssets += loaded;
-    if (this.eventBus) this.eventBus.emit("asset-progress", {
-      loaded: loadedAssets,
-      total: totalAssets,
-      percentage: Math.round((loadedAssets / totalAssets) * 100),
-    });
-  });
-
-  console.log("✅ AssetManager: Alle Assets geladen.");
-  if (this.eventBus) this.eventBus.emit("assets-loaded");
-}
-
-  // IMPROVED: Load with progress callback
   static async loadAll(assets, progressCallback = null) {
     const imagePaths = assets.filter((a) => a.match(/\.(png|jpg|jpeg|gif)$/));
     const audioPaths = assets.filter((a) => a.match(/\.(mp3|ogg|wav)$/));
@@ -410,7 +399,6 @@ static async preload(priority = "normal") {
     ]);
   }
 
-  // IMPROVED: Better error handling and progress tracking
   static getImageSafely(path) {
     const img = this.getImage(path);
     return img && img.complete && img.naturalWidth > 0 ? img : null;
@@ -432,7 +420,7 @@ static async preload(priority = "normal") {
       };
       img.onerror = () => {
         console.error(`Failed to load image: ${path}`);
-        // Create placeholder image
+
         const placeholder = new Image();
         placeholder.width = 64;
         placeholder.height = 64;
@@ -467,7 +455,7 @@ static async preload(priority = "normal") {
       };
       audio.onerror = () => {
         console.error(`Failed to load audio: ${path}`);
-        // Create silent placeholder
+
         const placeholder = new Audio();
         this.audioCache.set(path, placeholder);
         if (onLoad) onLoad();
@@ -484,7 +472,6 @@ static async preload(priority = "normal") {
     return this.audioCache.get(path);
   }
 
-  // NEW: Memory management
   static clearCache(type = "all") {
     if (type === "all" || type === "images") {
       this.imageCache.clear();
@@ -492,10 +479,8 @@ static async preload(priority = "normal") {
     if (type === "all" || type === "audio") {
       this.audioCache.clear();
     }
-    console.log(`AssetManager: Cleared ${type} cache`);
   }
 
-  // NEW: Get cache statistics
   static getCacheStats() {
     return {
       images: this.imageCache.size,

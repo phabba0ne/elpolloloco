@@ -12,12 +12,8 @@ export default class GameLoop {
     this.frameCount = 0;
     this.fpsUpdateTime = 0;
     this.eventBus = eventBus;
-    
-    // Callbacks
     this.onUpdate = null;
     this.onRender = null;
-    
-    // Performance tracking
     this.performanceStats = {
       avgDeltaTime: 0,
       minDeltaTime: Infinity,
@@ -42,19 +38,15 @@ export default class GameLoop {
     this.lastTime = performance.now();
     this.frameCount = 0;
     this.fpsUpdateTime = this.lastTime;
-
-    console.log(`GameLoop: Started with target FPS: ${targetFPS}`);
-
+    
     const loop = (currentTime) => {
       if (!this.isRunning) return;
 
       this.deltaTime = (currentTime - this.lastTime) / 1000;
       this.lastTime = currentTime;
 
-      // Performance tracking
       this.updatePerformanceStats();
 
-      // Update phase (game logic)
       if (this.onUpdate) {
         try {
           this.onUpdate(this.deltaTime);
@@ -63,10 +55,8 @@ export default class GameLoop {
         }
       }
 
-      // Process intervals
       IntervalHub.processIntervals(this.deltaTime);
 
-      // Render phase (drawing)
       if (this.onRender) {
         try {
           this.onRender(this.deltaTime);
@@ -75,7 +65,6 @@ export default class GameLoop {
         }
       }
 
-      // FPS calculation
       this.frameCount++;
       if (currentTime - this.fpsUpdateTime >= 1000) {
         this.actualFPS = Math.round(this.frameCount * 1000 / (currentTime - this.fpsUpdateTime));
@@ -98,9 +87,6 @@ export default class GameLoop {
     this.gameLoopId = requestAnimationFrame(loop);
   }
 
-  /**
-   * Stop the game loop
-   */
   stop() {
     this.isRunning = false;
     if (this.gameLoopId) {
@@ -110,9 +96,6 @@ export default class GameLoop {
     console.log('GameLoop: Stopped');
   }
 
-  /**
-   * Pause the game loop
-   */
   pause() {
     if (this.isRunning) {
       this.stop();
@@ -122,9 +105,6 @@ export default class GameLoop {
     }
   }
 
-  /**
-   * Resume the game loop
-   */
   resume() {
     if (!this.isRunning) {
       this.start({
@@ -138,13 +118,9 @@ export default class GameLoop {
     }
   }
 
-  /**
-   * Update performance statistics
-   */
   updatePerformanceStats() {
     const targetFrameTime = 1 / this.targetFPS;
     
-    // Track performance
     this.performanceStats.avgDeltaTime = 
       (this.performanceStats.avgDeltaTime * 0.9) + (this.deltaTime * 0.1);
     
@@ -154,15 +130,11 @@ export default class GameLoop {
     this.performanceStats.maxDeltaTime = 
       Math.max(this.performanceStats.maxDeltaTime, this.deltaTime);
 
-    // Frame drop detection
     if (this.deltaTime > targetFrameTime * 1.5) {
       this.performanceStats.frameDrops++;
     }
   }
 
-  /**
-   * Get current performance stats
-   */
   getPerformanceStats() {
     return {
       ...this.performanceStats,
@@ -173,9 +145,6 @@ export default class GameLoop {
     };
   }
 
-  /**
-   * Reset performance stats
-   */
   resetPerformanceStats() {
     this.performanceStats = {
       avgDeltaTime: 0,

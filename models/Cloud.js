@@ -19,7 +19,7 @@ export default class Cloud extends MovableObject {
     sprites = null,
   } = {}) {
     super();
-    this.type = "cloud"; // wichtig für World
+    this.type = "cloud";
 
     this.x = x;
     this.y = y;
@@ -34,16 +34,16 @@ export default class Cloud extends MovableObject {
   async setRandomSprite() {
     const randomSprite =
       this.SPRITES[Math.floor(Math.random() * this.SPRITES.length)];
-    // AssetManager lädt das Bild, falls noch nicht vorhanden
+
     await AssetManager.loadImage(randomSprite);
     this.img = AssetManager.getImage(randomSprite);
   }
 
   moveLeft() {
-    this.x -= this.speed / 10; // optional: skalieren mit speed
+    this.x -= this.speed / 10;
     if (this.x + this.width < 0) {
-      this.x = 1200; // reset rechts
-      this.setRandomSprite(); // optional: neue Wolke auswählen
+      this.x = 1200;
+      this.setRandomSprite();
     }
   }
 }

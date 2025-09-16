@@ -33,53 +33,40 @@ export default class ChickenBoss extends MovableObject {
       canInstakillOthers: false,
     });
 
-    // BOSS PROPERTIES
     this.player = player;
-
     this.moveSpeed = 100;
     this.speedX = 0;
     this.speedY = 0;
-
     this.currentBehavior = "alert";
-    this.AudioHub.playOne("AMBIENT", "chickenAlarmCall");
     this.lastAttackTime = 0;
     this.attackCooldown = 1000; // ms
 
     this.isFlashing = false;
     this.hasTriggeredBossBar = false;
 
-    // StateMachine
     this.stateMachine = new StateMachine(sprites, "alert", 6);
-
-    // Initialize sprites
+    this.AudioHub.playOne("CHICKENBOSS_SOUNDS", "alert");
     this.loadSprites(sprites);
   }
 
-  /** Lädt alle Boss-Sprites */
   async loadSprites(sprites) {
-    try {
-      await AssetManager.loadAll(Object.values(sprites).flat());
-      this.img = this.stateMachine.getFrame();
-    } catch (err) {
-      console.error("🐔👑 [ERROR] ChickenBoss sprites failed to load:", err);
-      this.createFallbackImage();
-    }
+    await AssetManager.loadAll(Object.values(sprites).flat());
+    this.img = this.stateMachine.getFrame();
   }
 
-  /** Fallback image */
   createFallbackImage() {
     const canvas = document.createElement("canvas");
     canvas.width = this.width;
     canvas.height = this.height;
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "#8B0000"; // Dark red body
+    ctx.fillStyle = "#8B0000";
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.fillStyle = "#FFD700"; // Gold crown
+    ctx.fillStyle = "#FFD700";
     ctx.fillRect(this.width * 0.3, 0, this.width * 0.4, this.height * 0.2);
 
-    ctx.fillStyle = "#FFFFFF"; // Text
+    ctx.fillStyle = "#FFFFFF";
     ctx.font = "20px Arial";
     ctx.textAlign = "center";
     ctx.fillText("BOSS", this.width / 2, this.height / 2);
@@ -109,11 +96,11 @@ export default class ChickenBoss extends MovableObject {
         (this.health / (this.maxHealth || 500)) * 100
       );
       this.hasTriggeredBossBar = true;
+      this.AudioHub.playOne("CHICKENBOSS_SOUNDS", "approach");
     }
   }
 
-  /** Verhalten & States */
-  updateBehavior(deltaTime) {
+  updateBehavior() {
     if (this.isDead) {
       this.setStateIfNot("dead", 2, true);
       return;
@@ -130,13 +117,12 @@ export default class ChickenBoss extends MovableObject {
 
     if (this.isPlayerInRange(600)) this.triggerBossEncounter();
 
-    // --- Death ---
     if (this.health <= 0) {
+      this.AudioHub.playOne("AMBIENT", "chickenAlarmCall");
       this.die();
       return;
     }
 
-    // --- Attack ---
     if (distance < 200) {
       this.setStateIfNot("attack", 6);
       this.speedX = 0;
@@ -149,7 +135,6 @@ export default class ChickenBoss extends MovableObject {
       return;
     }
 
-    // --- Walk / Follow ---
     if (distance < 500) {
       const dir = Math.sign(playerDistanceX);
       this.speedX = dir * this.moveSpeed;
@@ -169,7 +154,6 @@ export default class ChickenBoss extends MovableObject {
       return;
     }
 
-    // --- Alert ---
     this.speedX = 0;
     this.setStateIfNot("alert", 6);
   }
@@ -182,12 +166,10 @@ export default class ChickenBoss extends MovableObject {
     }
   }
 
-  /** Update Loop */
   update(deltaTime, player = null) {
     if (player) this.player = player;
     if (!this.img) return;
 
-    // --- Dead State: weiterfallen + Dead-Anim ---
     if (this.isDead) {
       this.speedY += this.gravity;
       this.y += this.speedY * deltaTime;
@@ -206,7 +188,6 @@ export default class ChickenBoss extends MovableObject {
       return;
     }
 
-    // --- Alive Behavior ---
     this.updateBehavior(deltaTime);
 
     this.speedY += this.gravity;

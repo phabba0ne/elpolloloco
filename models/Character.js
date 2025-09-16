@@ -46,8 +46,8 @@ export default class Character extends MovableObject {
     this.stateMachine = new StateMachine(sprites, "idle", 10);
     this.loadSprites(sprites);
     this.health = 100;
-    this.gold = 0; // echte Münzen
-    this.displayGold = 0; // für Animation
+    this.gold = 0;
+    this.displayGold = 0;
     this.salsas = 0;
   }
   throwSalsa() {
@@ -74,7 +74,6 @@ export default class Character extends MovableObject {
             this.AudioHub.stopOne("PEPE_SOUNDS", "walk");
             this.AudioHub.playOne("PEPE_SOUNDS", "dead");
 
-            // 🚨 Game Over
             if (window.showGameOver) {
                 window.showGameOver();
             }
@@ -117,20 +116,18 @@ export default class Character extends MovableObject {
     if (moving) {
       this.x += moveDir * this.moveSpeed;
 
-      // Walk-Sound nur wenn nicht springen
       if (!this.isJumping) {
         if (this.stateMachine.currentState !== "walk") {
           this.stateMachine.setState("walk");
           AudioHub.playOne("PEPE_SOUNDS", "walk");
         }
       } else {
-        // Stoppe Walk-Sound beim Springen
         AudioHub.stopOne("PEPE_SOUNDS", "walk");
       }
 
       this.idleTimer = 0;
     } else if (!this.isJumping) {
-      // Spieler steht still
+
       AudioHub.stopOne("PEPE_SOUNDS", "walk");
       this.idleTimer += deltaTime;
       if (this.idleTimer >= this.longIdleThreshold) {
@@ -142,7 +139,6 @@ export default class Character extends MovableObject {
         this.stateMachine.setState("idle");
       }
     } else {
-      // Wenn springen, unabhängig von moveDir Walk-Sound stoppen
       AudioHub.stopOne("PEPE_SOUNDS", "walk");
     }
 
@@ -184,13 +180,11 @@ export default class Character extends MovableObject {
     super.getDamage(source);
   }
 
-  /** Character sauber entfernen */
   destroy() {
-    // Stop all intervals related to this character
+
     IntervalHub.stopIntervalsByType("character");
     IntervalHub.stopIntervalsByType(this.constructor.name);
 
-    // Clear any timeouts that might reference this object
     this.isDestroyed = true;
   }
 }

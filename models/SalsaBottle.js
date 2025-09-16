@@ -50,8 +50,9 @@ export default class SalsaBottle extends MovableObject {
 
       for (const obj of objects) {
         if (obj !== this && this.isCollidingWith(obj)) {
+          this.AudioHub.playOne("SALSASOUNDS", "hit");
           this.onHit(obj);
-          break; // nur einmal treffen
+          break;
         }
       }
     }
@@ -59,36 +60,29 @@ export default class SalsaBottle extends MovableObject {
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
-
-    // Warten bis "hit"-Animation durchgelaufen ist
     if (
       this.stateMachine.currentState === "hit" &&
       this.stateMachine.isFinished
     ) {
-      this.enabled = false; // erst jetzt löschen
+      this.enabled = false;
       this.hasHitAnimationFinished = true;
     }
   }
 
-  /**
-   * Kollisionslogik bei Treffer
-   */
   onHit(obj) {
     if (!obj) return;
 
     if (obj.constructor?.name === "ChickenBoss") {
-      // ChickenBoss-Spezialfall
+      this.AudioHub.playOne("AMBIENT", "chickenAlarmCall");
       if (typeof obj.getDamage === "function") {
-        obj.getDamage({ damage: 200 }); // fixer Schaden
+        obj.getDamage({ damage: 200 });
       }
-      obj.flash?.(300); // Boss kurz aufblinken lassen (wenn Methode vorhanden)
+      obj.flash?.(300);
     } else {
-      // Normale Gegner: Instant kill
       if (typeof obj.getDamage === "function") {
         obj.getDamage({ damage: obj.health || 9999 });
       } else if (typeof obj.die === "function") {
         obj.die();
-        this.AudioHub.playOne("SALSASOUNDS", "hit");
       }
     }
 
@@ -96,7 +90,7 @@ export default class SalsaBottle extends MovableObject {
   }
   explode() {
     this.thrown = false;
-    this.stateMachine.setState("hit", false); // wichtig: nicht sofort als "finished" markieren
+    this.stateMachine.setState("hit", false);
     this.stateMachine.currentFrame = 0;
     this.speedX = 0;
     this.speedY = 0;
@@ -126,7 +120,7 @@ export default class SalsaBottle extends MovableObject {
     if (!this.collectable || !this.enabled) return false;
     if (this.isCollidingWith(character)) {
       this.enabled = false;
-      this.AudioHub.playOne("AMBIENT", "bottleClink.mp3");
+      this.AudioHub.playOne("AMBIENT", "bottleClink");
       character.salsas = (character.salsas || 0) + 1;
 
       return true;

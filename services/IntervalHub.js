@@ -1,4 +1,3 @@
-// Enhanced IntervalHub optimized for canvas games
 export default class IntervalHub {
   static allIntervals = [];
   static intervalCounter = 0;
@@ -8,7 +7,6 @@ export default class IntervalHub {
   static lastTime = performance.now();
   static targetFPS = 60;
 
-  // Central game loop - replaces World.js loop
   static startCentralLoop({ onUpdate = null, onRender = null, targetFPS = 60 } = {}) {
     if (this.isRunning) return;
 
@@ -22,15 +20,12 @@ export default class IntervalHub {
       this.deltaTime = (currentTime - this.lastTime) / 1000;
       this.lastTime = currentTime;
 
-      // Call update callback (game logic)
       if (onUpdate) {
         onUpdate(this.deltaTime);
       }
 
-      // Process all registered intervals using deltaTime
       this.processIntervals(this.deltaTime);
 
-      // Call render callback (drawing)
       if (onRender) {
         onRender(this.deltaTime);
       }
@@ -41,7 +36,6 @@ export default class IntervalHub {
     this.gameLoopId = requestAnimationFrame(loop);
   }
 
-  // Stop central game loop
   static stopCentralLoop() {
     this.isRunning = false;
     if (this.gameLoopId) {
@@ -50,7 +44,6 @@ export default class IntervalHub {
     }
   }
 
-  // Simplified API: startInterval(func, intervalMs, options)
   static startInterval(func, intervalMs = 16, options = {}) {
     const {
       id = null,
@@ -71,7 +64,7 @@ export default class IntervalHub {
       type,
       target,
       paused,
-      accumulator: 0, // For deltaTime-based execution
+      accumulator: 0,
     };
 
     this.allIntervals.push(intervalData);
@@ -80,7 +73,6 @@ export default class IntervalHub {
     return intervalId;
   }
 
-  // Process intervals using deltaTime (no more setInterval!)
   static processIntervals(deltaTime) {
     const deltaMs = deltaTime * 1000/60;
 
@@ -89,7 +81,6 @@ export default class IntervalHub {
 
       interval.accumulator += deltaMs;
 
-      // Execute function when accumulated time exceeds timer
       while (interval.accumulator >= interval.timer) {
         try {
           interval.func();
@@ -101,7 +92,6 @@ export default class IntervalHub {
     });
   }
 
-  // Stop interval by ID
   static stopInterval(intervalId) {
     const index = this.allIntervals.findIndex(
       (interval) => interval.id === intervalId
@@ -114,7 +104,6 @@ export default class IntervalHub {
     return false;
   }
 
-  // Pause interval by ID
   static pauseInterval(intervalId) {
     const interval = this.allIntervals.find(
       (interval) => interval.id === intervalId
@@ -126,7 +115,6 @@ export default class IntervalHub {
     return false;
   }
 
-  // Resume interval by ID
   static resumeInterval(intervalId) {
     const interval = this.allIntervals.find(
       (interval) => interval.id === intervalId
@@ -138,7 +126,6 @@ export default class IntervalHub {
     return false;
   }
 
-  // Stop intervals by type or class instance
   static stopIntervalsByType(type) {
     const toRemove = this.allIntervals.filter((interval) => {
       if (typeof type === "string") {
@@ -156,7 +143,6 @@ export default class IntervalHub {
     return toRemove.length;
   }
 
-  // Pause intervals by type
   static pauseIntervalsByType(type) {
     let count = 0;
     this.allIntervals.forEach((interval) => {
@@ -175,7 +161,6 @@ export default class IntervalHub {
     return count;
   }
 
-  // Resume intervals by type
   static resumeIntervalsByType(type) {
     let count = 0;
     this.allIntervals.forEach((interval) => {
@@ -194,7 +179,6 @@ export default class IntervalHub {
     return count;
   }
 
-  // Get intervals by type for StateMachine
   static getIntervalsByType(type) {
     return this.allIntervals.filter((interval) => {
       if (typeof type === "string") {
@@ -205,7 +189,6 @@ export default class IntervalHub {
     });
   }
   
-  // Enhanced stop all with async cleanup
   static async stopAllIntervals() {
     return new Promise((resolve) => {
       this.allIntervals = [];
@@ -214,7 +197,6 @@ export default class IntervalHub {
     });
   }
 
-  // Notify StateMachine about interval changes
   static async notifyStateMachine() {
     try {
       // TODO: StateMachine.onIntervalsChanged(this.allIntervals);
@@ -224,12 +206,10 @@ export default class IntervalHub {
     }
   }
 
-  // Utility: Convert FPS to milliseconds
   static fpsToMs(fps) {
     return 1000 / fps;
   }
 
-  // Utility: Convert milliseconds to FPS
   static msToFps(ms) {
     return 1000 / ms;
   }

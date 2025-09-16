@@ -1,10 +1,9 @@
 import IntervalHub from "../services/IntervalHub.js";
 import Character from "../models/Character.js";
-import Cloud from "../models/Cloud.js";
 import ItemSpawner from "../services/ItemSpawner.js";
 import AssetManager from "../services/AssetManager.js";
 import StatusBar from "../services/StatusBar.js";
-import StompPopup from "../services/StompPopup.js";
+import AudioHub from "../services/AudioHub.js";
 
 export default class World {
   camera_x = 0;
@@ -51,7 +50,6 @@ export default class World {
     this.statusBars = {};
     this.initStatusBars();
 
-    // Starte Hauptloop
     IntervalHub.startCentralLoop({
       onUpdate: (deltaTime) => this.update(deltaTime),
       onRender: () => this.draw(),
@@ -87,7 +85,7 @@ export default class World {
     const bossBarHeight = 70;
     this.statusBars.boss = new StatusBar({
       x: this.canvas.width / 2,
-      y: topY, // etwas Abstand nach unten
+      y: topY,
       width: bossBarWidth,
       height: bossBarHeight,
       sprites: AssetManager.STATUSBARS_CHICKENBOSS,
@@ -107,7 +105,7 @@ export default class World {
   }
 
   update(deltaTime) {
-    // Combo-Timer
+
     if (this.stompTimer > 0) {
       this.stompTimer -= deltaTime * 1000;
       if (this.stompTimer <= 0) {
@@ -115,7 +113,6 @@ export default class World {
       }
     }
 
-    // Popups updaten
     this.stompPopups.forEach((p) => p.update(delta));
     this.stompPopups = this.stompPopups.filter((p) => !p.isExpired);
     const visibleEnemies = this.getVisibleEnemies();
@@ -135,10 +132,9 @@ export default class World {
       this.character.otherDirection = true;
     }
 
-    // Attacke (Salsa werfen)
     if (this.keyboard.attack) this.character.throwSalsa();
+    this.Audi
 
-    // MovableObjects updaten + Kollision
     this.movableObjects = this.movableObjects.filter((obj) => {
       obj.update(deltaTime, this.enemies);
 
@@ -158,12 +154,11 @@ export default class World {
           salsaHitbox.y + salsaHitbox.height > enemyHitbox.y
         ) {
           if (enemy.subtype === "chickenBoss") {
-            enemy.getDamage({ strength: 20 }); // nutzt die Boss-Logik inkl. Bar-Update
+            enemy.getDamage({ strength: 20 });
           } else {
             enemy.isDead = true;
           }
 
-          // Combo-Timer starten
           this.stompCombo++;
           this.stompTimer = this.stompDisplayDuration;
           this.stompX = enemy.x + enemy.width / 2;
@@ -176,17 +171,14 @@ export default class World {
       return !obj.hasHitAnimationFinished;
     });
 
-    // Combo zurücksetzen
     if (this.stompTimer > 0) {
       this.stompTimer -= deltaTime;
       if (this.stompTimer <= 0) this.stompCombo = 0;
     }
 
-    // Items einsammeln
     this.items.coins.forEach((coin) => coin.tryCollect(this.character));
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
-    // Updates
     this.character.update(deltaTime, moving, this.keyboard.jump, moveDir);
     visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
     this.items.update(deltaTime);
@@ -194,7 +186,6 @@ export default class World {
     this.updateGoldDisplay(deltaTime);
     this.updateCharacterStats();
 
-    // Kamera
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
   }
@@ -242,7 +233,6 @@ export default class World {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Combo-Anzeige
     if (this.stompCombo > 0) {
       this.ctx.save();
       this.ctx.font = "32px 'Boogaloo'";
@@ -253,7 +243,6 @@ export default class World {
       this.ctx.restore();
     }
 
-    // Backgrounds
     this.backgrounds.forEach((bg) => {
       if (!bg.img?.complete) return;
       const bgWidth = bg.width || 1440;
@@ -274,13 +263,11 @@ export default class World {
     this.items.draw(this.ctx);
     this.ctx.restore();
 
-    // StatusBars
     Object.values(this.statusBars).forEach((bar) => {
       if (bar && (bar !== this.statusBars.boss || this.showBossBar))
         bar.draw(this.ctx);
     });
 
-    // Coins-Anzeige
     if (this.character) {
       const bar = this.statusBars.health;
       const x = bar ? bar.x : 20;

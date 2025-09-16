@@ -1,6 +1,3 @@
-//all about drawing, rendering and helpers
-
-// pulled common attributes out
 export default class DrawableObject {
   constructor({
     x = 0,
@@ -10,33 +7,29 @@ export default class DrawableObject {
     type = null,
     imgPath = null,
   } = {}) {
-    // Position & Dimensionen - GEMEINSAM für alle
+
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
 
-    // Rendering - GEMEINSAM für alle
     this.img = null;
     this.type = type;
 
-    // Image-Cache für alle Klassen verfügbar
     this.imageCache = {};
     this.type = "drawable";
-    // Image sofort laden falls Pfad gegeben
+
     if (imgPath) {
       this.loadImage(imgPath);
     }
   }
 
-  // ALLE Image-Loading Methoden hier - gemeinsam verwendet
   loadImage(path) {
     if (!path) return;
     this.img = new Image();
     this.img.src = path;
   }
 
-  // Async Sprites laden mit Cache - VON ALLEN SUBKLASSEN VERWENDET
   async loadSprites(sprites) {
     const allSprites = Object.values(sprites).flat();
     const promises = allSprites.map((src) => {
@@ -58,14 +51,13 @@ export default class DrawableObject {
     return this.imageCache;
   }
 
-  // KOMPLETTE Draw-Logik hier - alle verwenden das gleiche Pattern
   draw(ctx) {
     if (!this.img) {
-      // Fallback für fehlende Bilder
+
       ctx.fillStyle = "magenta";
       ctx.fillRect(this.x, this.y, this.width, this.height);
     } else if (this.img.complete && this.img.naturalWidth > 0) {
-      // Normal drawing oder gespiegelt
+
       if (this.otherDirection) {
         ctx.save();
         ctx.translate(this.x + this.width, this.y);
@@ -78,7 +70,6 @@ export default class DrawableObject {
     }
   }
 
-  // Utility-Methoden
   getCenterX() {
     return this.x + this.width / 2;
   }
