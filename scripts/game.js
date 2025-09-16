@@ -216,7 +216,7 @@ function drawDecorations() {
 function startGame() {
   gameStarted = true;
   startScreen.isVisible = false;
-
+  AudioHub.playOne("AMBIENT", "gameStart");
   // Initialize game objects
   character = new Character({ x: 200, y: 370 });
   world = new World({

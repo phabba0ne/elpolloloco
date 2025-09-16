@@ -15,6 +15,7 @@ export default class AssetManager {
     titleSong: ["assets/sounds/ambient/titleSong.mp3"],
     wind: ["assets/sounds/ambient/wind.mp3"],
     wind2: ["assets/sounds/ambient/wind2.mp3"],
+    gameStart: ["assets/sounds/game/gameStart.mp3"],
   };
 
   static GAME_OVER = {
@@ -189,7 +190,7 @@ export default class AssetManager {
   static CHICKEN_SOUNDS = {
     spawn: [""],
     walk: [""],
-    dead: ["assets/sounds/chicken/chickenDead.mp3"],
+    dead: ["assets/sounds/chicken/chickenDead2.mp3"],
   };
 
   static CHICKENSMALL_SPRITES = {
@@ -204,7 +205,7 @@ export default class AssetManager {
   static CHICKENSMALL_SOUNDS = {
     spawn: [""],
     walk: [""],
-    dead: ["assets/sounds/chicken/chickenDead2.mp3"],
+    dead: ["assets/sounds/chicken/chickenDead.mp3"],
   };
 
   static CHICKENBOSS_SPRITES = {

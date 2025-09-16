@@ -1,6 +1,7 @@
 import Chicken from "./Chicken.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
+import AudioHub from "../services/AudioHub.js";
 
 export default class ChickenSmall extends Chicken {
   width = 50;
@@ -49,6 +50,16 @@ export default class ChickenSmall extends Chicken {
     }
 
     return false;
+  }
+
+  die() {
+    if (this.isDead) return;
+
+    this.isDead = true;
+
+    this.stateMachine.setState("dead", 6);
+
+    this.AudioHub.playOne("CHICKENSMALL_SOUNDS", "dead");
   }
 
   startJump(currentTime) {
