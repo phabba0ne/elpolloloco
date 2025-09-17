@@ -2,29 +2,43 @@ import MovableObject from "./MovableObject.js";
 import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 
+/**
+ * Collectable Coin object
+ */
 export default class Coin extends MovableObject {
-  width = 100;
-  height = 100;
-  collected = false;
+  /**
+   * @param {object} options
+   * @param {number} [options.x=0] - X position
+   * @param {number} [options.y=250] - Y position
+   * @param {number} [options.width=100] - Width of the coin
+   * @param {number} [options.height=100] - Height of the coin
+   * @param {boolean} [options.enabled=true] - Whether coin is active
+   */
+  constructor({ x = 0, y = 250, width = 100, height = 100, enabled = true } = {}) {
+    super({ x, y, width, height, type: "coin" });
 
-  constructor({ x = 0, y = 250, enabled = true, } = {}) {
-    super();
-    this.type = "coin";
-    this.x = x;
-    this.y = y;
     this.enabled = enabled;
+    this.collected = false;
 
-    const sprites = { idle: AssetManager.COIN_SPRITES.idle };
-    this.stateMachine = new StateMachine(sprites, "idle", 3);
-    this.loadSprites(sprites);
+    this.sprites = { idle: AssetManager.COIN_SPRITES.idle };
+    this.stateMachine = new StateMachine(this.sprites, "idle", 3);
+    this.loadSprites(this.sprites);
   }
 
+  /**
+   * Load coin animation sprites
+   */
   async loadSprites(sprites) {
     if (!sprites?.idle) return;
     await AssetManager.loadAll(Object.values(sprites).flat());
     this.img = this.stateMachine.getFrame();
   }
 
+  /**
+   * Attempt to collect coin
+   * @param {Character} character
+   * @returns {boolean} whether collected
+   */
   tryCollect(character) {
     if (!this.enabled || this.collected) return false;
 
@@ -36,6 +50,9 @@ export default class Coin extends MovableObject {
     return false;
   }
 
+  /**
+   * Handle coin collection
+   */
   collect(character) {
     this.collected = true;
     character.gold = (character.gold || 0) + 1;
@@ -45,6 +62,9 @@ export default class Coin extends MovableObject {
     }
   }
 
+  /**
+   * Update coin animation
+   */
   update(deltaTime, world) {
     if (!this.enabled || this.collected || !world?.character) return;
 
@@ -53,6 +73,9 @@ export default class Coin extends MovableObject {
     if (frame) this.img = frame;
   }
 
+  /**
+   * Draw coin
+   */
   draw(ctx) {
     if (!this.enabled || this.collected) return;
 

@@ -3,7 +3,13 @@ import AssetManager from "../services/AssetManager.js";
 import StateMachine from "../services/StateMachine.js";
 import IntervalHub from "../services/IntervalHub.js";
 
+/**
+ * @extends MovableObject
+ */
 export default class ChickenBoss extends MovableObject {
+  /**
+   * @param {object} options
+   */
   constructor({
     x = 1200,
     y,
@@ -32,46 +38,40 @@ export default class ChickenBoss extends MovableObject {
       canBeInstakilled: false,
       canInstakillOthers: false,
     });
-
     this.player = player;
     this.moveSpeed = 100;
     this.speedX = 0;
     this.speedY = 0;
     this.currentBehavior = "alert";
     this.lastAttackTime = 0;
-    this.attackCooldown = 1000; // ms
-
+    this.attackCooldown = 1000;
     this.isFlashing = false;
     this.hasTriggeredBossBar = false;
-
     this.stateMachine = new StateMachine(sprites, "alert", 6);
     this.AudioHub.playOne("CHICKENBOSS_SOUNDS", "alert");
     this.loadSprites(sprites);
   }
 
+  /** @param {object} sprites */
   async loadSprites(sprites) {
     await AssetManager.loadAll(Object.values(sprites).flat());
     this.img = this.stateMachine.getFrame();
   }
 
   createFallbackImage() {
-    const canvas = document.createElement("canvas");
-    canvas.width = this.width;
-    canvas.height = this.height;
-    const ctx = canvas.getContext("2d");
-
+    const c = document.createElement("canvas");
+    c.width = this.width;
+    c.height = this.height;
+    const ctx = c.getContext("2d");
     ctx.fillStyle = "#8B0000";
     ctx.fillRect(0, 0, this.width, this.height);
-
     ctx.fillStyle = "#FFD700";
     ctx.fillRect(this.width * 0.3, 0, this.width * 0.4, this.height * 0.2);
-
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = "#FFF";
     ctx.font = "20px Arial";
     ctx.textAlign = "center";
     ctx.fillText("BOSS", this.width / 2, this.height / 2);
-
-    this.img = canvas;
+    this.img = c;
   }
 
   getHitbox() {
@@ -83,21 +83,18 @@ export default class ChickenBoss extends MovableObject {
     };
   }
 
-  isPlayerInRange(detectionRange = 2000) {
-    if (!this.player) return false;
-    const distance = Math.abs(this.player.x - this.x);
-    return distance <= detectionRange;
+  isPlayerInRange(d = 2000) {
+    return this.player ? Math.abs(this.player.x - this.x) <= d : false;
   }
 
   triggerBossEncounter() {
-    if (!this.hasTriggeredBossBar && this.world) {
-      this.world.showBossBar = true;
-      this.world.statusBars.boss?.setPercentage(
-        (this.health / (this.maxHealth || 500)) * 100
-      );
-      this.hasTriggeredBossBar = true;
-      this.AudioHub.playOne("CHICKENBOSS_SOUNDS", "approach");
-    }
+    if (this.hasTriggeredBossBar || !this.world) return;
+    this.world.showBossBar = true;
+    this.world.statusBars.boss?.setPercentage(
+      (this.health / (this.maxHealth || 500)) * 100
+    );
+    this.hasTriggeredBossBar = true;
+    this.AudioHub.playOne("CHICKENBOSS_SOUNDS", "approach");
   }
 
   updateBehavior() {
@@ -105,186 +102,135 @@ export default class ChickenBoss extends MovableObject {
       this.setStateIfNot("dead", 2, true);
       return;
     }
-
-    if (!this.player && this.world?.character) {
-      this.player = this.world.character;
-    }
+    if (!this.player) this.player = this.world?.character;
     if (!this.player) return;
-
-    const playerDistanceX = this.player.x - this.x;
-    const playerDistanceY = this.player.y - this.y;
-    const distance = Math.abs(playerDistanceX);
-
+    const dx = this.player.x - this.x,
+      dy = this.player.y - this.y,
+      dist = Math.abs(dx);
     if (this.isPlayerInRange(600)) this.triggerBossEncounter();
-
     if (this.health <= 0) {
       this.AudioHub.playOne("AMBIENT", "chickenAlarmCall");
       this.die();
       return;
     }
-
-    if (distance < 200) {
-      this.setStateIfNot("attack", 6);
+    if (dist < 200) {
       this.speedX = 0;
-
-      const now = performance.now();
-      if (now - this.lastAttackTime > this.attackCooldown) {
+      this.setStateIfNot("attack", 6);
+      if (performance.now() - this.lastAttackTime > this.attackCooldown) {
         this.performAttack();
-        this.lastAttackTime = now;
+        this.lastAttackTime = performance.now();
       }
       return;
     }
-
-    if (distance < 500) {
-      const dir = Math.sign(playerDistanceX);
+    if (dist < 500) {
+      const dir = Math.sign(dx);
       this.speedX = dir * this.moveSpeed;
       this.otherDirection = dir > 0;
-
-      const baseSpeed = 100;
-      const animSpeed = Math.max(
-        1,
-        Math.round((Math.abs(this.speedX) / baseSpeed) * 6)
+      this.setStateIfNot(
+        "walk",
+        Math.max(1, Math.round((Math.abs(this.speedX) / 100) * 6))
       );
-      this.setStateIfNot("walk", animSpeed);
-
-      if (playerDistanceY < -50 && this.isOnGround()) {
-        this.speedY = -Math.min(20, Math.abs(playerDistanceY));
+      if (dy < -50 && this.isOnGround()) {
+        this.speedY = -Math.min(20, Math.abs(dy));
         this.setStateIfNot("jump", 6);
       }
       return;
     }
-
     this.speedX = 0;
     this.setStateIfNot("alert", 6);
   }
 
-  setStateIfNot(stateName, speed = 6, forceRestart = false) {
+  setStateIfNot(state, speed = 6, force = false) {
     if (!this.stateMachine) return;
-    if (this.stateMachine.currentState !== stateName || forceRestart) {
-      this.stateMachine.setState(stateName, speed);
-      this.currentBehavior = stateName;
+    if (this.stateMachine.currentState !== state || force) {
+      this.stateMachine.setState(state, speed);
+      this.currentBehavior = state;
     }
   }
 
-  update(deltaTime, player = null) {
+  update(dt, player = null) {
     if (player) this.player = player;
     if (!this.img) return;
-
     if (this.isDead) {
       this.speedY += this.gravity;
-      this.y += this.speedY * deltaTime;
-
-      const groundLevel = this.world?.groundLevel || 200;
-      if (this.y + this.height >= groundLevel) {
-        this.y = groundLevel - this.height;
+      this.y += this.speedY * dt;
+      const g = this.world?.groundLevel || 200;
+      if (this.y + this.height >= g) {
+        this.y = g - this.height;
         this.speedY = 0;
       }
-
-      if (this.stateMachine) {
-        this.stateMachine.update(deltaTime);
-        const newFrame = this.stateMachine.getFrame();
-        if (newFrame) this.img = newFrame;
-      }
+      this.stateMachine?.update(dt);
+      const f = this.stateMachine?.getFrame();
+      if (f) this.img = f;
       return;
     }
-
-    this.updateBehavior(deltaTime);
-
+    this.updateBehavior();
     this.speedY += this.gravity;
-    this.y += this.speedY * deltaTime;
-    this.x += this.speedX * deltaTime;
-
-    const groundLevel = this.world?.groundLevel || 200;
-    if (this.y + this.height >= groundLevel) {
-      this.y = groundLevel - this.height;
+    this.y += this.speedY * dt;
+    this.x += this.speedX * dt;
+    const g = this.world?.groundLevel || 200;
+    if (this.y + this.height >= g) {
+      this.y = g - this.height;
       this.speedY = 0;
     }
-
-    const levelStartX = 0;
-    const levelEndX = this.world?.level?.endX || 4000;
-    this.x = Math.max(levelStartX, Math.min(levelEndX - this.width, this.x));
-
-    if (this.stateMachine) {
-      this.stateMachine.update(deltaTime);
-      const newFrame = this.stateMachine.getFrame();
-      if (newFrame) this.img = newFrame;
-    }
-
-    if (this.hasTriggeredBossBar && this.world?.statusBar) {
-      this.world.statusBar.updateBossHealth(this.health);
-    }
+    const l0 = 0,
+      l1 = this.world?.level?.endX || 4000;
+    this.x = Math.max(l0, Math.min(l1 - this.width, this.x));
+    this.stateMachine?.update(dt);
+    const f = this.stateMachine?.getFrame();
+    if (f) this.img = f;
+    if (this.hasTriggeredBossBar)
+      this.world?.statusBar?.updateBossHealth(this.health);
   }
 
   performAttack() {
     this.setState("attack", 6, true);
-
     if (this.player && Math.abs(this.player.x - this.x) < 100) {
-      if (typeof this.player.getDamage === "function") {
+      if (typeof this.player.getDamage === "function")
         this.player.getDamage(this);
-      } else if (this.player.health !== undefined) {
+      else if (this.player.health !== undefined)
         this.player.health = Math.max(0, this.player.health - this.strength);
-      }
     }
-
-    const attackDuration = this.stateMachine.getAnimationDuration
-      ? this.stateMachine.getAnimationDuration("attack")
-      : 1000;
-
+    const dur = this.stateMachine.getAnimationDuration?.("attack") || 1000;
     setTimeout(() => {
       if (!this.isDead) this.setState("alert", 3);
-    }, attackDuration);
+    }, dur);
   }
 
-  getDamage(source) {
+  getDamage(src) {
     if (this.isDead) return;
-
-    super.getDamage(source);
-
-    if (!this.isDead) {
-      this.setState("hurt", 8);
-      this.isFlashing = true;
-
-      if (this.world?.statusBars?.boss) {
-        const percentage = (this.health / (this.maxHealth || 500)) * 100;
-        this.world.statusBars.boss.setPercentage(percentage);
-      }
-
-      setTimeout(() => {
-        this.isFlashing = false;
-        if (!this.isDead) this.setState("alert", 3);
-      }, 500);
-    }
+    super.getDamage(src);
+    if (this.isDead) return;
+    this.setState("hurt", 8);
+    this.isFlashing = true;
+    if (this.world?.statusBars?.boss)
+      this.world.statusBars.boss.setPercentage(
+        (this.health / (this.maxHealth || 500)) * 100
+      );
+    setTimeout(() => {
+      this.isFlashing = false;
+      if (!this.isDead) this.setState("alert", 3);
+    }, 500);
   }
 
   die() {
     if (this.isDead) return;
-
     super.die();
     this.isDead = true;
     this.setState("dead", 2, true);
     this.speedX = 0;
     this.currentBehavior = "dead";
-
-    if (this.world?.statusBar) {
-      this.world.statusBar.hideBossBar();
-    }
-
+    this.world?.statusBar?.hideBossBar();
     this.destroy();
-
-    if (window.showVictory) {
-      window.showVictory();
-    }
-
-    if (this.world && typeof this.world.onBossDefeated === "function") {
-      this.world.onBossDefeated();
-    }
+    window.showVictory?.();
+    this.world?.onBossDefeated?.();
   }
 
-  setState(stateName, speed = 10, forceRestart = false) {
+  setState(state, speed = 10, force = false) {
     if (!this.stateMachine) return;
-    if (this.stateMachine.currentState !== stateName || forceRestart) {
-      this.stateMachine.setState(stateName, speed);
-      this.currentBehavior = stateName;
+    if (this.stateMachine.currentState !== state || force) {
+      this.stateMachine.setState(state, speed);
+      this.currentBehavior = state;
     }
   }
 

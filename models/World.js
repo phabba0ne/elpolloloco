@@ -7,6 +7,9 @@ import AudioHub from "../services/AudioHub.js";
 
 export default class World {
   camera_x = 0;
+  stompCombo = 0;
+  stompTimer = 0;
+  stompDisplayDuration = 1200;
 
   constructor({ canvas, keyboard, level, character } = {}) {
     if (!canvas || !keyboard || !level || !character)
@@ -16,33 +19,24 @@ export default class World {
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
     this.level = level;
-    this.groundLevel = this.canvas.height - 80;
     this.character = character;
+    this.groundLevel = canvas.height - 80;
 
     this.enemies = level.enemies;
     this.clouds = level.clouds;
     this.backgrounds = level.backgrounds;
-
     this.movableObjects = [];
-    this.stompCombo = 0;
-    this.stompTimer = 0;
-    this.stompDisplayDuration = 1200; // ms
     this.stompPopups = [];
 
-    this.items = new ItemSpawner({
-      world: this,
-      coinCount: 100,
-      salsaCount: 10,
-    });
+    this.items = new ItemSpawner({ world: this, coinCount: 100, salsaCount: 10 });
 
     this.character.world = this;
     this.character.otherDirection = true;
-    this.character.type = "character";
 
     this.enemies.forEach((enemy) => {
       enemy.otherDirection = false;
-      enemy.type = "enemy";
       enemy.world = this;
+      enemy.type = "enemy";
       if (enemy.subtype === "chickenBoss") enemy.player = this.character;
     });
 
@@ -62,48 +56,22 @@ export default class World {
     const barWidth = 120;
     const barHeight = 40;
     const topY = 10;
+    let x = spacing;
 
-    let currentX = spacing;
+    const addBar = (sprites) => {
+      const bar = new StatusBar({ x, y: topY, width: barWidth, height: barHeight, sprites });
+      x += barWidth + spacing;
+      return bar;
+    };
 
-    // Health Bar
-    this.statusBars.health = new StatusBar({
-      x: currentX,
-      y: topY,
-      width: barWidth,
-      height: barHeight,
-      sprites: AssetManager.STATUSBARS_PEPE.healthOrange,
-    });
-
-    currentX += barWidth + spacing;
-
-    // Salsa Bar
-    this.statusBars.salsa = new StatusBar({
-      x: currentX,
-      y: topY,
-      width: barWidth,
-      height: barHeight,
-      sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
-    });
-
-    currentX += barWidth + spacing;
-
-    // Coins Bar
-    this.statusBars.coins = new StatusBar({
-      x: currentX,
-      y: topY,
-      width: barWidth,
-      height: barHeight,
-      sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
-    });
-
-    // Boss Bar
-    const bossBarWidth = 300;
-    const bossBarHeight = 70;
+    this.statusBars.health = addBar(AssetManager.STATUSBARS_PEPE.healthOrange);
+    this.statusBars.salsa = addBar(AssetManager.STATUSBARS_PEPE.bottleOrange);
+    this.statusBars.coins = addBar(AssetManager.STATUSBARS_PEPE.coinOrange);
     this.statusBars.boss = new StatusBar({
       x: this.canvas.width / 2,
       y: topY,
-      width: bossBarWidth,
-      height: bossBarHeight,
+      width: 300,
+      height: 70,
       sprites: AssetManager.STATUSBARS_CHICKENBOSS,
     });
   }
@@ -112,28 +80,24 @@ export default class World {
     this.movableObjects.push(obj);
   }
 
-  getVisibleEnemies() {
-    const margin = 200;
+  getVisibleEnemies(margin = 200) {
     const left = -this.camera_x - margin;
     const right = -this.camera_x + this.canvas.width + margin;
     return this.enemies.filter((e) => e.x + e.width > left && e.x < right);
   }
 
   update(deltaTime) {
-    const visibleEnemies = this.getVisibleEnemies();
+    const enemies = this.getVisibleEnemies();
 
-    // Stomp Combo Timer
     if (this.stompTimer > 0) {
       this.stompTimer -= deltaTime * 1000;
       if (this.stompTimer <= 0) this.stompCombo = 0;
     }
 
-    // Update stompPopups
     this.stompPopups.forEach((p) => p.update(deltaTime));
     this.stompPopups = this.stompPopups.filter((p) => !p.isExpired);
 
-    // Character collisions
-    this.character.checkCollisions(visibleEnemies, deltaTime);
+    this.character.checkCollisions(enemies, deltaTime);
 
     let moving = false,
       moveDir = 0;
@@ -148,69 +112,26 @@ export default class World {
       this.character.otherDirection = true;
     }
 
-    // Character actions
     if (this.keyboard.attack) this.character.throwSalsa();
 
-    // Movable objects (e.g., thrown salsa)
     this.movableObjects = this.movableObjects.filter((obj) => {
-      obj.update(deltaTime, this.enemies);
-
-      visibleEnemies.forEach((enemy) => {
-        const salsaHitbox = {
-          x: obj.x,
-          y: obj.y,
-          width: obj.width,
-          height: obj.height,
-        };
-        const enemyHitbox = enemy.getHitbox();
-
-        if (
-          salsaHitbox.x < enemyHitbox.x + enemyHitbox.width &&
-          salsaHitbox.x + salsaHitbox.width > enemyHitbox.x &&
-          salsaHitbox.y < enemyHitbox.y + enemyHitbox.height &&
-          salsaHitbox.y + salsaHitbox.height > enemyHitbox.y
-        ) {
-          if (enemy.subtype === "chickenBoss") {
-            enemy.getDamage({ strength: 20 });
-          } else {
-            enemy.isDead = true;
-          }
-
-          this.stompCombo++;
-          this.stompTimer = this.stompDisplayDuration;
-          this.stompX = enemy.x + enemy.width / 2;
-          this.stompY = enemy.y;
-
-          obj.hasHitAnimationFinished = true;
-        }
-      });
-
+      obj.update(deltaTime, enemies);
       return !obj.hasHitAnimationFinished;
     });
 
-    // Collect items
-    this.items.coins.forEach((coin) => coin.tryCollect(this.character));
+    this.items.coins.forEach((c) => c.tryCollect(this.character));
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
-    // Update character & enemies
     this.character.update(deltaTime, moving, this.keyboard.jump, moveDir);
-    visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
+    enemies.forEach((e) => e.update(deltaTime, this.character));
     this.items.update(deltaTime);
+    this.clouds.forEach((c) => c.moveLeft(deltaTime));
 
-    // Clouds
-    this.updateClouds(deltaTime);
-
-    // Character stats
     this.updateGoldDisplay(deltaTime);
     this.updateCharacterStats();
 
-    // Camera follows character
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
-  }
-
-  updateClouds(deltaTime) {
-    this.clouds.forEach((c) => c.moveLeft(deltaTime));
   }
 
   updateCharacterStats() {
@@ -218,64 +139,20 @@ export default class World {
     const maxHealth = 100,
       maxCoins = 100,
       maxSalsas = 5;
-
-    this.statusBars.health?.setPercentage(
-      (this.character.health / maxHealth) * 100
-    );
-    this.statusBars.coins?.setPercentage(
-      (this.character.gold / maxCoins) * 100
-    );
-    this.statusBars.salsa?.setPercentage(
-      (this.character.salsas / maxSalsas) * 100
-    );
+    this.statusBars.health?.setPercentage((this.character.health / maxHealth) * 100);
+    this.statusBars.coins?.setPercentage((this.character.gold / maxCoins) * 100);
+    this.statusBars.salsa?.setPercentage((this.character.salsas / maxSalsas) * 100);
   }
 
   updateGoldDisplay(deltaTime) {
     if (!this.character) return;
     const speed = 100 * deltaTime;
-    if (this.character.displayGold < this.character.gold) {
-      this.character.displayGold += speed;
-      if (this.character.displayGold > this.character.gold)
-        this.character.displayGold = this.character.gold;
-    }
-  }
-
-  onCharacterSpotted(boss) {
-    this.showBossBar = true;
-    this.statusBars.boss?.setPercentage((boss.health / boss.maxHealth) * 100);
-  }
-
-  onBossDefeated() {
-    this.showBossBar = false;
+    this.character.displayGold = Math.min(this.character.gold, this.character.displayGold + speed);
   }
 
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Stomp combo
-    if (this.stompCombo > 0) {
-      this.ctx.save();
-      this.ctx.font = "32px 'Boogaloo'";
-      this.ctx.fillStyle = "yellow";
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "bottom";
-      this.ctx.fillText(`x${this.stompCombo}`, this.stompX, this.stompY - 10);
-      this.ctx.restore();
-    }
-
-    // Backgrounds (parallax)
-    this.backgrounds.forEach((bg) => {
-      if (!bg.img?.complete) return;
-      const bgWidth = bg.width || 1440;
-      const offset = Math.floor((this.camera_x * bg.speedFactor) % bgWidth);
-      this.ctx.drawImage(bg.img, offset, bg.y, bgWidth, bg.height);
-      if (offset > 0)
-        this.ctx.drawImage(bg.img, offset - bgWidth, bg.y, bgWidth, bg.height);
-      if (offset < 0)
-        this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
-    });
-
-    // Game objects
+    this.drawBackgrounds();
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
     this.addObjectsToMap(this.clouds);
@@ -284,37 +161,43 @@ export default class World {
     this.addObjectsToMap(this.movableObjects);
     this.items.draw(this.ctx);
     this.ctx.restore();
+    this.drawUI();
+  }
 
-    // Status bars
+  drawBackgrounds() {
+    this.backgrounds.forEach((bg) => {
+      if (!bg.img?.complete) return;
+      const w = bg.width || 1440;
+      const offset = Math.floor((this.camera_x * bg.speedFactor) % w);
+      this.ctx.drawImage(bg.img, offset, bg.y, w, bg.height);
+      if (offset > 0) this.ctx.drawImage(bg.img, offset - w, bg.y, w, bg.height);
+      if (offset < 0) this.ctx.drawImage(bg.img, offset + w, bg.y, w, bg.height);
+    });
+  }
+
+  drawUI() {
     Object.values(this.statusBars).forEach((bar) => {
       if (bar && (bar !== this.statusBars.boss || this.showBossBar)) bar.draw(this.ctx);
     });
 
-    // Coins display
-    if (this.character) {
-      const bar = this.statusBars.health;
-      const x = bar ? bar.x : 20;
-      const y = bar ? bar.y + bar.height + 10 : 50;
-      const iconSize = 32;
+    if (!this.character) return;
+    const bar = this.statusBars.health;
+    const x = bar ? bar.x : 20;
+    const y = bar ? bar.y + bar.height + 10 : 50;
+    const size = 32;
 
-      this.ctx.save();
-      this.ctx.font = "32px 'Boogaloo'";
-      this.ctx.fillStyle = "yellow";
-      this.ctx.textAlign = "left";
-      this.ctx.textBaseline = "middle";
+    this.ctx.save();
+    this.ctx.font = "32px 'Boogaloo'";
+    this.ctx.fillStyle = "yellow";
+    this.ctx.textAlign = "left";
+    this.ctx.textBaseline = "middle";
 
-      const coinImg = AssetManager.getImage(
-        AssetManager.STATUSBARS_PEPE.icons[0]
-      );
-      if (coinImg) this.ctx.drawImage(coinImg, x, y, iconSize, iconSize);
+    const coinImg = AssetManager.getImage(AssetManager.STATUSBARS_PEPE.icons[0]);
+    if (coinImg) this.ctx.drawImage(coinImg, x, y, size, size);
+    this.ctx.fillText(`x ${Math.floor(this.character.displayGold)}`, x + size + 8, y + size / 2);
 
-      const textX = x + iconSize + 8;
-      const textY = y + iconSize / 2;
-      this.ctx.fillText(`x ${Math.floor(this.character.displayGold)}`, textX, textY);
-
-      this.stompPopups.forEach((p) => p.draw(this.ctx));
-      this.ctx.restore();
-    }
+    this.stompPopups.forEach((p) => p.draw(this.ctx));
+    this.ctx.restore();
   }
 
   addObjectsToMap(objects) {
@@ -323,15 +206,13 @@ export default class World {
 
   addToMap(mo) {
     if (!mo) return;
-    if (mo.img instanceof Image && mo.img.complete && mo.img.naturalWidth) {
+    if (mo.img?.complete) {
       this.ctx.save();
       if (mo instanceof Character && !mo.otherDirection) {
         this.ctx.translate(mo.x + mo.width, mo.y);
         this.ctx.scale(-1, 1);
         this.ctx.drawImage(mo.img, 0, 0, mo.width, mo.height);
-      } else {
-        this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
-      }
+      } else this.ctx.drawImage(mo.img, mo.x, mo.y, mo.width, mo.height);
       this.ctx.restore();
     } else {
       this.ctx.fillStyle = "magenta";

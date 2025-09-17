@@ -1,80 +1,99 @@
 import DrawableObject from "./DrawableObject.js";
 import AudioHub from "../services/AudioHub.js";
 
+/**
+ * Movable game object with physics, collisions and state machine
+ */
 export default class MovableObject extends DrawableObject {
+  /**
+   * @param {object} options
+   * @param {number} [options.x=0]
+   * @param {number} [options.y=0]
+   * @param {number} [options.width=100]
+   * @param {number} [options.height=100]
+   * @param {number} [options.speedX=0]
+   * @param {number} [options.speedY=0]
+   * @param {number} [options.gravity=0]
+   * @param {boolean} [options.otherDirection=false]
+   * @param {number} [options.health]
+   * @param {number} [options.maxHealth=options.health]
+   * @param {number} [options.strength]
+   * @param {number} [options.collisionInterval=1000]
+   * @param {string} [options.type="movable"]
+   * @param {object} [options.world]
+   * @param {number} [options.maxSpeedX=Infinity]
+   * @param {number} [options.maxSpeedY=Infinity]
+   * @param {number} [options.friction=0]
+   */
   constructor(options = {}) {
     super(options);
-    this.speedX = options.speedX || 0;
-    this.speedY = options.speedY || 0;
-    this.gravity = options.gravity || 0;
-    this.otherDirection = options.otherDirection || false;
-    this.health = options.health;
-    this.maxHealth = options.maxHealth || this.health;
+    const {
+      speedX = 0,
+      speedY = 0,
+      gravity = 0,
+      otherDirection = false,
+      health,
+      maxHealth = health,
+      strength,
+      collisionInterval = 1000,
+      world = null,
+      type = "movable",
+      id = `${type}_${Math.random().toString(36).substr(2, 9)}`,
+      maxSpeedX = Infinity,
+      maxSpeedY = Infinity,
+      friction = 0,
+    } = options;
+    this.speedX = speedX;
+    this.speedY = speedY;
+    this.gravity = gravity;
+    this.otherDirection = otherDirection;
+    this.health = health;
+    this.maxHealth = maxHealth;
+    this.strength = strength;
+    this.collisionInterval = collisionInterval;
+    this.world = world;
+    this.type = type;
+    this.id = id;
+    this.maxSpeedX = maxSpeedX;
+    this.maxSpeedY = maxSpeedY;
+    this.friction = friction;
+    this.AudioHub = AudioHub;
     this.isDead = false;
-    this.strength = options.strength;
     this.active = false;
-    this.collisionInterval = options.collisionInterval || 1000;
     this.lastCollidedWith = null;
     this.stateMachine = null;
-    this.AudioHub = AudioHub;
-    this.world = options.world || null;
-    this.type = options.type || "movable";
-    this.id =
-      options.id || `${this.type}_${Math.random().toString(36).substr(2, 9)}`;
-    this.maxSpeedX = options.maxSpeedX || Infinity;
-    this.maxSpeedY = options.maxSpeedY || Infinity;
-    this.friction = options.friction || 0;
   }
 
+  /** Update physics: gravity, friction, speed and position */
   updatePhysics(deltaTime) {
-    if (this.isDead && this.stateMachine?.currentState === "dead") {
-      return;
-    }
+    if (this.isDead && this.stateMachine?.currentState === "dead") return;
     if (this.gravity > 0) {
-      this.speedY = Math.min(
-        this.speedY + this.gravity * deltaTime,
-        this.maxSpeedY
-      );
+      this.speedY = Math.min(this.speedY + this.gravity * deltaTime, this.maxSpeedY);
     }
-
     if (this.friction > 0) {
-      const frictionForce = this.friction * deltaTime;
-      if (this.speedX > 0) {
-        this.speedX = Math.max(0, this.speedX - frictionForce);
-      } else if (this.speedX < 0) {
-        this.speedX = Math.min(0, this.speedX + frictionForce);
-      }
+      const f = this.friction * deltaTime;
+      this.speedX = this.speedX > 0 ? Math.max(0, this.speedX - f) : Math.min(0, this.speedX + f);
     }
-
-    this.speedX = Math.max(
-      -this.maxSpeedX,
-      Math.min(this.maxSpeedX, this.speedX)
-    );
-    this.speedY = Math.max(
-      -this.maxSpeedY,
-      Math.min(this.maxSpeedY, this.speedY)
-    );
-
+    this.speedX = Math.max(-this.maxSpeedX, Math.min(this.maxSpeedX, this.speedX));
+    this.speedY = Math.max(-this.maxSpeedY, Math.min(this.maxSpeedY, this.speedY));
     this.x += this.speedX * deltaTime;
     this.y += this.speedY * deltaTime;
-
-    if (this.world && this.world.groundLevel !== undefined) {
-      if (this.y + this.height > this.world.groundLevel) {
-        this.y = this.world.groundLevel - this.height;
-        this.speedY = 0;
-        this.onGroundHit?.();
-      }
+    if (this.world?.groundLevel !== undefined && this.y + this.height > this.world.groundLevel) {
+      this.y = this.world.groundLevel - this.height;
+      this.speedY = 0;
+      this.onGroundHit?.();
     }
   }
 
+  /** Update state machine and set current frame */
   updateStateMachine(deltaTime) {
     if (!this.stateMachine) return;
-
     this.stateMachine.update(deltaTime);
     const frame = this.stateMachine.getFrame();
     if (frame) this.img = frame;
   }
 
+  /** Get current hitbox rectangle */
   getHitbox() {
     return {
       x: this.x + (this.hitboxOffsetX || 0),
@@ -84,16 +103,12 @@ export default class MovableObject extends DrawableObject {
     };
   }
 
+  /** Check collisions with objects */
   checkCollisions(objects, deltaTime) {
     if (this.isDead || !Array.isArray(objects)) return null;
-
-    if (this.collisionCooldown > 0) {
-      this.collisionCooldown -= deltaTime * 1000;
-    }
-
+    if (this.collisionCooldown > 0) this.collisionCooldown -= deltaTime * 1000;
     for (const obj of objects) {
       if (!obj || obj === this || obj.isDead) continue;
-
       if (this.isCollidingWith(obj)) {
         if (this.collisionCooldown <= 0 || this.lastCollidedWith !== obj) {
           this.handleCollision(obj, deltaTime);
@@ -106,122 +121,100 @@ export default class MovableObject extends DrawableObject {
     return null;
   }
 
+  /** Axis-aligned bounding box collision */
   isCollidingWith(obj) {
-    const a = this.getHitbox();
-    const b = obj.getHitbox();
-    return (
-      a.x < b.x + b.width &&
-      a.x + a.width > b.x &&
-      a.y < b.y + b.height &&
-      a.y + a.height > b.y
-    );
+    const a = this.getHitbox(), b = obj.getHitbox();
+    return a.x < b.x + b.width && a.x + a.width > b.x &&
+           a.y < b.y + b.height && a.y + a.height > b.y;
   }
 
+  /** Handle collision logic with another object */
   handleCollision(obj, deltaTime) {
     if (this.type === "character" && obj.type === "enemy") this.getDamage(obj);
     if (this.type === "enemy" && obj.type === "character") this.doDamage(obj);
-
     this.onCollision(obj, deltaTime);
-
-    if (obj.onCollision && typeof obj.onCollision === "function") {
-      obj.onCollision(this, deltaTime);
-    }
+    if (typeof obj.onCollision === "function") obj.onCollision(this, deltaTime);
   }
 
+  /** Apply damage from source */
   getDamage(source, amount = null) {
     if (!source || this.isDead) return;
-
-    const damage = amount !== null ? amount : source.strength || 10;
-
+    const damage = amount ?? source.strength ?? 10;
     this.health = Math.max(0, this.health - damage);
-
-    if (this.health <= 0) {
-      this.die();
-    } else {
-      this.onDamage(source, damage);
-    }
+    this.health <= 0 ? this.die() : this.onDamage(source, damage);
   }
 
+  /** Deal damage to a target */
   doDamage(target, amount = null) {
     if (!target || this.isDead) return;
-
-    if (typeof target.getDamage === "function") {
-      target.getDamage(this, amount);
-    }
+    if (typeof target.getDamage === "function") target.getDamage(this, amount);
   }
 
+  /** Heal object */
   heal(amount) {
     if (this.isDead) return;
-
-    const oldHealth = this.health;
     this.health = Math.min(this.maxHealth, this.health + amount);
-
     this.onHeal?.(amount);
   }
 
+  /** Kill object */
   die() {
     if (this.isDead) return;
-
     this.isDead = true;
     this.health = 0;
     this.speedX = 0;
-
     if (this.stateMachine?.sprites?.dead) {
       this.stateMachine.setState("dead");
       this.AudioHub.stopAll();
     }
-
     this.onDeath();
   }
 
+  /** Revive object */
   revive(health = null) {
     if (!this.isDead) return;
-
     this.isDead = false;
-    this.health = health !== null ? health : this.maxHealth;
+    this.health = health ?? this.maxHealth;
     this.collisionCooldown = 0;
     this.lastCollidedWith = null;
-
-    if (this.stateMachine?.sprites?.idle) {
-      this.stateMachine.setState("idle");
-    }
+    if (this.stateMachine?.sprites?.idle) this.stateMachine.setState("idle");
     this.onRevive?.();
   }
 
+  /** Check if object is on ground */
   isOnGround() {
-    if (!this.world || this.world.groundLevel === undefined) return false;
-    return this.y + this.height >= this.world.groundLevel - 1;
+    return this.world?.groundLevel !== undefined &&
+           this.y + this.height >= this.world.groundLevel - 1;
   }
 
+  /** Apply external force */
   applyForce(forceX, forceY) {
-    if (this.isDead) return;
-
-    this.speedX += forceX;
-    this.speedY += forceY;
+    if (!this.isDead) {
+      this.speedX += forceX;
+      this.speedY += forceY;
+    }
   }
 
+  /** Get health percentage (0..1) */
   getHealthPercentage() {
     return this.maxHealth > 0 ? this.health / this.maxHealth : 0;
   }
 
+  /** Update full object state */
   update(deltaTime) {
     if (this.isDead && this.stateMachine?.currentState === "dead") {
       this.updateStateMachine(deltaTime);
       return;
     }
-
     this.updatePhysics(deltaTime);
-
     if (this.world?.getVisibleObjects) {
-      const visibleObjects = this.world.getVisibleObjects();
-      this.checkCollisions(visibleObjects, deltaTime);
+      this.checkCollisions(this.world.getVisibleObjects(), deltaTime);
     }
-
     this.updateStateMachine(deltaTime);
-
     this.onUpdate?.(deltaTime);
   }
 
+  /** Hooks for subclasses */
   onCollision() {}
   onDamage() {
     if (this.type === "enemy" && this.world?.statusBar) {
@@ -230,5 +223,4 @@ export default class MovableObject extends DrawableObject {
   }
   onDeath() {}
   onGroundHit() {}
-
 }
