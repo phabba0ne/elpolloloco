@@ -1,35 +1,65 @@
-export default class OnscreenControls {
-  constructor() {
-    this.container = document.createElement("div");
-    this.container.id = "onscreen-controls";
-    document.body.appendChild(this.container);
+const GAME_OVER_IMAGES = {
+  over: [
+    "assets/img/youWonYouLost/gameOver.png",
+    "assets/img/youWonYouLost/gameOverA.png",
+  ],
+  win: [
+    "assets/img/youWonYouLost/youWinA.png",
+    "assets/img/youWonYouLost/youWinB.png",
+  ],
+  won: [
+    "assets/img/youWonYouLost/youWonA.png",
+    "assets/img/youWonYouLost/youWonB.png",
+  ],
+  lost: [
+    "assets/img/youWonYouLost/youLost.png",
+    "assets/img/youWonYouLost/youLostA.png",
+  ],
+};
 
-    this.createButton("left", "◀", "ArrowLeft");
-    this.createButton("right", "▶", "ArrowRight");
-    this.createButton("up", "▲", "ArrowUp");
-    this.createButton("down", "▼", "ArrowDown");
-    this.createButton("jump", "⭡", "Space");
-    this.createButton("attack", "⚔", "KeyF");
+class OnscreenControls {
+  constructor() {
+    this.setupControls();
   }
 
-  createButton(name, label, keyCode) {
-    const btn = document.createElement("button");
-    btn.className = `btn-${name}`;
-    btn.textContent = label;
-    this.container.appendChild(btn);
+  setupControls() {
+    const buttons = document.querySelectorAll('#onscreen-controls button');
+    
+    buttons.forEach(button => {
+      let keyCode;
+      
+      if (button.classList.contains('btn-left')) keyCode = 'ArrowLeft';
+      else if (button.classList.contains('btn-right')) keyCode = 'ArrowRight';
+      else if (button.classList.contains('btn-up')) keyCode = 'ArrowUp';
+      else if (button.classList.contains('btn-down')) keyCode = 'ArrowDown';
+      else if (button.classList.contains('btn-jump')) keyCode = 'Space';
+      else if (button.classList.contains('btn-attack')) keyCode = 'KeyF';
 
-    // simulate keydown / keyup
-    const trigger = (type) => {
-      document.dispatchEvent(new KeyboardEvent(type, { code: keyCode }));
-    };
+      if (keyCode) {
+        const trigger = (type) => {
+          document.dispatchEvent(new KeyboardEvent(type, { code: keyCode }));
+        };
 
-    btn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      trigger("keydown");
-    });
-    btn.addEventListener("touchend", (e) => {
-      e.preventDefault();
-      trigger("keyup");
+        button.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          trigger("keydown");
+        });
+
+        button.addEventListener("touchend", (e) => {
+          e.preventDefault();
+          trigger("keyup");
+        });
+
+        button.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          trigger("keydown");
+        });
+
+        button.addEventListener("mouseup", (e) => {
+          e.preventDefault();
+          trigger("keyup");
+        });
+      }
     });
   }
 }

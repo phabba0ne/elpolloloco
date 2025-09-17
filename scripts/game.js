@@ -4,6 +4,11 @@ import level1 from "../levels/level1.js";
 import Character from "../models/Character.js";
 import AssetManager from "../services/AssetManager.js";
 import AudioHub from "../services/AudioHub.js";
+import IntervalHub from "../services/IntervalHub.js";
+
+// Make systems globally available for pause/restart
+window.IntervalHub = IntervalHub;
+window.AudioHub = AudioHub;
 
 let world;
 let keyboard;
@@ -39,15 +44,24 @@ async function init() {
 }
 
 function setupStartScreen() {
+  // Add mute button to start screen
+  const muteButton = createMuteButton();
+
   const startGameHandler = async () => {
     if (!gameStarted && startScreen.isVisible) {
+      // Apply mute state from localStorage instantly
+      const isMuted = localStorage.getItem("gameMuted") === "true";
+      AudioHub.setMute(isMuted);
+
+      if (!isMuted) {
         AudioHub.stopOne("AMBIENT", "titleSong");
-      // User hat interagiert → jetzt dürfen wir Sound abspielen
-      AudioHub.playOne("AMBIENT", "levelOneSong");
-      AudioHub.playOne("AMBIENT", "wind");
+        AudioHub.playOne("AMBIENT", "levelOneSong");
+        AudioHub.playOne("AMBIENT", "wind");
+      }
 
       startGame();
       document.removeEventListener("keydown", startGameHandler);
+      muteContainer.remove(); // Remove entire container when game starts
     }
   };
 
@@ -225,7 +239,6 @@ function startGame() {
     level,
     character,
   });
-
 }
 
 // Animation loop for start screen
@@ -241,3 +254,172 @@ window.addEventListener("load", () => {
   init();
   gameLoop();
 });
+
+function createMuteButton() {
+  // Create container for mute controls
+  const muteContainer = document.createElement('div');
+  muteContainer.id = 'muteContainer';
+  muteContainer.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+  `;
+
+  // Volume advice text
+  const adviceText = document.createElement('div');
+  adviceText.style.cssText = `
+    color: #FFD700;
+    font-family: 'Boogaloo', sans-serif;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  `;
+  adviceText.textContent = '🎵 Adjust your device volume first! 🎵';
+
+  // Mute button
+  const muteButton = document.createElement('button');
+  muteButton.id = 'muteButton';
+  muteButton.style.cssText = `
+    width: 80px;
+    height: 80px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+    font-size: 32px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    border: 3px solid #FFD700;
+    transition: all 0.2s ease;
+  `;
+
+  // Hover effects
+  muteButton.addEventListener('mouseenter', () => {
+    muteButton.style.background = 'rgba(255, 215, 0, 0.4)';
+    muteButton.style.transform = 'scale(1.1)';
+  });
+
+  muteButton.addEventListener('mouseleave', () => {
+    muteButton.style.background = 'rgba(255, 215, 0, 0.2)';
+    muteButton.style.transform = 'scale(1)';
+  });
+
+  // Status text
+  const statusText = document.createElement('div');
+  statusText.id = 'muteStatus';
+  statusText.style.cssText = `
+    color: white;
+    font-family: 'Boogaloo', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  `;
+
+  // Set initial state (muted by default)
+  const isMuted = localStorage.getItem('gameMuted') !== 'false';
+  if (localStorage.getItem('gameMuted') === null) {
+    localStorage.setItem('gameMuted', 'true');
+  }
+
+  updateMuteButtonAppearance(muteButton, statusText, isMuted);
+  
+  // Apply mute state immediately
+  if (window.AudioHub) {
+    AudioHub.setMute(isMuted);
+  }
+
+  // Click handler with instant feedback
+  muteButton.addEventListener('click', () => {
+    const currentMuted = localStorage.getItem('gameMuted') === 'true';
+    const newMuted = !currentMuted;
+    
+    // Update localStorage immediately
+    localStorage.setItem('gameMuted', newMuted.toString());
+    
+    // Apply mute state instantly
+    if (window.AudioHub) {
+      AudioHub.setMute(newMuted);
+    }
+    
+    // Update visual feedback instantly
+    updateMuteButtonAppearance(muteButton, statusText, newMuted);
+    
+    // Visual feedback for the click
+    muteButton.style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      muteButton.style.transform = 'scale(1)';
+    }, 100);
+  });
+
+  // Assemble container
+  muteContainer.appendChild(adviceText);
+  muteContainer.appendChild(muteButton);
+  muteContainer.appendChild(statusText);
+  
+  document.body.appendChild(muteContainer);
+  return muteContainer; // Return container instead of just button
+}
+
+// Update the appearance function
+function updateMuteButtonAppearance(button, statusText, isMuted) {
+  if (isMuted) {
+    button.textContent = '🔇';
+    button.title = 'Click to Enable Audio';
+    statusText.textContent = 'Audio: OFF';
+    statusText.style.color = '#FF6B6B';
+  } else {
+    button.textContent = '🔊';
+    button.title = 'Click to Mute Audio';
+    statusText.textContent = 'Audio: ON';
+    statusText.style.color = '#00FF88';
+  }
+}
+// Add this restart function for performance
+window.restartLevel = () => {
+  // Stop current world and systems
+  if (world) {
+    if (world.intervalHub) world.intervalHub.stop();
+  }
+
+  // Reset character state
+  if (character) {
+    character.health = 100;
+    character.gold = 0;
+    character.salsas = 0;
+    character.x = 200;
+    character.y = 370;
+  }
+
+  // Recreate world with fresh state
+  character = new Character({ x: 200, y: 370 });
+  world = new World({
+    canvas,
+    keyboard,
+    level,
+    character,
+  });
+
+  // Apply current mute setting
+  const isMuted = localStorage.getItem("gameMuted") === "true";
+  AudioHub.setMute(isMuted);
+
+  if (!isMuted) {
+    AudioHub.playOne("AMBIENT", "levelOneSong");
+    AudioHub.playOne("AMBIENT", "wind");
+  }
+};
+
+// Make gameStarted accessible globally
+window.gameStarted = gameStarted;

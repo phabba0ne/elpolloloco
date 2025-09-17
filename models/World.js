@@ -8,7 +8,7 @@ import AudioHub from "../services/AudioHub.js";
 export default class World {
   camera_x = 0;
 
-  constructor({ canvas, keyboard, level, character} = {}) {
+  constructor({ canvas, keyboard, level, character } = {}) {
     if (!canvas || !keyboard || !level || !character)
       throw new Error("World requires { canvas, keyboard, level, character }");
 
@@ -16,7 +16,7 @@ export default class World {
     this.ctx = canvas.getContext("2d");
     this.keyboard = keyboard;
     this.level = level;
-    this.groundLevel = this.canvas.height-80;
+    this.groundLevel = this.canvas.height - 80;
     this.character = character;
 
     this.enemies = level.enemies;
@@ -25,7 +25,7 @@ export default class World {
 
     this.movableObjects = [];
     this.stompCombo = 0;
-    this.stompTimer = 100;
+    this.stompTimer = 0;
     this.stompDisplayDuration = 1200; // ms
     this.stompPopups = [];
 
@@ -64,6 +64,8 @@ export default class World {
     const topY = 10;
 
     let currentX = spacing;
+
+    // Health Bar
     this.statusBars.health = new StatusBar({
       x: currentX,
       y: topY,
@@ -73,6 +75,8 @@ export default class World {
     });
 
     currentX += barWidth + spacing;
+
+    // Salsa Bar
     this.statusBars.salsa = new StatusBar({
       x: currentX,
       y: topY,
@@ -81,6 +85,18 @@ export default class World {
       sprites: AssetManager.STATUSBARS_PEPE.bottleOrange,
     });
 
+    currentX += barWidth + spacing;
+
+    // Coins Bar
+    this.statusBars.coins = new StatusBar({
+      x: currentX,
+      y: topY,
+      width: barWidth,
+      height: barHeight,
+      sprites: AssetManager.STATUSBARS_PEPE.coinOrange,
+    });
+
+    // Boss Bar
     const bossBarWidth = 300;
     const bossBarHeight = 70;
     this.statusBars.boss = new StatusBar({
@@ -93,7 +109,6 @@ export default class World {
   }
 
   addMovableObject(obj) {
-    if (!this.movableObjects) this.movableObjects = [];
     this.movableObjects.push(obj);
   }
 
@@ -105,22 +120,23 @@ export default class World {
   }
 
   update(deltaTime) {
+    const visibleEnemies = this.getVisibleEnemies();
 
+    // Stomp Combo Timer
     if (this.stompTimer > 0) {
       this.stompTimer -= deltaTime * 1000;
-      if (this.stompTimer <= 0) {
-        this.stompCombo = 0;
-      }
+      if (this.stompTimer <= 0) this.stompCombo = 0;
     }
 
-    this.stompPopups.forEach((p) => p.update(delta));
+    // Update stompPopups
+    this.stompPopups.forEach((p) => p.update(deltaTime));
     this.stompPopups = this.stompPopups.filter((p) => !p.isExpired);
-    const visibleEnemies = this.getVisibleEnemies();
+
+    // Character collisions
     this.character.checkCollisions(visibleEnemies, deltaTime);
 
     let moving = false,
       moveDir = 0;
-
     if (this.keyboard.left && this.character.x > this.level.startX) {
       moving = true;
       moveDir = -1;
@@ -132,9 +148,10 @@ export default class World {
       this.character.otherDirection = true;
     }
 
+    // Character actions
     if (this.keyboard.attack) this.character.throwSalsa();
-    this.Audi
 
+    // Movable objects (e.g., thrown salsa)
     this.movableObjects = this.movableObjects.filter((obj) => {
       obj.update(deltaTime, this.enemies);
 
@@ -171,21 +188,23 @@ export default class World {
       return !obj.hasHitAnimationFinished;
     });
 
-    if (this.stompTimer > 0) {
-      this.stompTimer -= deltaTime;
-      if (this.stompTimer <= 0) this.stompCombo = 0;
-    }
-
+    // Collect items
     this.items.coins.forEach((coin) => coin.tryCollect(this.character));
     this.items.salsas.forEach((s) => s.tryCollect(this.character));
 
+    // Update character & enemies
     this.character.update(deltaTime, moving, this.keyboard.jump, moveDir);
     visibleEnemies.forEach((e) => e.update(deltaTime, this.character));
     this.items.update(deltaTime);
+
+    // Clouds
     this.updateClouds(deltaTime);
+
+    // Character stats
     this.updateGoldDisplay(deltaTime);
     this.updateCharacterStats();
 
+    // Camera follows character
     this.camera_x = -this.character.x + this.canvas.width / 6;
     this.keyboard.update();
   }
@@ -233,6 +252,7 @@ export default class World {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Stomp combo
     if (this.stompCombo > 0) {
       this.ctx.save();
       this.ctx.font = "32px 'Boogaloo'";
@@ -243,6 +263,7 @@ export default class World {
       this.ctx.restore();
     }
 
+    // Backgrounds (parallax)
     this.backgrounds.forEach((bg) => {
       if (!bg.img?.complete) return;
       const bgWidth = bg.width || 1440;
@@ -254,6 +275,7 @@ export default class World {
         this.ctx.drawImage(bg.img, offset + bgWidth, bg.y, bgWidth, bg.height);
     });
 
+    // Game objects
     this.ctx.save();
     this.ctx.translate(this.camera_x, 0);
     this.addObjectsToMap(this.clouds);
@@ -263,11 +285,12 @@ export default class World {
     this.items.draw(this.ctx);
     this.ctx.restore();
 
+    // Status bars
     Object.values(this.statusBars).forEach((bar) => {
-      if (bar && (bar !== this.statusBars.boss || this.showBossBar))
-        bar.draw(this.ctx);
+      if (bar && (bar !== this.statusBars.boss || this.showBossBar)) bar.draw(this.ctx);
     });
 
+    // Coins display
     if (this.character) {
       const bar = this.statusBars.health;
       const x = bar ? bar.x : 20;
@@ -287,12 +310,9 @@ export default class World {
 
       const textX = x + iconSize + 8;
       const textY = y + iconSize / 2;
-      this.ctx.fillText(
-        `x ${Math.floor(this.character.displayGold)}`,
-        textX,
-        textY
-      );
-      this.stompPopups.forEach((p) => p.draw(ctx));
+      this.ctx.fillText(`x ${Math.floor(this.character.displayGold)}`, textX, textY);
+
+      this.stompPopups.forEach((p) => p.draw(this.ctx));
       this.ctx.restore();
     }
   }

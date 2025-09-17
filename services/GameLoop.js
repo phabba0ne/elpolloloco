@@ -1,156 +1,154 @@
-import AudioHub from "./AudioHub";
-
 export default class GameLoop {
-  constructor(eventBus = null) {
-   
-    this.isRunning = false;
-    this.gameLoopId = null;
-    this.deltaTime = 0;
-    this.lastTime = performance.now();
-    this.targetFPS = 60;
-    this.actualFPS = 60;
-    this.frameCount = 0;
-    this.fpsUpdateTime = 0;
-    this.eventBus = eventBus;
-    this.onUpdate = null;
-    this.onRender = null;
-    this.performanceStats = {
-      avgDeltaTime: 0,
-      minDeltaTime: Infinity,
-      maxDeltaTime: 0,
-      frameDrops: 0
-    };
-  }
-
-  /**
-   * Start the central game loop
-   * @param {Object} options - Loop options
-   */
-  start(options = {}) {
-    if (this.isRunning) return;
- this.AudioHub.playOne("AMBIENT", "levelOneSong");
-    const { onUpdate = null, onRender = null, targetFPS = 60 } = options;
+    constructor(eventBus = null) {
     
-    this.onUpdate = onUpdate;
-    this.onRender = onRender;
-    this.targetFPS = targetFPS;
-    this.isRunning = true;
-    this.lastTime = performance.now();
-    this.frameCount = 0;
-    this.fpsUpdateTime = this.lastTime;
-    
-    const loop = (currentTime) => {
-      if (!this.isRunning) return;
+      this.isRunning = false;
+      this.gameLoopId = null;
+      this.deltaTime = 0;
+      this.lastTime = performance.now();
+      this.targetFPS = 60;
+      this.actualFPS = 60;
+      this.frameCount = 0;
+      this.fpsUpdateTime = 0;
+      this.eventBus = eventBus;
+      this.onUpdate = null;
+      this.onRender = null;
+      this.performanceStats = {
+        avgDeltaTime: 0,
+        minDeltaTime: Infinity,
+        maxDeltaTime: 0,
+        frameDrops: 0
+      };
+    }
 
-      this.deltaTime = (currentTime - this.lastTime) / 1000;
-      this.lastTime = currentTime;
+    /**
+     * Start the central game loop
+     * @param {Object} options - Loop options
+     */
+    start(options = {}) {
+      if (this.isRunning) return;
+  this.AudioHub.playOne("AMBIENT", "levelOneSong");
+      const { onUpdate = null, onRender = null, targetFPS = 60 } = options;
+      
+      this.onUpdate = onUpdate;
+      this.onRender = onRender;
+      this.targetFPS = targetFPS;
+      this.isRunning = true;
+      this.lastTime = performance.now();
+      this.frameCount = 0;
+      this.fpsUpdateTime = this.lastTime;
+      
+      const loop = (currentTime) => {
+        if (!this.isRunning) return;
 
-      this.updatePerformanceStats();
+        this.deltaTime = (currentTime - this.lastTime) / 1000;
+        this.lastTime = currentTime;
 
-      if (this.onUpdate) {
-        try {
-          this.onUpdate(this.deltaTime);
-        } catch (error) {
-          console.error('Error in game update:', error);
+        this.updatePerformanceStats();
+
+        if (this.onUpdate) {
+          try {
+            this.onUpdate(this.deltaTime);
+          } catch (error) {
+            console.error('Error in game update:', error);
+          }
         }
-      }
 
-      IntervalHub.processIntervals(this.deltaTime);
+        IntervalHub.processIntervals(this.deltaTime);
 
-      if (this.onRender) {
-        try {
-          this.onRender(this.deltaTime);
-        } catch (error) {
-          console.error('Error in game render:', error);
+        if (this.onRender) {
+          try {
+            this.onRender(this.deltaTime);
+          } catch (error) {
+            console.error('Error in game render:', error);
+          }
         }
-      }
 
-      this.frameCount++;
-      if (currentTime - this.fpsUpdateTime >= 1000) {
-        this.actualFPS = Math.round(this.frameCount * 1000 / (currentTime - this.fpsUpdateTime));
-        this.frameCount = 0;
-        this.fpsUpdateTime = currentTime;
-        
-        if (this.eventBus) {
-          this.eventBus.emit('fps-update', {
-            fps: this.actualFPS,
-            targetFPS: this.targetFPS,
-            deltaTime: this.deltaTime,
-            performance: this.performanceStats
-          });
+        this.frameCount++;
+        if (currentTime - this.fpsUpdateTime >= 1000) {
+          this.actualFPS = Math.round(this.frameCount * 1000 / (currentTime - this.fpsUpdateTime));
+          this.frameCount = 0;
+          this.fpsUpdateTime = currentTime;
+          
+          if (this.eventBus) {
+            this.eventBus.emit('fps-update', {
+              fps: this.actualFPS,
+              targetFPS: this.targetFPS,
+              deltaTime: this.deltaTime,
+              performance: this.performanceStats
+            });
+          }
         }
-      }
+
+        this.gameLoopId = requestAnimationFrame(loop);
+      };
 
       this.gameLoopId = requestAnimationFrame(loop);
-    };
-
-    this.gameLoopId = requestAnimationFrame(loop);
-  }
-
-  stop() {
-    this.isRunning = false;
-    if (this.gameLoopId) {
-      cancelAnimationFrame(this.gameLoopId);
-      this.gameLoopId = null;
     }
-    console.log('GameLoop: Stopped');
-  }
 
-  pause() {
-    if (this.isRunning) {
-      this.stop();
-      if (this.eventBus) {
-        this.eventBus.emit('game-paused');
+    stop() {
+      this.isRunning = false;
+      if (this.gameLoopId) {
+        cancelAnimationFrame(this.gameLoopId);
+        this.gameLoopId = null;
+      }
+      console.log('GameLoop: Stopped');
+    }
+
+    pause() {
+      if (this.isRunning) {
+        this.stop();
+        if (this.eventBus) {
+          this.eventBus.emit('game-paused');
+        }
       }
     }
-  }
 
-  resume() {
-    if (!this.isRunning) {
-      this.start({
-        onUpdate: this.onUpdate,
-        onRender: this.onRender,
-        targetFPS: this.targetFPS
-      });
-      if (this.eventBus) {
-        this.eventBus.emit('game-resumed');
+    resume() {
+      if (!this.isRunning) {
+        this.start({
+          onUpdate: this.onUpdate,
+          onRender: this.onRender,
+          targetFPS: this.targetFPS
+        });
+        if (this.eventBus) {
+          this.eventBus.emit('game-resumed');
+        }
       }
     }
-  }
 
-  updatePerformanceStats() {
-    const targetFrameTime = 1 / this.targetFPS;
-    
-    this.performanceStats.avgDeltaTime = 
-      (this.performanceStats.avgDeltaTime * 0.9) + (this.deltaTime * 0.1);
-    
-    this.performanceStats.minDeltaTime = 
-      Math.min(this.performanceStats.minDeltaTime, this.deltaTime);
-    
-    this.performanceStats.maxDeltaTime = 
-      Math.max(this.performanceStats.maxDeltaTime, this.deltaTime);
+    updatePerformanceStats() {
+      const targetFrameTime = 1 / this.targetFPS;
+      
+      this.performanceStats.avgDeltaTime = 
+        (this.performanceStats.avgDeltaTime * 0.9) + (this.deltaTime * 0.1);
+      
+      this.performanceStats.minDeltaTime = 
+        Math.min(this.performanceStats.minDeltaTime, this.deltaTime);
+      
+      this.performanceStats.maxDeltaTime = 
+        Math.max(this.performanceStats.maxDeltaTime, this.deltaTime);
 
-    if (this.deltaTime > targetFrameTime * 1.5) {
-      this.performanceStats.frameDrops++;
+      if (this.deltaTime > targetFrameTime * 1.5) {
+        this.performanceStats.frameDrops++;
+      }
+    }
+
+    getPerformanceStats() {
+      return {
+        ...this.performanceStats,
+        actualFPS: this.actualFPS,
+        targetFPS: this.targetFPS,
+        deltaTime: this.deltaTime,
+        isRunning: this.isRunning
+      };
+    }
+
+    resetPerformanceStats() {
+      this.performanceStats = {
+        avgDeltaTime: 0,
+        minDeltaTime: Infinity,
+        maxDeltaTime: 0,
+        frameDrops: 0
+      };
     }
   }
-
-  getPerformanceStats() {
-    return {
-      ...this.performanceStats,
-      actualFPS: this.actualFPS,
-      targetFPS: this.targetFPS,
-      deltaTime: this.deltaTime,
-      isRunning: this.isRunning
-    };
-  }
-
-  resetPerformanceStats() {
-    this.performanceStats = {
-      avgDeltaTime: 0,
-      minDeltaTime: Infinity,
-      maxDeltaTime: 0,
-      frameDrops: 0
-    };
-  }
-}

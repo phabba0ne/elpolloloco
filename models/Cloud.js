@@ -23,7 +23,7 @@ export default class Cloud extends MovableObject {
 
     this.x = x;
     this.y = y;
-    this.width = width;
+    this.width = 480;
     this.height = height;
     this.speed = speed;
     this.SPRITES = sprites || Cloud.DEFAULT_SPRITES;

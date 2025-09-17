@@ -9,13 +9,13 @@ import AssetManager from "./AssetManager.js";
 export default class AudioHub {
   /** @type {string[]} List of all sound paths loaded */
   static allPaths = [];
-  
+
   /** @type {boolean} Global mute state */
   static isMuted = false;
-  
+
   /** @type {number} Global volume (0-1) */
   static volume = 0.2;
-  
+
   /** @type {Map<string, HTMLAudioElement>} Currently playing sounds */
   static activeSounds = new Map();
 
@@ -26,7 +26,7 @@ export default class AudioHub {
    */
   static async preload() {
     console.log("AudioHub: Preloading sounds...");
-    
+
     const allSoundGroups = [
       AssetManager.SALSASOUNDS,
       AssetManager.COIN_SOUNDS,
@@ -36,16 +36,16 @@ export default class AudioHub {
       AssetManager.PEPE_SOUNDS,
       AssetManager.AMBIENT,
     ];
-    
+
     // Collect all valid paths
     const allPaths = allSoundGroups
       .flatMap((group) => Object.values(group).flat())
       .filter(Boolean); // Filter out empty strings
-    
+
     // Load all sounds into the cache
     await AssetManager.loadAudios(allPaths);
     this.allPaths = allPaths;
-    
+
     console.log(`AudioHub: Preloaded ${allPaths.length} sounds`);
   }
 
@@ -61,13 +61,13 @@ export default class AudioHub {
       console.warn(`AudioHub: Sound group '${groupName}' does not exist`);
       return null;
     }
-    
+
     const paths = group[key];
     if (!paths || paths.length === 0) {
       console.warn(`AudioHub: No sound found under '${groupName}.${key}'`);
       return null;
     }
-    
+
     const path = paths[0]; // Use the first sound path
     return AssetManager.getAudio(path);
   }
@@ -81,44 +81,50 @@ export default class AudioHub {
    */
   static playOne(groupName, key, instrumentId = null) {
     if (this.isMuted) return null;
-    
+
     const sound = this.getSound(groupName, key);
     if (!sound) return null;
-    
+
     // Create a clone to allow overlapping sounds
     const soundClone = sound.cloneNode();
     soundClone.volume = this.volume;
-    
+
     try {
       const promise = soundClone.play();
       if (promise) {
-        promise.catch(error => {
-          console.warn(`AudioHub: Error playing ${groupName}.${key}:`, error);
+        promise.catch((error) => {
+          // Silently ignore AbortError - it's harmless and happens during normal gameplay
+          if (error.name !== "AbortError") {
+            console.warn(
+              `AudioHub: Error playing ${groupName}.${key}:`,
+              error.name
+            );
+          }
         });
       }
-      
+
       // Track active sounds
       const soundId = `${groupName}_${key}_${Date.now()}`;
       this.activeSounds.set(soundId, soundClone);
-      
+
       // Remove from tracking when finished
-      soundClone.addEventListener('ended', () => {
+      soundClone.addEventListener("ended", () => {
         this.activeSounds.delete(soundId);
       });
-      
+
       // Visual feedback if needed
       if (instrumentId) {
         const instrumentImg = document.getElementById(instrumentId);
         if (instrumentImg) {
           instrumentImg.classList.add("active");
-          
+
           // Remove active class when sound ends
-          soundClone.addEventListener('ended', () => {
+          soundClone.addEventListener("ended", () => {
             instrumentImg.classList.remove("active");
           });
         }
       }
-      
+
       return soundClone;
     } catch (error) {
       console.error(`AudioHub: Failed to play ${groupName}.${key}:`, error);
@@ -131,12 +137,12 @@ export default class AudioHub {
    */
   static stopAll() {
     // Stop tracked sounds
-    this.activeSounds.forEach(sound => {
+    this.activeSounds.forEach((sound) => {
       sound.pause();
       sound.currentTime = 0;
     });
     this.activeSounds.clear();
-    
+
     // Also stop any cached sounds (as backup)
     this.allPaths.forEach((path) => {
       const sound = AssetManager.getAudio(path);
@@ -145,7 +151,7 @@ export default class AudioHub {
         sound.currentTime = 0;
       }
     });
-    
+
     // Reset any visual indicators
     const instrumentImages = document.querySelectorAll(".sound_img");
     instrumentImages.forEach((img) => img.classList.remove("active"));
@@ -163,7 +169,7 @@ export default class AudioHub {
       sound.pause();
       sound.currentTime = 0;
     }
-    
+
     // Also stop any playing clones of this sound
     this.activeSounds.forEach((sound, soundId) => {
       if (soundId.startsWith(`${groupName}_${key}`)) {
@@ -172,7 +178,7 @@ export default class AudioHub {
         this.activeSounds.delete(soundId);
       }
     });
-    
+
     // Visual feedback
     if (instrumentId) {
       const instrumentImg = document.getElementById(instrumentId);
@@ -186,7 +192,7 @@ export default class AudioHub {
    */
   static setMute(muted) {
     this.isMuted = muted;
-    
+
     if (muted) {
       this.stopAll();
     }
@@ -198,9 +204,9 @@ export default class AudioHub {
    */
   static setVolume(volume) {
     this.volume = Math.max(0, Math.min(1, volume));
-    
+
     // Update currently playing sounds
-    this.activeSounds.forEach(sound => {
+    this.activeSounds.forEach((sound) => {
       sound.volume = this.volume;
     });
   }

@@ -1,119 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>El pollo loco</title>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="shortcut icon"
-      href="assets/icons/favicon.ico"
-      type="image/x-icon"
-    />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: #222;
-        color: white;
-      }
 
-      canvas {
-        border: 2px solid #fff;
-        background: #444;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El pollo loco</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100dvh;
+      background: #222;
+      color: white;
+    }
 
-      #overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.85);
-        padding: 30px 50px;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        text-align: center;
-        z-index: 100;
-        color: #fff;
-        font-size: 16px;
-        visibility: hidden;
-      }
+    canvas {
+      border: 2px solid #fff;
+      background: #444;
+    }
 
-      #overlay button {
-        padding: 8px 16px;
-        font-size: 14px;
-        cursor: pointer;
-        border: none;
-        border-radius: 6px;
-        background: #ffcc00;
-        color: #000;
-        transition: 0.2s;
-      }
+    #overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      padding: 30px 50px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      text-align: center;
+      z-index: 100;
+      color: #fff;
+      font-size: 16px;
+      visibility: hidden;
+    }
 
-      #overlay button:hover {
-        background: #ffd633;
-      }
+    #overlay button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #ffcc00;
+      color: #000;
+      transition: 0.2s;
+    }
 
-      #overlay label {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-    </style>
-  </head>
+    #overlay button:hover {
+      background: #ffd633;
+    }
 
-  <body>
-    <h1>El pollo loco</h1>
+    #overlay label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
+</head>
 
-    <canvas width="720px" height="480px" id="canvas"></canvas>
-
-    <div id="overlay">
-      <div id="gameOverScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
-        <h2>GAME OVER</h2>
-        <button id="retryBtn">Retry Level</button>
-        <button id="mainMenuBtn">Main Menu</button>
-      </div>
-
-      <div id="victoryScreen" style="display: none; flex-direction: column; align-items: center; gap: 15px;">
-        <h2>VICTORY!</h2>
-        <button id="nextLevelBtn">Next Level</button>
-        <button id="mainMenuBtnVictory">Main Menu</button>
-      </div>
-
-      <button id="createBtn">START GAME</button>
-      <button id="restartBtn">RETRY LEVEL</button>
-      <button id="resumeBtn">RESUME GAME</button>
-
-      <label>
-        <input type="checkbox" id="hardModeToggle" />
-        Toggle Hard Mode
-      </label>
-
+<body>
+  <h1>El pollo loco</h1>
+  <canvas width="720px" height="480px" id="canvas"></canvas>
+  <div id="overlay">
+    <div id="gameOverScreen" style="
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+        ">
+      <img id="gameOverImage" class="screen-image" src="" alt="Game Over" />
+      <h2>GAME OVER</h2>
+      <button id="retryBtn">Retry Level</button>
     </div>
 
-    <script type="module" src="scripts/game.js" defer></script>
-    <script type="module">
-      const overlay = document.getElementById("overlay");
+    <div id="victoryScreen" style="
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          max-height: 100dvh;
+          gap: 15px;
+        ">
+      <img id="victoryImage" class="screen-image" src="" alt="Victory" />
+      <h2>VICTORY!</h2>
+      <button id="restartGameBtn">Restart Game</button>
+    </div>
 
+    <div id="lostScreen" style="
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          max-height: 90dvh;
+          gap: 15px;
+        ">
+      <img id="lostImage" class="screen-image" src="" alt="You Lost" />
+      <button id="restartAfterLostBtn">Restart Game</button>
+    </div>
+
+    <div id="pauseScreen" style="
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      max-height: 90dvh;
+      gap: 15px;
+    ">
+      <h2>GAME PAUSED</h2>
+      <button id="resumeBtn">Resume Game</button>
+      <button id="restartLevelBtn">Restart Level</button>
+    </div>
+
+    <script type="module" src="scripts/game.js"></script>
+
+    <script type="module">
+      const GAME_OVER_IMAGES = {
+        over: [
+          "assets/img/youWonYouLost/gameOver.png",
+          "assets/img/youWonYouLost/gameOverA.png",
+        ],
+        win: [
+          "assets/img/youWonYouLost/youWinA.png",
+          "assets/img/youWonYouLost/youWinB.png",
+        ],
+        won: [
+          "assets/img/youWonYouLost/youWonA.png",
+          "assets/img/youWonYouLost/youWonB.png",
+        ],
+        lost: [
+          "assets/img/youWonYouLost/youLost.png",
+          "assets/img/youWonYouLost/youLostA.png",
+        ],
+      };
+
+      window.gameStarted = false;
+      window.shouldStartGame = false;
+      let isPausedByUser = false;
+
+      function getRandomImage(imageArray) {
+        return imageArray[Math.floor(Math.random() * imageArray.length)];
+      }
+      class OnscreenControls {
+        constructor() {
+          this.setupControls();
+        }
+
+        setupControls() {
+          const buttons = document.querySelectorAll(
+            "#onscreen-controls button"
+          );
+
+          buttons.forEach((button) => {
+            let keyCode;
+
+            if (button.classList.contains("btn-left")) keyCode = "ArrowLeft";
+            else if (button.classList.contains("btn-right"))
+              keyCode = "ArrowRight";
+            else if (button.classList.contains("btn-up")) keyCode = "ArrowUp";
+            else if (button.classList.contains("btn-down"))
+              keyCode = "ArrowDown";
+            else if (button.classList.contains("btn-jump")) keyCode = "Space";
+            else if (button.classList.contains("btn-attack")) keyCode = "KeyF";
+
+            if (keyCode) {
+              const trigger = (type) => {
+                document.dispatchEvent(
+                  new KeyboardEvent(type, { code: keyCode })
+                );
+              };
+
+              button.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                trigger("keydown");
+              });
+
+              button.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                trigger("keyup");
+              });
+
+              button.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                trigger("keydown");
+              });
+
+              button.addEventListener("mouseup", (e) => {
+                e.preventDefault();
+                trigger("keyup");
+              });
+            }
+          });
+        }
+      }
+
+      const overlay = document.getElementById("overlay");
       const gameOverScreen = document.getElementById("gameOverScreen");
       const retryBtn = document.getElementById("retryBtn");
       const mainMenuBtn = document.getElementById("mainMenuBtn");
 
+      function initializeEnhancements() {
+        const continueBtn = document.getElementById("continueToGameOverBtn");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const restartLevelBtn = document.getElementById("restartLevelBtn");
+        const restartGameBtn = document.getElementById("restartGameBtn");
+        const restartAfterLostBtn = document.getElementById("restartAfterLostBtn");
+        const resumeBtn = document.getElementById("resumeBtn");
+        const retryBtn = document.getElementById("retryBtn");
+        const startBtn = document.getElementById("startBtn");
+
+        if (continueBtn) {
+          continueBtn.addEventListener("click", () => showGameOver());
+        }
+
+        if (fullscreenBtn) {
+          fullscreenBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch((err) => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+              });
+            } else {
+              document.exitFullscreen();
+            }
+          });
+        }
+
+        if (resumeBtn) {
+          resumeBtn.addEventListener("click", () => hidePauseScreen());
+        }
+
+        // All restart buttons use complete reset
+        [restartLevelBtn, restartGameBtn, restartAfterLostBtn, retryBtn].forEach(btn => {
+          if (btn) {
+            btn.addEventListener("click", () => resetToStartScreen());
+          }
+        });
+
+        if (startBtn) {
+          startBtn.addEventListener("click", () => {
+            localStorage.setItem('gameMuted', 'false');
+            if (window.AudioHub) window.AudioHub.setMute(false);
+            hideOverlay();
+            window.shouldStartGame = true;
+            window.gameStarted = true;
+          });
+        }
+
+        const controlsContainer = document.getElementById("onscreen-controls");
+        if (controlsContainer) {
+          new OnscreenControls();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeEnhancements);
+
       function showGameOver() {
+        const gameOverImage = document.getElementById("gameOverImage");
+        if (gameOverImage) {
+          gameOverImage.src = getRandomImage(GAME_OVER_IMAGES.over);
+        }
         overlay.style.visibility = "visible";
         gameOverScreen.style.display = "flex";
         victoryScreen.style.display = "none";
+        document.getElementById("lostScreen").style.display = "none";
         window.isPaused = true;
       }
 
@@ -128,18 +288,19 @@
         if (window.restartLevel) window.restartLevel();
       });
 
-      mainMenuBtn.addEventListener("click", () => {
-        hideGameOver();
-      });
-
       const victoryScreen = document.getElementById("victoryScreen");
-      const nextLevelBtn = document.getElementById("nextLevelBtn");
-      const mainMenuBtnVictory = document.getElementById("mainMenuBtnVictory");
 
       function showVictory() {
+        const victoryImage = document.getElementById("victoryImage");
+        if (victoryImage) {
+          const imagePool =
+            Math.random() < 0.5 ? GAME_OVER_IMAGES.win : GAME_OVER_IMAGES.won;
+          victoryImage.src = getRandomImage(imagePool);
+        }
         overlay.style.visibility = "visible";
         victoryScreen.style.display = "flex";
         gameOverScreen.style.display = "none";
+        document.getElementById("lostScreen").style.display = "none";
         window.isPaused = true;
       }
 
@@ -149,19 +310,56 @@
         window.isPaused = false;
       }
 
-      nextLevelBtn.addEventListener("click", () => {
-        hideVictory();
-        if (window.nextLevel) window.nextLevel();
-      });
+      function showLost() {
+        const lostImage = document.getElementById("lostImage");
+        if (lostImage) {
+          lostImage.src = getRandomImage(GAME_OVER_IMAGES.lost);
+        }
+        overlay.style.visibility = "visible";
+        document.getElementById("lostScreen").style.display = "flex";
+        gameOverScreen.style.display = "none";
+        victoryScreen.style.display = "none";
+        document.getElementById("pauseScreen").style.display = "none";
+        window.isPaused = true;
+      }
 
-      mainMenuBtnVictory.addEventListener("click", () => {
-        hideVictory();
-      });
+      function resetToStartScreen() {
+        // Safely stop game systems with proper checks
+        try {
+          if (window.IntervalHub && typeof window.IntervalHub.stop === 'function') {
+            window.IntervalHub.stop();
+          }
+        } catch (e) {
+          console.log("IntervalHub stop not available:", e);
+        }
 
-      const startBtn = document.getElementById("createBtn");
-      const restartBtn = document.getElementById("restartBtn");
-      const resumeBtn = document.getElementById("resumeBtn");
-      const hardModeToggle = document.getElementById("hardModeToggle");
+        try {
+          if (window.AudioHub && typeof window.AudioHub.stopAll === 'function') {
+            window.AudioHub.stopAll();
+          }
+        } catch (e) {
+          console.log("AudioHub stopAll not available:", e);
+        }
+
+        // Reset game state
+        window.gameStarted = false;
+        window.world = null;
+        window.character = null;
+
+        // Hide all overlays
+        overlay.style.visibility = "hidden";
+        document.getElementById("pauseScreen").style.display = "none";
+        gameOverScreen.style.display = "none";
+        victoryScreen.style.display = "none";
+        document.getElementById("lostScreen").style.display = "none";
+
+        window.isPaused = false;
+
+        // Force complete reset
+        window.location.reload();
+      }
+
+
 
       function showOverlay() {
         overlay.style.visibility = "visible";
@@ -172,17 +370,53 @@
         overlay.style.visibility = "hidden";
         window.isPaused = false;
       }
+      function showPauseScreen() {
+        overlay.style.visibility = "visible";
+        document.getElementById("pauseScreen").style.display = "flex";
+        gameOverScreen.style.display = "none";
+        victoryScreen.style.display = "none";
+        document.getElementById("lostScreen").style.display = "none";
+        window.isPaused = true;
 
-      startBtn.addEventListener("click", hideOverlay);
-      restartBtn.addEventListener("click", hideOverlay);
-      resumeBtn.addEventListener("click", hideOverlay);
+        // Safely pause game systems
+        try {
+          if (window.IntervalHub && typeof window.IntervalHub.pause === 'function') {
+            window.IntervalHub.pause();
+          }
+        } catch (e) {
+          console.log("IntervalHub pause not available:", e);
+        }
+      }
 
-      hardModeToggle.addEventListener("change", (e) => console.log("HARD Mode toggled:", e.target.checked));
+      function hidePauseScreen() {
+        overlay.style.visibility = "hidden";
+        document.getElementById("pauseScreen").style.display = "none";
+        window.isPaused = false;
+        isPausedByUser = false;
+
+        // Safely resume game systems
+        try {
+          if (window.IntervalHub && typeof window.IntervalHub.resume === 'function') {
+            window.IntervalHub.resume();
+          }
+        } catch (e) {
+          console.log("IntervalHub resume not available:", e);
+        }
+      }
 
       window.addEventListener("keydown", (e) => {
         if (e.code === "KeyP") {
-          overlay.style.visibility = overlay.style.visibility === "visible" ? "hidden" : "visible";
-          window.isPaused = overlay.style.visibility === "visible";
+          const startBtn = document.getElementById("startBtn");
+          const isStartScreenVisible = startBtn && startBtn.offsetParent !== null;
+
+          if (!isStartScreenVisible) {
+            isPausedByUser = !isPausedByUser;
+            if (isPausedByUser) {
+              showPauseScreen();
+            } else {
+              hidePauseScreen();
+            }
+          }
         }
       });
 
@@ -201,6 +435,35 @@
 
       window.showGameOver = showGameOver;
       window.showVictory = showVictory;
+      window.showLost = showLost;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        new OnscreenControls();
+      });
+
+
+      if (restartLevelBtn) {
+        restartLevelBtn.addEventListener("click", () => {
+          hidePauseScreen();
+          if (window.restartLevel) {
+            window.restartLevel();
+          } else {
+            window.location.reload(); // Fallback
+          }
+        });
+      }
     </script>
-  </body>
+
+    <button id="fullscreen-btn" title="Toggle Fullscreen">⛶</button>
+
+    <div id="onscreen-controls">
+      <button class="btn-up">▲</button>
+      <button class="btn-left">◀</button>
+      <button class="btn-down">▼</button>
+      <button class="btn-right">▶</button>
+      <button class="btn-jump">⭡</button>
+      <button class="btn-attack">⚔</button>
+    </div>
+</body>
+
 </html>
